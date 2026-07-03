@@ -4,6 +4,7 @@
  */
 import { execSync, spawn } from "child_process";
 import { rmSync, existsSync } from "fs";
+import { networkInterfaces } from "os";
 import { join, dirname } from "path";
 import { fileURLToPath } from "url";
 
@@ -11,6 +12,18 @@ const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const nextDir = join(root, ".next");
 const cacheDir = join(root, "node_modules", ".cache");
 const nextBin = join(root, "node_modules", "next", "dist", "bin", "next");
+
+function getLocalIp() {
+  const nets = networkInterfaces();
+  for (const name of Object.keys(nets)) {
+    for (const net of nets[name] ?? []) {
+      if (net.family === "IPv4" && !net.internal) {
+        return net.address;
+      }
+    }
+  }
+  return null;
+}
 
 function killPort(port) {
   try {
@@ -34,7 +47,13 @@ if (existsSync(cacheDir)) {
 
 console.log("Starting dev server (clean cache)...");
 
-const child = spawn(process.execPath, [nextBin, "dev", "--turbo", "-H", "127.0.0.1"], {
+const localIp = getLocalIp();
+console.log("Local:   http://127.0.0.1:3000/tr");
+if (localIp) {
+  console.log(`Phone:   http://${localIp}:3000/tr  (same Wi-Fi)`);
+}
+
+const child = spawn(process.execPath, [nextBin, "dev", "--turbo", "-H", "0.0.0.0"], {
   cwd: root,
   stdio: "inherit",
   env: {
