@@ -1,0 +1,11 @@
+node_modules
+.next
+out
+.env
+.env*.local
+.DS_Store
+*.pem
+
+# Runtime data (müşteri bilgileri içerir)
+data/orders.json
+data/customers.json

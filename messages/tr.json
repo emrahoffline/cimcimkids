@@ -1,0 +1,242 @@
+{
+  "meta": {
+    "title": "AryaBamboo | El Yapımı Bamboo Ürünler",
+    "description": "AryaBamboo — doğal, el yapımı bamboo tasarımlar. Sürdürülebilir ve şık ürünler."
+  },
+  "nav": {
+    "home": "Anasayfa",
+    "about": "Hakkımızda",
+    "products": "Ürünlerimiz",
+    "contact": "İletişim",
+    "faq": "SSS",
+    "tracking": "Kargo Takibi",
+    "cart": "Sepet",
+    "favorites": "Favoriler",
+    "account": "Hesabım",
+    "menu": "Menü",
+    "language": "Dil",
+    "signIn": "Giriş Yap"
+  },
+  "home": {
+    "heroTitle": "Doğanın Zarafeti, Elinizde",
+    "heroSubtitle": "El yapımı bamboo ürünlerle yaşam alanınıza sıcaklık ve sürdürülebilirlik katın.",
+    "shopNow": "Alışverişe Başla",
+    "learnMore": "Hikayemizi Keşfet",
+    "featured": "Öne Çıkan Ürünler",
+    "featuredDesc": "Özenle hazırlanmış, doğal bamboo koleksiyonumuz",
+    "craftTitle": "El İşçiliği & Doğallık",
+    "craftDesc": "Her parça usta zanaatkârlar tarafından özenle üretilir. Sürdürülebilir bamboo, modern tasarımla buluşuyor.",
+    "sustainTitle": "Sürdürülebilir Yaşam",
+    "sustainDesc": "Çevre dostu malzemeler, plastikten uzak bir yaşam tarzı için ideal seçimler.",
+    "newsletter": "Yeniliklerden haberdar olun",
+    "newsletterDesc": "Yeni koleksiyonlar ve özel indirimler için e-posta listemize katılın.",
+    "emailPlaceholder": "E-posta adresiniz",
+    "subscribe": "Abone Ol"
+  },
+  "about": {
+    "title": "Hakkımızda",
+    "subtitle": "AryaBamboo'nun hikayesi",
+    "p1": "AryaBamboo, doğanın en yenilenebilir kaynağı olan bambuyu el işçiliğiyle buluşturan bir markadır. Amacımız, günlük yaşamınıza estetik ve sürdürülebilir ürünler sunmaktır.",
+    "p2": "Atölyemizde her ürün tek tek, usta zanaatkârlar tarafından hazırlanır. Plastik alternatiflere karşı doğal bir yaşam tarzını destekliyoruz.",
+    "p3": "Kalite, doğallık ve müşteri memnuniyeti temel değerlerimizdir. Siz de bu yolculuğa bizimle katılın.",
+    "values": "Değerlerimiz",
+    "value1": "El yapımı kalite",
+    "value2": "Sürdürülebilir üretim",
+    "value3": "Doğal malzemeler",
+    "value4": "Müşteri odaklı hizmet"
+  },
+  "products": {
+    "title": "Ürünlerimiz",
+    "subtitle": "El yapımı bamboo koleksiyonumuz",
+    "addToCart": "Sepete Ekle",
+    "viewDetails": "Detayları Gör",
+    "price": "Fiyat",
+    "inStock": "Stokta",
+    "outOfStock": "Tükendi",
+    "category": "Kategori",
+    "all": "Tümü",
+    "decor": "Dekorasyon",
+    "kitchen": "Mutfak",
+    "storage": "Depolama"
+  },
+  "productItems": {
+    "lantern": {
+      "name": "Bamboo Fener",
+      "desc": "El örgüsü bamboo fener, sıcak ve doğal bir ambiyans için ideal."
+    },
+    "basket": {
+      "name": "Bamboo Sepet",
+      "desc": "Çok amaçlı el yapımı bamboo sepet, ev ve bahçe için."
+    },
+    "tray": {
+      "name": "Bamboo Tepsi",
+      "desc": "Zarif bamboo servis tepsisi, mutfak ve sofralarınız için."
+    },
+    "organizer": {
+      "name": "Bamboo Organizer",
+      "desc": "Masaüstü veya mutfak düzeni için şık bamboo organizer."
+    }
+  },
+  "contact": {
+    "title": "İletişim",
+    "subtitle": "Size yardımcı olmaktan mutluluk duyarız",
+    "name": "Ad Soyad",
+    "email": "E-posta",
+    "phone": "Telefon",
+    "message": "Mesajınız",
+    "send": "Gönder",
+    "success": "Mesajınız alındı. En kısa sürede dönüş yapacağız.",
+    "address": "Adres",
+    "addressValue": "İstanbul, Türkiye",
+    "hours": "Çalışma Saatleri",
+    "hoursValue": "Pzt–Cmt 09:00–18:00"
+  },
+  "faq": {
+    "title": "Sıkça Sorulan Sorular",
+    "subtitle": "Merak ettiklerinizin cevapları",
+    "q1": "Ürünler gerçekten el yapımı mı?",
+    "a1": "Evet, tüm ürünlerimiz atölyemizde usta zanaatkârlar tarafından el ile üretilmektedir.",
+    "q2": "Kargo ne kadar sürer?",
+    "a2": "Türkiye içi siparişler 2–5 iş günü içinde teslim edilir. Kargo takip sayfamızdan siparişinizi izleyebilirsiniz.",
+    "q3": "Hangi ödeme yöntemlerini kabul ediyorsunuz?",
+    "a3": "Havale/EFT ile banka transferi kabul ediyoruz. Sipariş sonrası IBAN bilgilerimiz ve WhatsApp iletişim hattımız paylaşılır.",
+    "q4": "Ürünler suya dayanıklı mı?",
+    "a4": "Bamboo ürünlerimiz doğal yapısı gereği nemden etkilenebilir. Kullanım talimatları ürün sayfasında belirtilmiştir.",
+    "q5": "Hediye paketi yapılıyor mu?",
+    "a5": "Evet, sipariş notuna 'hediye paketi' yazmanız yeterlidir. Ücretsiz hediye paketi sunuyoruz."
+  },
+  "tracking": {
+    "title": "Kargo Takibi",
+    "subtitle": "Siparişinizin durumunu öğrenin",
+    "orderNumber": "Sipariş Numarası",
+    "email": "E-posta Adresi",
+    "track": "Sorgula",
+    "status": "Durum",
+    "notFound": "Sipariş bulunamadı. Lütfen bilgilerinizi kontrol edin.",
+    "demoNote": "Demo: AB-12345 ve demo@email.com ile test edebilirsiniz.",
+    "steps": {
+      "confirmed": "Sipariş Onaylandı",
+      "preparing": "Hazırlanıyor",
+      "shipped": "Kargoya Verildi",
+      "delivered": "Teslim Edildi"
+    }
+  },
+  "returns": {
+    "title": "İptal ve İade Koşulları",
+    "subtitle": "Müşteri memnuniyeti önceliğimizdir",
+    "s1title": "İade Süresi",
+    "s1": "Ürünü teslim aldığınız tarihten itibaren 14 gün içinde cayma hakkınızı kullanabilirsiniz.",
+    "s2title": "İade Koşulları",
+    "s2": "Ürün kullanılmamış, orijinal ambalajında ve hasarsız olmalıdır.",
+    "s3title": "İptal",
+    "s3": "Kargoya verilmeden önce siparişinizi ücretsiz iptal edebilirsiniz.",
+    "s4title": "Geri Ödeme",
+    "s4": "İade onaylandıktan sonra 10 iş günü içinde ödemeniz iade edilir."
+  },
+  "privacy": {
+    "title": "Gizlilik ve Güvenlik Politikası",
+    "updated": "Son güncelleme: Mayıs 2026",
+    "intro": "AryaBamboo olarak kişisel verilerinizin güvenliğine önem veriyoruz.",
+    "s1": "Toplanan veriler yalnızca sipariş işleme ve müşteri hizmetleri için kullanılır.",
+    "s2": "Ödeme bilgileriniz yalnızca havale/EFT işlemleri için kullanılır ve üçüncü taraflarla paylaşılmaz.",
+    "s3": "Çerezler site deneyimini iyileştirmek için kullanılır; tarayıcı ayarlarından yönetebilirsiniz."
+  },
+  "distanceSales": {
+    "title": "Mesafeli Satış Sözleşmesi",
+    "updated": "Son güncelleme: Mayıs 2026",
+    "s1": "Bu sözleşme, AryaBamboo ile tüketici arasında 6502 sayılı Tüketicinin Korunması Hakkında Kanun kapsamında düzenlenmiştir.",
+    "s2": "Sipariş onayı e-posta ile bildirilir. Cayma hakkı 14 gün içinde kullanılabilir.",
+    "s3": "Ürün fiyatları KDV dahildir. Ödeme havale/EFT ile yapılır; kargo ücretsizdir."
+  },
+  "kvkk": {
+    "title": "KVKK Aydınlatma Metni",
+    "updated": "Son güncelleme: Haziran 2026",
+    "intro": "6698 sayılı Kişisel Verilerin Korunması Kanunu (\"KVKK\") kapsamında, AryaBamboo olarak kişisel verilerinizin işlenmesine ilişkin sizi bilgilendiriyoruz.",
+    "s1title": "1. Veri Sorumlusu",
+    "s1": "Veri sorumlusu: AryaBamboo. Adres: İstanbul, Türkiye. İletişim: info@aryabamboo.com — Telefon: 0533 700 73 18",
+    "s2title": "2. İşlenen Kişisel Veriler",
+    "s2": "Kimlik bilgileri (ad, soyad), iletişim bilgileri (e-posta, telefon, adres), sipariş ve işlem bilgileri (ürünler, tutar, sipariş numarası), müşteri işlem geçmişi.",
+    "s3title": "3. Kişisel Verilerin İşlenme Amaçları",
+    "s3": "Siparişlerin alınması ve teslimatının sağlanması, ödeme süreçlerinin yürütülmesi (havale/EFT), müşteri hizmetleri ve iletişim, yasal yükümlülüklerin yerine getirilmesi, mesafeli satış sözleşmesinin ifası.",
+    "s4title": "4. Kişisel Verilerin Aktarılması",
+    "s4": "Kişisel verileriniz yalnızca yasal zorunluluk halinde yetkili kamu kurumlarına ve kargo firmalarına (teslimat için) aktarılabilir. Verileriniz yurt dışına aktarılmamaktadır.",
+    "s5title": "5. Kişisel Verilerin Toplanma Yöntemi ve Hukuki Sebep",
+    "s5": "Verileriniz web sitemizdeki sipariş formu, iletişim formu ve hesap oluşturma işlemleri aracılığıyla elektronik ortamda toplanmaktadır. Hukuki sebep: KVKK m.5/2-c (sözleşmenin kurulması veya ifası) ve m.5/2-f (meşru menfaat).",
+    "s6title": "6. Saklama Süresi",
+    "s6": "Kişisel verileriniz, işleme amacının gerektirdiği süre boyunca ve yasal saklama süreleri (ticari defter ve belgeler için 10 yıl) dikkate alınarak saklanır; süre sonunda silinir, yok edilir veya anonim hale getirilir.",
+    "s7title": "7. İlgili Kişinin Hakları",
+    "s7": "KVKK m.11 kapsamında; verilerinizin işlenip işlenmediğini öğrenme, işlenmişse bilgi talep etme, işlenme amacını ve amacına uygun kullanılıp kullanılmadığını öğrenme, yurt içinde veya yurt dışında aktarıldığı üçüncü kişileri bilme, eksik veya yanlış işlenmişse düzeltilmesini isteme, silinmesini veya yok edilmesini isteme haklarına sahipsiniz.",
+    "s8title": "8. Başvuru Yöntemi",
+    "s8": "Haklarınızı kullanmak için info@aryabamboo.com adresine yazılı başvuruda bulunabilirsiniz. Başvurularınız en geç 30 gün içinde ücretsiz olarak sonuçlandırılır."
+  },
+  "favorites": {
+    "title": "Favorilerim",
+    "subtitle": "Beğendiğiniz ürünler",
+    "empty": "Henüz favori ürününüz yok",
+    "browse": "Ürünlere Göz At",
+    "add": "Favorilere ekle",
+    "remove": "Favorilerden çıkar"
+  },
+  "cart": {
+    "title": "Sepetim",
+    "empty": "Sepetiniz boş",
+    "continueShopping": "Alışverişe Devam Et",
+    "subtotal": "Ara Toplam",
+    "shipping": "Kargo",
+    "freeShipping": "Ücretsiz",
+    "total": "Toplam",
+    "checkout": "Ödemeye Geç",
+    "remove": "Kaldır",
+    "quantity": "Adet"
+  },
+  "checkout": {
+    "title": "Sipariş",
+    "shippingInfo": "Teslimat Bilgileri",
+    "paymentInfo": "Ödeme Bilgileri",
+    "placeOrder": "Siparişi Tamamla",
+    "success": "Siparişiniz alındı!",
+    "successNote": "Siparişinizi WhatsApp üzerinden bize iletin. Ödeme onayından sonra kargoya verilecektir.",
+    "orderNumber": "Sipariş no",
+    "paymentNote": "Havale/EFT açıklama kısmına sipariş numaranızı yazınız.",
+    "bankTransferInfo": "Ödemenizi aşağıdaki IBAN hesabına havale/EFT ile yapabilirsiniz. Ödeme onayından sonra siparişiniz hazırlanır.",
+    "iban": "IBAN",
+    "accountHolder": "Alıcı",
+    "bankName": "Banka",
+    "whatsappButton": "WhatsApp ile Siparişi Gönder",
+    "whatsappHint": "Sipariş tamamlandığında WhatsApp açılacak ve sipariş detayları hazır mesaj olarak gönderilecektir.",
+    "namePlaceholder": "Ad Soyad",
+    "emailPlaceholder": "E-posta",
+    "phonePlaceholder": "Telefon (05XX XXX XX XX)",
+    "addressPlaceholder": "Adres",
+    "cityPlaceholder": "Şehir",
+    "kvkkConsent": "Kişisel verilerimin işlenmesini kabul ediyorum.",
+    "kvkkLink": "KVKK Aydınlatma Metni",
+    "kvkkRequired": "Devam etmek için KVKK metnini onaylamanız gerekmektedir.",
+    "error": "Sipariş oluşturulamadı. Lütfen tekrar deneyin."
+  },
+  "auth": {
+    "title": "Hesabım",
+    "signInTitle": "Giriş Yap",
+    "signInDesc": "Google veya Apple hesabınızla hızlıca giriş yapın.",
+    "google": "Google ile Giriş",
+    "apple": "Apple ile Giriş",
+    "signOut": "Çıkış Yap",
+    "welcome": "Hoş geldiniz",
+    "orders": "Siparişlerim",
+    "noOrders": "Henüz siparişiniz yok.",
+    "envNote": "Google / Apple girişi için .env.local dosyasına API anahtarlarını ekleyin.",
+    "adminOnlyStorefront": "Yönetici hesabınızla mağazaya müşteri olarak giriş yapamazsınız. Yönetim panelini kullanın.",
+    "goToAdmin": "Yönetim Paneline Git"
+  },
+  "footer": {
+    "shop": "Mağaza",
+    "support": "Destek",
+    "legal": "Yasal",
+    "privacy": "Gizlilik Politikası",
+    "distanceSales": "Mesafeli Satış Sözleşmesi",
+    "kvkk": "KVKK",
+    "returns": "İptal ve İade",
+    "rights": "Tüm hakları saklıdır.",
+    "tagline": "El yapımı bamboo tasarımlar"
+  }
+}

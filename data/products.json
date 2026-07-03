@@ -1,0 +1,54 @@
+[
+  {
+    "id": "1",
+    "slug": "bamboo-lantern",
+    "image": "/products/product-1.jpg",
+    "price": 449,
+    "category": "decor",
+    "translationKey": "lantern",
+    "nameTr": "Bamboo Fener",
+    "nameEn": "Bamboo Lantern",
+    "descTr": "El örgüsü bamboo fener, sıcak ve doğal bir ambiyans için ideal.",
+    "descEn": "Hand-woven bamboo lantern, perfect for a warm, natural ambiance.",
+    "inStock": true
+  },
+  {
+    "id": "2",
+    "slug": "bamboo-basket",
+    "image": "/products/product-2.jpg",
+    "price": 329,
+    "category": "storage",
+    "translationKey": "basket",
+    "nameTr": "Bamboo Sepet",
+    "nameEn": "Bamboo Basket",
+    "descTr": "Çok amaçlı el yapımı bamboo sepet, ev ve bahçe için.",
+    "descEn": "Versatile handmade bamboo basket for home and garden.",
+    "inStock": true
+  },
+  {
+    "id": "3",
+    "slug": "bamboo-tray",
+    "image": "/products/product-3.jpg",
+    "price": 279,
+    "category": "kitchen",
+    "translationKey": "tray",
+    "nameTr": "Bamboo Tepsi",
+    "nameEn": "Bamboo Tray",
+    "descTr": "Zarif bamboo servis tepsisi, mutfak ve sofralarınız için.",
+    "descEn": "Elegant bamboo serving tray for your kitchen and table.",
+    "inStock": true
+  },
+  {
+    "id": "4",
+    "slug": "bamboo-organizer",
+    "image": "/products/product-4.jpg",
+    "price": 199,
+    "category": "storage",
+    "translationKey": "organizer",
+    "nameTr": "Bamboo Organizer",
+    "nameEn": "Bamboo Organizer",
+    "descTr": "Masaüstü veya mutfak düzeni için şık bamboo organizer.",
+    "descEn": "Stylish bamboo organizer for desk or kitchen storage.",
+    "inStock": true
+  }
+]

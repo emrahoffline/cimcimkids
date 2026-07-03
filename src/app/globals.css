@@ -1,0 +1,148 @@
+@import "tailwindcss";
+
+@theme {
+  --color-cream: #f9f6f0;
+  --color-cream-dark: #f0ebe3;
+  --color-olive: #4a5d44;
+  --color-olive-light: #5a6f54;
+  --color-bamboo: #a68b5b;
+  --color-bamboo-light: #c4a87a;
+  --color-leaf: #7a8c54;
+  --font-serif: "Georgia", "Times New Roman", serif;
+  --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --mobile-nav-height: 4.25rem;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+  overflow-x: hidden;
+}
+
+body {
+  background-color: var(--color-cream);
+  color: #2c3329;
+  font-family: var(--font-sans);
+  -webkit-tap-highlight-color: transparent;
+  overflow-x: hidden;
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-serif);
+  color: var(--color-olive);
+}
+
+/* iPhone safe areas */
+.safe-top {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
+.safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.mobile-bottom-nav {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.mobile-drawer {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* Main content clearance for bottom nav on mobile */
+.mobile-main {
+  padding-bottom: calc(var(--mobile-nav-height) + env(safe-area-inset-bottom, 0px));
+}
+
+@media (min-width: 768px) {
+  .mobile-main {
+    padding-bottom: 0;
+  }
+}
+
+.btn-primary {
+  @apply inline-flex min-h-[44px] items-center justify-center gap-2 rounded-full bg-olive px-6 py-3 text-sm font-medium text-white transition active:scale-[0.98] hover:bg-olive-light;
+}
+
+.btn-secondary {
+  @apply inline-flex min-h-[44px] items-center justify-center gap-2 rounded-full border border-olive/30 bg-white px-6 py-3 text-sm font-medium text-olive transition active:scale-[0.98] hover:border-olive hover:bg-cream-dark;
+}
+
+.input-field {
+  @apply w-full min-h-[44px] rounded-lg border border-olive/20 bg-white px-4 py-3 text-base outline-none transition focus:border-olive focus:ring-2 focus:ring-olive/10;
+}
+
+@media (min-width: 768px) {
+  .input-field {
+    @apply text-sm;
+  }
+}
+
+.card {
+  @apply rounded-2xl border border-olive/10 bg-white p-4 shadow-sm sm:p-6;
+}
+
+.prose-page p {
+  @apply mb-4 leading-relaxed text-olive/80;
+}
+
+.prose-page h2 {
+  @apply mb-3 mt-8 text-xl font-semibold;
+}
+
+/* Page headings — responsive on phones */
+.page-title {
+  @apply text-2xl font-semibold sm:text-3xl lg:text-4xl;
+}
+
+.page-subtitle {
+  @apply mt-2 text-sm text-olive/60 sm:text-base;
+}
+
+/* Accessible checkbox on mobile */
+.checkbox-field {
+  @apply h-5 w-5 shrink-0 accent-olive;
+}
+
+/* Icon button touch target */
+.touch-target {
+  @apply inline-flex min-h-[44px] min-w-[44px] items-center justify-center;
+}
+
+/* Mobile touch targets */
+.mobile-nav-item {
+  min-height: 44px;
+  -webkit-touch-callout: none;
+  user-select: none;
+}
+
+.mobile-menu-link {
+  min-height: 44px;
+}
+
+/* Product grid: 2 columns on phones */
+.mobile-product-grid {
+  @apply grid grid-cols-2 gap-3 sm:gap-6 md:grid-cols-2 lg:grid-cols-4;
+}
+
+/* Sticky mobile checkout bar */
+.mobile-sticky-bar {
+  @apply fixed bottom-[calc(var(--mobile-nav-height)+env(safe-area-inset-bottom,0px))] left-0 right-0 z-30 border-t border-olive/10 bg-white/95 p-4 backdrop-blur-lg;
+}
+
+@media (min-width: 1024px) {
+  .mobile-sticky-bar {
+    position: relative;
+    bottom: auto;
+    border: none;
+    background: transparent;
+    padding: 0;
+    backdrop-filter: none;
+  }
+}

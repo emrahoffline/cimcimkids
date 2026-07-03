@@ -1,0 +1,242 @@
+{
+  "meta": {
+    "title": "AryaBamboo | Handmade Bamboo Products",
+    "description": "AryaBamboo — natural, handmade bamboo designs. Sustainable and elegant products."
+  },
+  "nav": {
+    "home": "Home",
+    "about": "About Us",
+    "products": "Products",
+    "contact": "Contact",
+    "faq": "FAQ",
+    "tracking": "Track Order",
+    "cart": "Cart",
+    "favorites": "Favorites",
+    "account": "My Account",
+    "menu": "Menu",
+    "language": "Language",
+    "signIn": "Sign In"
+  },
+  "home": {
+    "heroTitle": "Nature's Elegance, In Your Hands",
+    "heroSubtitle": "Bring warmth and sustainability to your space with handmade bamboo products.",
+    "shopNow": "Shop Now",
+    "learnMore": "Discover Our Story",
+    "featured": "Featured Products",
+    "featuredDesc": "Our carefully crafted natural bamboo collection",
+    "craftTitle": "Handcrafted & Natural",
+    "craftDesc": "Each piece is carefully made by master artisans. Sustainable bamboo meets modern design.",
+    "sustainTitle": "Sustainable Living",
+    "sustainDesc": "Eco-friendly materials — the perfect choice for a plastic-free lifestyle.",
+    "newsletter": "Stay in the loop",
+    "newsletterDesc": "Join our mailing list for new collections and exclusive offers.",
+    "emailPlaceholder": "Your email address",
+    "subscribe": "Subscribe"
+  },
+  "about": {
+    "title": "About Us",
+    "subtitle": "The AryaBamboo story",
+    "p1": "AryaBamboo is a brand that combines bamboo — nature's most renewable resource — with artisan craftsmanship. Our mission is to bring aesthetic, sustainable products into your daily life.",
+    "p2": "In our workshop, every product is made one by one by skilled artisans. We support a natural lifestyle as an alternative to plastic.",
+    "p3": "Quality, naturality, and customer satisfaction are our core values. Join us on this journey.",
+    "values": "Our Values",
+    "value1": "Handmade quality",
+    "value2": "Sustainable production",
+    "value3": "Natural materials",
+    "value4": "Customer-first service"
+  },
+  "products": {
+    "title": "Our Products",
+    "subtitle": "Our handmade bamboo collection",
+    "addToCart": "Add to Cart",
+    "viewDetails": "View Details",
+    "price": "Price",
+    "inStock": "In Stock",
+    "outOfStock": "Sold Out",
+    "category": "Category",
+    "all": "All",
+    "decor": "Decor",
+    "kitchen": "Kitchen",
+    "storage": "Storage"
+  },
+  "productItems": {
+    "lantern": {
+      "name": "Bamboo Lantern",
+      "desc": "Hand-woven bamboo lantern, perfect for a warm, natural ambiance."
+    },
+    "basket": {
+      "name": "Bamboo Basket",
+      "desc": "Versatile handmade bamboo basket for home and garden."
+    },
+    "tray": {
+      "name": "Bamboo Tray",
+      "desc": "Elegant bamboo serving tray for your kitchen and table."
+    },
+    "organizer": {
+      "name": "Bamboo Organizer",
+      "desc": "Stylish bamboo organizer for desk or kitchen storage."
+    }
+  },
+  "contact": {
+    "title": "Contact",
+    "subtitle": "We're happy to help",
+    "name": "Full Name",
+    "email": "Email",
+    "phone": "Phone",
+    "message": "Your Message",
+    "send": "Send",
+    "success": "Message received. We'll get back to you soon.",
+    "address": "Address",
+    "addressValue": "Istanbul, Turkey",
+    "hours": "Business Hours",
+    "hoursValue": "Mon–Sat 09:00–18:00"
+  },
+  "faq": {
+    "title": "Frequently Asked Questions",
+    "subtitle": "Answers to your questions",
+    "q1": "Are the products truly handmade?",
+    "a1": "Yes, all our products are handcrafted by skilled artisans in our workshop.",
+    "q2": "How long does shipping take?",
+    "a2": "Domestic orders are delivered within 2–5 business days. Track your order on our tracking page.",
+    "q3": "What payment methods do you accept?",
+    "a3": "We accept bank transfer (wire/EFT). After placing your order, we share our IBAN details and WhatsApp contact line.",
+    "q4": "Are the products water-resistant?",
+    "a4": "Our bamboo products may be affected by moisture due to their natural composition. Care instructions are on each product page.",
+    "q5": "Do you offer gift wrapping?",
+    "a5": "Yes, just note 'gift wrap' in your order. We offer complimentary gift wrapping."
+  },
+  "tracking": {
+    "title": "Order Tracking",
+    "subtitle": "Check your order status",
+    "orderNumber": "Order Number",
+    "email": "Email Address",
+    "track": "Track",
+    "status": "Status",
+    "notFound": "Order not found. Please check your details.",
+    "demoNote": "Demo: try AB-12345 and demo@email.com",
+    "steps": {
+      "confirmed": "Order Confirmed",
+      "preparing": "Preparing",
+      "shipped": "Shipped",
+      "delivered": "Delivered"
+    }
+  },
+  "returns": {
+    "title": "Cancellation & Return Policy",
+    "subtitle": "Customer satisfaction is our priority",
+    "s1title": "Return Period",
+    "s1": "You may exercise your right of withdrawal within 14 days of receiving the product.",
+    "s2title": "Return Conditions",
+    "s2": "The product must be unused, in original packaging, and undamaged.",
+    "s3title": "Cancellation",
+    "s3": "You can cancel your order free of charge before it is shipped.",
+    "s4title": "Refund",
+    "s4": "Refunds are processed within 10 business days after return approval."
+  },
+  "privacy": {
+    "title": "Privacy & Security Policy",
+    "updated": "Last updated: May 2026",
+    "intro": "At AryaBamboo, we take the security of your personal data seriously.",
+    "s1": "Collected data is used only for order processing and customer service.",
+    "s2": "Payment information is used only for bank transfer processing and is not shared with third parties.",
+    "s3": "Cookies are used to improve site experience; you can manage them in browser settings."
+  },
+  "distanceSales": {
+    "title": "Distance Sales Agreement",
+    "updated": "Last updated: May 2026",
+    "s1": "This agreement is governed by applicable consumer protection laws between AryaBamboo and the consumer.",
+    "s2": "Order confirmation is sent by email. Right of withdrawal can be exercised within 14 days.",
+    "s3": "Product prices include VAT. Payment is made via bank transfer; shipping is free."
+  },
+  "kvkk": {
+    "title": "Personal Data Protection Notice (KVKK)",
+    "updated": "Last updated: June 2026",
+    "intro": "Under the Turkish Personal Data Protection Law No. 6698 (\"KVKK\"), we inform you about how AryaBamboo processes your personal data.",
+    "s1title": "1. Data Controller",
+    "s1": "Data controller: AryaBamboo. Address: Istanbul, Turkey. Contact: info@aryabamboo.com — Phone: +90 533 700 73 18",
+    "s2title": "2. Processed Personal Data",
+    "s2": "Identity data (name, surname), contact data (email, phone, address), order and transaction data (products, amount, order number), customer transaction history.",
+    "s3title": "3. Purposes of Processing",
+    "s3": "Receiving and delivering orders, managing payment processes (bank transfer), customer service and communication, fulfilling legal obligations, performance of the distance sales agreement.",
+    "s4title": "4. Transfer of Personal Data",
+    "s4": "Your personal data may only be transferred to authorized public institutions when legally required and to shipping companies for delivery. Your data is not transferred abroad.",
+    "s5title": "5. Collection Method and Legal Basis",
+    "s5": "Your data is collected electronically through our website order form, contact form, and account creation. Legal basis: KVKK Art. 5/2-c (establishment or performance of a contract) and Art. 5/2-f (legitimate interest).",
+    "s6title": "6. Retention Period",
+    "s6": "Your personal data is retained for the period required by the processing purpose and applicable legal retention periods (10 years for commercial records), then deleted, destroyed, or anonymized.",
+    "s7title": "7. Your Rights",
+    "s7": "Under KVKK Art. 11, you have the right to learn whether your data is processed, request information, learn the purpose and whether it is used accordingly, know third parties to whom data is transferred, request correction, and request deletion or destruction.",
+    "s8title": "8. How to Apply",
+    "s8": "To exercise your rights, send a written request to info@aryabamboo.com. Your requests will be answered free of charge within 30 days at the latest."
+  },
+  "favorites": {
+    "title": "My Favorites",
+    "subtitle": "Products you love",
+    "empty": "No favorites yet",
+    "browse": "Browse Products",
+    "add": "Add to favorites",
+    "remove": "Remove from favorites"
+  },
+  "cart": {
+    "title": "My Cart",
+    "empty": "Your cart is empty",
+    "continueShopping": "Continue Shopping",
+    "subtotal": "Subtotal",
+    "shipping": "Shipping",
+    "freeShipping": "Free",
+    "total": "Total",
+    "checkout": "Checkout",
+    "remove": "Remove",
+    "quantity": "Qty"
+  },
+  "checkout": {
+    "title": "Checkout",
+    "shippingInfo": "Shipping Information",
+    "paymentInfo": "Payment Information",
+    "placeOrder": "Place Order",
+    "success": "Your order has been received!",
+    "successNote": "Please send your order via WhatsApp. Your order will be shipped after payment confirmation.",
+    "orderNumber": "Order no",
+    "paymentNote": "Please include your order number in the bank transfer description.",
+    "bankTransferInfo": "You can pay via bank transfer to the IBAN below. Your order will be prepared after payment confirmation.",
+    "iban": "IBAN",
+    "accountHolder": "Account holder",
+    "bankName": "Bank",
+    "whatsappButton": "Send Order via WhatsApp",
+    "whatsappHint": "After placing your order, WhatsApp will open with your order details ready to send.",
+    "namePlaceholder": "Full Name",
+    "emailPlaceholder": "Email",
+    "phonePlaceholder": "Phone",
+    "addressPlaceholder": "Address",
+    "cityPlaceholder": "City",
+    "kvkkConsent": "I consent to the processing of my personal data.",
+    "kvkkLink": "KVKK Privacy Notice",
+    "kvkkRequired": "You must accept the KVKK notice to continue.",
+    "error": "Could not place order. Please try again."
+  },
+  "auth": {
+    "title": "My Account",
+    "signInTitle": "Sign In",
+    "signInDesc": "Sign in quickly with your Google or Apple account.",
+    "google": "Sign in with Google",
+    "apple": "Sign in with Apple",
+    "signOut": "Sign Out",
+    "welcome": "Welcome",
+    "orders": "My Orders",
+    "noOrders": "No orders yet.",
+    "envNote": "Add API keys to .env.local for Google / Apple sign-in.",
+    "adminOnlyStorefront": "You cannot use the store as a customer with an admin account. Please use the admin panel.",
+    "goToAdmin": "Go to Admin Panel"
+  },
+  "footer": {
+    "shop": "Shop",
+    "support": "Support",
+    "legal": "Legal",
+    "privacy": "Privacy Policy",
+    "distanceSales": "Distance Sales Agreement",
+    "kvkk": "KVKK",
+    "returns": "Returns & Cancellation",
+    "rights": "All rights reserved.",
+    "tagline": "Handmade bamboo designs"
+  }
+}
