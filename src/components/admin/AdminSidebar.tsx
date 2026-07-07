@@ -9,18 +9,22 @@ import {
   ShoppingCart,
   Store,
   LogOut,
+  BarChart3,
 } from "lucide-react";
 import { signOut } from "next-auth/react";
+import { useAdminNotifications } from "./useAdminNotifications";
 
 const nav = [
   { href: "/admin", label: "Kontrol Paneli", icon: LayoutDashboard, exact: true },
-  { href: "/admin/orders", label: "Siparişler", icon: ShoppingCart },
+  { href: "/admin/analytics", label: "İstatistikler", icon: BarChart3 },
+  { href: "/admin/orders", label: "Siparişler", icon: ShoppingCart, badge: true },
   { href: "/admin/products", label: "Ürünler", icon: Package },
   { href: "/admin/customers", label: "Müşteriler", icon: Users },
 ];
 
 export function AdminSidebar() {
   const pathname = usePathname();
+  const { count } = useAdminNotifications();
 
   return (
     <aside className="flex w-60 shrink-0 flex-col bg-[#1a1f1a] text-white">
@@ -37,10 +41,11 @@ export function AdminSidebar() {
       </div>
 
       <nav className="flex-1 space-y-0.5 p-3">
-        {nav.map(({ href, label, icon: Icon, exact }) => {
+        {nav.map(({ href, label, icon: Icon, exact, badge }) => {
           const active = exact
             ? pathname === href
             : pathname.startsWith(href);
+          const showBadge = badge && count > 0;
           return (
             <Link
               key={href}
@@ -52,7 +57,12 @@ export function AdminSidebar() {
               }`}
             >
               <Icon className="h-4 w-4 shrink-0" />
-              {label}
+              <span className="flex-1">{label}</span>
+              {showBadge && (
+                <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1.5 text-[10px] font-bold text-white">
+                  {count > 9 ? "9+" : count}
+                </span>
+              )}
             </Link>
           );
         })}

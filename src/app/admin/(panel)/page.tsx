@@ -12,6 +12,7 @@ type Stats = {
   customerCount: number;
   orderCount: number;
   pendingOrders: number;
+  unreadOrders: number;
   totalRevenue: number;
   recentOrders: {
     id: string;
@@ -20,10 +21,12 @@ type Stats = {
     total: number;
     status: string;
     createdAt: string;
+    unread?: boolean;
   }[];
 };
 
 const statusLabels: Record<string, string> = {
+  pending_payment: "Ödeme Bekleniyor",
   pending: "Beklemede",
   confirmed: "Onaylandı",
   preparing: "Hazırlanıyor",
@@ -52,7 +55,7 @@ export default function AdminDashboardPage() {
         {
           label: "Siparişler",
           value: stats.orderCount,
-          sub: `${stats.pendingOrders} bekleyen`,
+          sub: `${stats.pendingOrders} bekleyen · ${stats.unreadOrders} yeni`,
           icon: ShoppingCart,
           color: "text-blue-600",
         },
@@ -76,6 +79,25 @@ export default function AdminDashboardPage() {
     <>
       <AdminHeader title="Kontrol Paneli" />
       <main className="flex-1 overflow-y-auto p-6">
+        {stats && stats.unreadOrders > 0 && (
+          <div className="mb-6 flex items-center justify-between rounded-lg border border-amber-200 bg-amber-50 px-5 py-4">
+            <div>
+              <p className="font-medium text-amber-900">
+                {stats.unreadOrders} yeni sipariş bildirimi
+              </p>
+              <p className="text-sm text-amber-700">
+                Okunmamış siparişlerinizi kontrol edin.
+              </p>
+            </div>
+            <Link
+              href="/admin/orders"
+              className="rounded-lg bg-amber-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-amber-700"
+            >
+              Siparişlere Git
+            </Link>
+          </div>
+        )}
+
         <div className="mb-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {cards.map((card) => (
             <div key={card.label} className="admin-card p-5">
@@ -96,9 +118,14 @@ export default function AdminDashboardPage() {
         <div className="admin-card overflow-hidden">
           <div className="flex items-center justify-between border-b border-gray-100 px-5 py-4">
             <h2 className="font-semibold">Son Siparişler</h2>
-            <Link href="/admin/orders" className="text-sm text-olive hover:underline">
-              Tümünü gör →
-            </Link>
+            <div className="flex items-center gap-4">
+              <Link href="/admin/analytics" className="text-sm text-olive hover:underline">
+                İstatistikler →
+              </Link>
+              <Link href="/admin/orders" className="text-sm text-olive hover:underline">
+                Tümünü gör →
+              </Link>
+            </div>
           </div>
           <table className="admin-table w-full">
             <thead>
@@ -119,8 +146,18 @@ export default function AdminDashboardPage() {
                 </tr>
               )}
               {stats?.recentOrders.map((order) => (
-                <tr key={order.id}>
-                  <td className="font-medium">{order.orderNumber}</td>
+                <tr
+                  key={order.id}
+                  className={order.unread ? "bg-amber-50/80" : undefined}
+                >
+                  <td className="font-medium">
+                    {order.orderNumber}
+                    {order.unread && (
+                      <span className="ml-2 rounded-full bg-red-500 px-1.5 py-0.5 text-[10px] font-bold text-white">
+                        Yeni
+                      </span>
+                    )}
+                  </td>
                   <td>{order.customerName}</td>
                   <td>{formatPrice(order.total, "tr")}</td>
                   <td>

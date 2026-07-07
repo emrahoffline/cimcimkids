@@ -4,11 +4,9 @@ import { useState } from "react";
 import Link from "next/link";
 import { useTranslations, useLocale } from "next-intl";
 import { useSession } from "next-auth/react";
-import { MessageCircle } from "lucide-react";
 import { useCartStore, cartTotal } from "@/store/cart";
 import { formatPrice } from "@/lib/products";
 import { STORE_CONFIG, formatIban } from "@/lib/store-config";
-import { buildOrderWhatsAppMessage, buildWhatsAppUrl } from "@/lib/whatsapp";
 
 export default function CheckoutPage() {
   const t = useTranslations("checkout");
@@ -18,7 +16,6 @@ export default function CheckoutPage() {
   const { items, clearCart } = useCartStore();
   const [done, setDone] = useState(false);
   const [orderNumber, setOrderNumber] = useState("");
-  const [whatsappUrl, setWhatsappUrl] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const total = cartTotal(items);
@@ -84,24 +81,10 @@ export default function CheckoutPage() {
     }
 
     const order = await res.json();
-    const message = buildOrderWhatsAppMessage({
-      orderNumber: order.orderNumber,
-      customerName: form.name,
-      customerPhone: form.phone,
-      customerEmail: form.email,
-      shippingAddress,
-      items: orderItems,
-      total: order.total,
-    });
-    const url = buildWhatsAppUrl(message);
-
     setOrderNumber(order.orderNumber);
-    setWhatsappUrl(url);
     clearCart();
     setDone(true);
     setLoading(false);
-
-    window.open(url, "_blank");
   };
 
   if (done) {
@@ -132,18 +115,6 @@ export default function CheckoutPage() {
             </p>
             <p className="mt-2 text-olive/60">{t("paymentNote")}</p>
           </div>
-
-          {whatsappUrl && (
-            <a
-              href={whatsappUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="btn-primary inline-flex w-full items-center justify-center gap-2 bg-[#25D366] hover:bg-[#1da851]"
-            >
-              <MessageCircle className="h-5 w-5" />
-              {t("whatsappButton")}
-            </a>
-          )}
 
           <Link href={base} className="btn-primary mt-2 inline-flex w-full">
             {tCart("continueShopping")}
@@ -262,7 +233,7 @@ export default function CheckoutPage() {
           <p className="mb-2 text-2xl font-semibold text-bamboo">
             {formatPrice(total, locale)}
           </p>
-          <p className="mb-6 text-sm text-olive/60">{t("whatsappHint")}</p>
+          <p className="mb-6 text-sm text-olive/60">{t("orderHint")}</p>
           <button
             type="submit"
             disabled={loading}

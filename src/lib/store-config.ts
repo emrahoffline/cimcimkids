@@ -1,5 +1,4 @@
 export const STORE_CONFIG = {
-  whatsappNumber: process.env.NEXT_PUBLIC_WHATSAPP_NUMBER ?? "905337007318",
   iban: process.env.NEXT_PUBLIC_IBAN ?? "TR590006701000000208433897",
   accountHolder:
     process.env.NEXT_PUBLIC_ACCOUNT_HOLDER ?? "AryaBamboo",

@@ -61,7 +61,7 @@ function buildOrderEmailHtml(order: Order) {
 export async function sendOrderNotificationEmail(order: Order) {
   const transporter = getTransporter();
   const to =
-    process.env.ORDER_NOTIFICATION_EMAIL ?? process.env.SMTP_USER;
+    process.env.ORDER_NOTIFICATION_EMAIL ?? "info@aryabamboo.com";
 
   if (!transporter || !to) {
     console.warn(

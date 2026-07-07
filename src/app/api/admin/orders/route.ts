@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { requireAdminApi } from "@/lib/admin-api";
+import { syncAllTimeTotals } from "@/lib/analytics-db";
 import { getOrders, saveOrders } from "@/lib/db";
 
 export async function GET() {
@@ -23,5 +24,6 @@ export async function PATCH(request: Request) {
 
   order.status = status;
   await saveOrders(orders);
+  await syncAllTimeTotals(orders).catch(() => undefined);
   return NextResponse.json(order);
 }

@@ -28,6 +28,7 @@ export function FavoriteButton({
   const handleClick = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    const willRemove = active;
     toggle({
       id: product.id,
       slug: product.slug,
@@ -35,6 +36,23 @@ export function FavoriteButton({
       price: product.price,
       translationKey: product.translationKey ?? product.id,
     });
+
+    const sessionId =
+      typeof window !== "undefined"
+        ? sessionStorage.getItem("ab_sid") ?? undefined
+        : undefined;
+    if (sessionId) {
+      fetch("/api/analytics", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          type: willRemove ? "favorite_remove" : "favorite_add",
+          sessionId,
+          productId: product.id,
+          productName: product.nameTr,
+        }),
+      }).catch(() => undefined);
+    }
   };
 
   if (variant === "overlay") {

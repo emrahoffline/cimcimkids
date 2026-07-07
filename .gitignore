@@ -9,3 +9,4 @@ out
 # Runtime data (müşteri bilgileri içerir)
 data/orders.json
 data/customers.json
+data/analytics.json

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { AdminHeader } from "@/components/admin/AdminHeader";
 import type { Order } from "@/lib/db";
 import { formatPrice } from "@/lib/products";
+import { useAdminNotifications } from "@/components/admin/useAdminNotifications";
 
 const statuses = [
   { value: "pending_payment", label: "Ödeme Bekleniyor" },
@@ -17,16 +18,30 @@ const statuses = [
 
 export default function AdminOrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
+  const { markAllSeen, refresh: refreshNotifications } = useAdminNotifications();
 
-  const load = () => {
-    fetch("/api/admin/orders")
-      .then((r) => r.json())
-      .then(setOrders);
+  const load = async () => {
+    const res = await fetch("/api/admin/orders");
+    setOrders(await res.json());
   };
 
   useEffect(() => {
-    load();
-  }, []);
+    let active = true;
+
+    async function init() {
+      await load();
+      if (!active) return;
+      await markAllSeen();
+      refreshNotifications();
+    }
+
+    init();
+    const id = setInterval(load, 20000);
+    return () => {
+      active = false;
+      clearInterval(id);
+    };
+  }, [markAllSeen, refreshNotifications]);
 
   const updateStatus = async (id: string, status: string) => {
     await fetch("/api/admin/orders", {
@@ -35,14 +50,15 @@ export default function AdminOrdersPage() {
       body: JSON.stringify({ id, status }),
     });
     load();
+    refreshNotifications();
   };
 
   return (
     <>
       <AdminHeader title="Siparişler" />
       <main className="flex-1 overflow-y-auto p-6">
-        <div className="admin-card overflow-hidden">
-          <table className="admin-table w-full">
+        <div className="admin-card overflow-x-auto">
+          <table className="admin-table w-full min-w-[720px]">
             <thead>
               <tr>
                 <th>Sipariş No</th>
@@ -62,8 +78,20 @@ export default function AdminOrdersPage() {
                 </tr>
               )}
               {orders.map((order) => (
-                <tr key={order.id}>
-                  <td className="font-medium">{order.orderNumber}</td>
+                <tr
+                  key={order.id}
+                  className={
+                    order.adminSeen === false ? "bg-amber-50/80" : undefined
+                  }
+                >
+                  <td className="font-medium">
+                    {order.orderNumber}
+                    {order.adminSeen === false && (
+                      <span className="ml-2 rounded-full bg-red-500 px-1.5 py-0.5 text-[10px] font-bold text-white">
+                        Yeni
+                      </span>
+                    )}
+                  </td>
                   <td>
                     <p>{order.customerName}</p>
                     <p className="text-xs text-gray-400">{order.customerEmail}</p>
@@ -93,7 +121,7 @@ export default function AdminOrdersPage() {
                     </select>
                   </td>
                   <td className="text-gray-400">
-                    {new Date(order.createdAt).toLocaleDateString("tr-TR")}
+                    {new Date(order.createdAt).toLocaleString("tr-TR")}
                   </td>
                 </tr>
               ))}

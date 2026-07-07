@@ -46,7 +46,7 @@ export default function AdminLoginPage() {
         <AuthButtons callbackUrl="/admin" variant="admin" />
 
         <p className="mt-6 text-center text-xs text-gray-400">
-          emrhgtr@gmail.com ve efruzebendes90@gmail.com
+          emrhgtr@gmail.com, efruzebendes90@gmail.com, info@aryabamboo.com
         </p>
 
         <Link

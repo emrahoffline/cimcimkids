@@ -2,6 +2,7 @@ import { promises as fs } from "fs";
 import path from "path";
 import type { Product, Category } from "./types";
 import { slugify } from "./product-utils";
+import { syncAllTimeTotals } from "./analytics-db";
 
 const DATA_DIR = path.join(process.cwd(), "data");
 
@@ -61,6 +62,7 @@ export type Order = {
     | "cancelled";
   createdAt: string;
   shippingAddress?: string;
+  adminSeen?: boolean;
 };
 
 export async function getProducts(): Promise<Product[]> {
@@ -127,6 +129,34 @@ export async function saveOrders(orders: Order[]): Promise<void> {
   await writeJson("orders.json", orders);
 }
 
+export function isOrderUnread(order: Order): boolean {
+  return order.adminSeen === false;
+}
+
+export async function getUnreadOrders(): Promise<Order[]> {
+  const orders = await getOrders();
+  return orders.filter(isOrderUnread);
+}
+
+export async function markOrdersSeen(orderIds?: string[]): Promise<number> {
+  const orders = await getOrders();
+  let marked = 0;
+
+  for (const order of orders) {
+    if (orderIds && !orderIds.includes(order.id)) continue;
+    if (order.adminSeen === false) {
+      order.adminSeen = true;
+      marked += 1;
+    }
+  }
+
+  if (marked > 0) {
+    await saveOrders(orders);
+  }
+
+  return marked;
+}
+
 export async function upsertCustomer(data: {
   email: string;
   name?: string | null;
@@ -168,6 +198,7 @@ export async function createOrder(order: Omit<Order, "id" | "createdAt">): Promi
     ...order,
     id: `ord_${Date.now()}`,
     createdAt: new Date().toISOString(),
+    adminSeen: false,
   };
   orders.unshift(full);
 
@@ -184,5 +215,8 @@ export async function createOrder(order: Omit<Order, "id" | "createdAt">): Promi
   }
 
   await saveOrders(orders);
+  await syncAllTimeTotals(orders).catch((err) =>
+    console.error("[analytics] Tüm zamanlar toplamı kaydedilemedi:", err)
+  );
   return full;
 }
