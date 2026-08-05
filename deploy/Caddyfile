@@ -1,4 +1,8 @@
-cimcimkids.com, www.cimcimkids.com {
+www.cimcimkids.com {
+	redir https://cimcimkids.com{uri} permanent
+}
+
+cimcimkids.com {
 	encode gzip
 	reverse_proxy app:3000
 }

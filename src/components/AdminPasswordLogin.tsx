@@ -14,10 +14,15 @@ export function AdminPasswordLogin() {
     setLoading(true);
     setError("");
 
+    const callbackUrl =
+      typeof window !== "undefined"
+        ? `${window.location.origin}/admin`
+        : "/admin";
+
     const res = await signIn("credentials", {
-      email,
+      email: email.trim().toLowerCase(),
       password,
-      callbackUrl: "/admin",
+      callbackUrl,
       redirect: false,
     });
 
@@ -28,7 +33,8 @@ export function AdminPasswordLogin() {
       return;
     }
 
-    window.location.href = "/admin";
+    // Full navigation avoids stale Server Action / client cache after deploy
+    window.location.assign(callbackUrl);
   };
 
   return (
