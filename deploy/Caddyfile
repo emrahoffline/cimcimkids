@@ -1,4 +1,4 @@
-{$DOMAIN} {
+cimcimkids.com, www.cimcimkids.com {
 	encode gzip
 	reverse_proxy app:3000
 }
