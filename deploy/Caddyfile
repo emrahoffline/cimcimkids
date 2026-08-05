@@ -1,3 +1,9 @@
+{
+	servers {
+		protocols h1 h2
+	}
+}
+
 www.cimcimkids.com {
 	redir https://cimcimkids.com{uri} permanent
 }
