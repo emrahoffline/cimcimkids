@@ -75,7 +75,6 @@ providers.push(
 
       const customer = await getCustomerByEmail(email);
       if (!customer?.passwordHash) return null;
-      if (isAdminEmail(email) && customer.role !== "admin") return null;
 
       const ok = await verifyPassword(password, customer.passwordHash);
       if (!ok) return null;

@@ -14,7 +14,7 @@ export function AdminPasswordLogin() {
     setLoading(true);
     setError("");
 
-    const res = await signIn("admin-password", {
+    const res = await signIn("credentials", {
       email,
       password,
       callbackUrl: "/admin",
@@ -34,7 +34,7 @@ export function AdminPasswordLogin() {
   return (
     <form onSubmit={handleSubmit} className="space-y-3">
       <p className="text-center text-xs font-medium text-gray-500">
-        Telefon / ngrok için şifre ile giriş
+        Yönetici e-posta ve şifre ile giriş
       </p>
       <input
         type="email"
@@ -52,7 +52,7 @@ export function AdminPasswordLogin() {
         value={password}
         onChange={(e) => setPassword(e.target.value)}
         className="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm outline-none focus:border-olive"
-        placeholder="Admin şifre"
+        placeholder="Şifre"
       />
       {error && <p className="text-center text-xs text-red-500">{error}</p>}
       <button

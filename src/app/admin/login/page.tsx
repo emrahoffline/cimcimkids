@@ -3,7 +3,7 @@
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { Shield } from "lucide-react";
 import { AuthButtons } from "@/components/AuthButtons";
 import { AdminPasswordLogin } from "@/components/AdminPasswordLogin";
@@ -11,7 +11,6 @@ import { AdminPasswordLogin } from "@/components/AdminPasswordLogin";
 export default function AdminLoginPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
-  const [showPasswordLogin, setShowPasswordLogin] = useState(false);
 
   useEffect(() => {
     if (status !== "authenticated") return;
@@ -21,16 +20,6 @@ export default function AdminLoginPage() {
       router.replace("/tr/account?error=not-admin");
     }
   }, [session, status, router]);
-
-  useEffect(() => {
-    // Prod'da şifre girişi kapalı olabilir; sadece provider varsa göster.
-    fetch("/api/auth/providers")
-      .then((r) => r.json())
-      .then((data) => {
-        setShowPasswordLogin(!!data?.["admin-password"]);
-      })
-      .catch(() => setShowPasswordLogin(false));
-  }, []);
 
   if (status === "loading") {
     return (
@@ -57,16 +46,12 @@ export default function AdminLoginPage() {
 
         <AuthButtons callbackUrl="/admin" variant="admin" />
 
-        {showPasswordLogin && (
-          <>
-            <div className="my-5 flex items-center gap-3 text-xs text-gray-300">
-              <div className="h-px flex-1 bg-gray-200" />
-              veya
-              <div className="h-px flex-1 bg-gray-200" />
-            </div>
-            <AdminPasswordLogin />
-          </>
-        )}
+        <div className="my-5 flex items-center gap-3 text-xs text-gray-300">
+          <div className="h-px flex-1 bg-gray-200" />
+          veya
+          <div className="h-px flex-1 bg-gray-200" />
+        </div>
+        <AdminPasswordLogin />
 
         <Link
           href="/tr"

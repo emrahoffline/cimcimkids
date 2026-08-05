@@ -7,7 +7,11 @@ export function isAdminEmail(email: string | null | undefined): boolean {
     .map((e) => e.trim().toLowerCase())
     .filter(Boolean);
 
-  const defaults = ["emrhgtr@gmail.com", "info@cimcimkids.com"];
+  const defaults = [
+    "emrhgtr@gmail.com",
+    "info@cimcimkids.com",
+    "efruzebendes@hotmail.com",
+  ];
   const allowlist = fromEnv.length > 0 ? fromEnv : defaults;
 
   return allowlist.includes(normalized);
