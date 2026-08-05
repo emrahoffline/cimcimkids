@@ -3,7 +3,7 @@ import { getOrders, type Order } from "@/lib/db";
 import { getClientIp, rateLimit } from "@/lib/rate-limit";
 
 /** Maps order status → tracking timeline step index (0–3). */
-export function statusToStep(status: Order["status"]): number {
+function statusToStep(status: Order["status"]): number {
   switch (status) {
     case "pending_payment":
     case "pending":

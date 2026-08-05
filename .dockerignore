@@ -2,7 +2,7 @@ node_modules
 .next
 .git
 .gitignore
-.env
+.env*
 .env*.local
 *.md
 .DS_Store
@@ -11,3 +11,4 @@ assets
 canvases
 .cursor
 agent-transcripts
+.env.production
