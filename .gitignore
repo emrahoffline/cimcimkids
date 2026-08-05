@@ -10,3 +10,14 @@ out
 data/orders.json
 data/customers.json
 data/analytics.json
+data/subscribers.json
+
+# Deploy uploads
+public/products/uploads/*
+!public/products/uploads/.gitkeep
+
+tsconfig.tsbuildinfo
+
+# Source / working assets (site uses public/)
+assets/ürünler/
+assets/logo/

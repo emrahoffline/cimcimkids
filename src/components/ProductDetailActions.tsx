@@ -22,14 +22,14 @@ export function ProductDetailActions({
         <AddToCartButton product={product} name={name} />
         <FavoriteButton
           product={product}
-          className="border border-olive/20 bg-white"
+          className="border border-bamboo/20 bg-white"
         />
       </div>
 
-      <div className="mobile-sticky-bar lg:hidden">
+      <div className="mobile-sticky-bar border-bamboo/15 bg-gradient-to-t from-[#fff3eb] to-white/95 lg:hidden">
         <div className="flex items-center justify-between gap-3">
           <div className="min-w-0">
-            <p className="truncate text-xs text-olive/60">{name}</p>
+            <p className="truncate text-xs text-slate-400">{name}</p>
             <p className="text-lg font-semibold text-bamboo">{price}</p>
           </div>
           <AddToCartButton

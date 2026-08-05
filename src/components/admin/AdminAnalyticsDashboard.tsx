@@ -204,28 +204,32 @@ export function AdminAnalyticsDashboard({ data }: { data: AnalyticsData }) {
   ];
 
   return (
-    <div className="space-y-6">
-      <div className="admin-card overflow-hidden bg-gradient-to-br from-[#1a1f1a] to-olive p-6 text-white">
+    <div className="space-y-4 sm:space-y-6">
+      <div className="admin-card overflow-hidden bg-gradient-to-br from-[#1a1f1a] to-olive p-4 text-white sm:p-6">
         <div className="mb-4 flex items-center gap-2 text-bamboo-light">
-          <ShoppingBag className="h-5 w-5" />
+          <ShoppingBag className="h-5 w-5 shrink-0" />
           <p className="text-sm font-medium uppercase tracking-wider text-white/80">
             Tüm Zamanlar
           </p>
         </div>
-        <div className="grid gap-6 sm:grid-cols-3">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3 sm:gap-6">
           <div>
             <p className="text-sm text-white/70">Toplam Gelir</p>
-            <p className="mt-1 text-3xl font-semibold">
+            <p className="mt-1 text-2xl font-semibold sm:text-3xl">
               {formatPrice(data.allTime.revenue, "tr")}
             </p>
           </div>
           <div>
             <p className="text-sm text-white/70">Toplam Sipariş</p>
-            <p className="mt-1 text-3xl font-semibold">{data.allTime.orders}</p>
+            <p className="mt-1 text-2xl font-semibold sm:text-3xl">
+              {data.allTime.orders}
+            </p>
           </div>
           <div>
             <p className="text-sm text-white/70">Satılan Ürün</p>
-            <p className="mt-1 text-3xl font-semibold">{data.allTime.itemsSold}</p>
+            <p className="mt-1 text-2xl font-semibold sm:text-3xl">
+              {data.allTime.itemsSold}
+            </p>
           </div>
         </div>
         <p className="mt-4 text-xs text-white/50">
@@ -235,16 +239,20 @@ export function AdminAnalyticsDashboard({ data }: { data: AnalyticsData }) {
         </p>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
         {kpis.map((kpi) => (
-          <div key={kpi.label} className="admin-card p-5">
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <p className="text-sm text-gray-500">{kpi.label}</p>
-                <p className="mt-1 text-2xl font-semibold text-gray-900">{kpi.value}</p>
-                <p className="mt-1 text-xs text-gray-400">{kpi.sub}</p>
+          <div key={kpi.label} className="admin-card p-3 sm:p-5">
+            <div className="flex items-start justify-between gap-2 sm:gap-3">
+              <div className="min-w-0">
+                <p className="text-xs text-gray-500 sm:text-sm">{kpi.label}</p>
+                <p className="mt-1 truncate text-lg font-semibold text-gray-900 sm:text-2xl">
+                  {kpi.value}
+                </p>
+                <p className="mt-1 text-[10px] text-gray-400 sm:text-xs">
+                  {kpi.sub}
+                </p>
               </div>
-              <div className={`rounded-xl p-2.5 ${kpi.color}`}>
+              <div className={`hidden rounded-xl p-2.5 sm:block ${kpi.color}`}>
                 <kpi.icon className="h-5 w-5" />
               </div>
             </div>
@@ -252,27 +260,29 @@ export function AdminAnalyticsDashboard({ data }: { data: AnalyticsData }) {
         ))}
       </div>
 
-      <div className="grid gap-6 xl:grid-cols-3">
-        <div className="admin-card p-5 xl:col-span-2">
-          <div className="mb-5 flex items-center justify-between">
-            <div>
-              <h2 className="flex items-center gap-2 text-lg font-semibold text-gray-900">
-                <BarChart3 className="h-5 w-5 text-olive" />
-                Satış Grafiği
-              </h2>
-              <p className="text-sm text-gray-500">Son 14 gün gelir trendi</p>
-            </div>
+      <div className="grid gap-4 sm:gap-6 xl:grid-cols-3">
+        <div className="admin-card overflow-x-auto p-4 sm:p-5 xl:col-span-2">
+          <div className="mb-4 sm:mb-5">
+            <h2 className="flex items-center gap-2 text-base font-semibold text-gray-900 sm:text-lg">
+              <BarChart3 className="h-5 w-5 shrink-0 text-olive" />
+              Satış Grafiği
+            </h2>
+            <p className="text-sm text-gray-500">Son 14 gün gelir trendi</p>
           </div>
-          <SalesChart data={data.salesChart} />
+          <div className="min-w-[320px]">
+            <SalesChart data={data.salesChart} />
+          </div>
         </div>
 
-        <div className="admin-card p-5">
-          <div className="mb-5">
-            <h2 className="flex items-center gap-2 text-lg font-semibold text-gray-900">
-              <Globe2 className="h-5 w-5 text-olive" />
+        <div className="admin-card p-4 sm:p-5">
+          <div className="mb-4 sm:mb-5">
+            <h2 className="flex items-center gap-2 text-base font-semibold text-gray-900 sm:text-lg">
+              <Globe2 className="h-5 w-5 shrink-0 text-olive" />
               Konum Dağılımı
             </h2>
-            <p className="text-sm text-gray-500">Ziyaretçilerin şehir bazlı girişleri</p>
+            <p className="text-sm text-gray-500">
+              Ziyaretçilerin şehir bazlı girişleri
+            </p>
           </div>
           {data.locations.length === 0 ? (
             <p className="py-10 text-center text-sm text-gray-400">
@@ -303,19 +313,23 @@ export function AdminAnalyticsDashboard({ data }: { data: AnalyticsData }) {
         </div>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-2">
-        <div className="admin-card p-5">
-          <div className="mb-5">
-            <h2 className="text-lg font-semibold text-gray-900">En Çok Satılanlar</h2>
-            <p className="text-sm text-gray-500">Siparişlere göre ürün performansı</p>
+      <div className="grid gap-4 sm:gap-6 lg:grid-cols-2">
+        <div className="admin-card p-4 sm:p-5">
+          <div className="mb-4 sm:mb-5">
+            <h2 className="text-base font-semibold text-gray-900 sm:text-lg">
+              En Çok Satılanlar
+            </h2>
+            <p className="text-sm text-gray-500">
+              Siparişlere göre ürün performansı
+            </p>
           </div>
           <RankList type="sales" items={data.topSellers} />
         </div>
 
-        <div className="admin-card p-5">
-          <div className="mb-5">
-            <h2 className="flex items-center gap-2 text-lg font-semibold text-gray-900">
-              <Heart className="h-5 w-5 text-red-500" />
+        <div className="admin-card p-4 sm:p-5">
+          <div className="mb-4 sm:mb-5">
+            <h2 className="flex items-center gap-2 text-base font-semibold text-gray-900 sm:text-lg">
+              <Heart className="h-5 w-5 shrink-0 text-red-500" />
               En Çok Favorilenenler
             </h2>
             <p className="text-sm text-gray-500">Favori eklenme sayıları</p>

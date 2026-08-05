@@ -7,9 +7,12 @@ export async function GET() {
   if (error) return error;
   const customers = await getCustomers();
   return NextResponse.json(
-    customers.filter((c) => c.role === "customer").sort(
-      (a, b) =>
-        new Date(b.lastLoginAt).getTime() - new Date(a.lastLoginAt).getTime()
-    )
+    customers
+      .filter((c) => c.role === "customer")
+      .map(({ passwordHash: _omit, ...safe }) => safe)
+      .sort(
+        (a, b) =>
+          new Date(b.lastLoginAt).getTime() - new Date(a.lastLoginAt).getTime()
+      )
   );
 }

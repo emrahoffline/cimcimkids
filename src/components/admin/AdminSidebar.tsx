@@ -10,9 +10,12 @@ import {
   Store,
   LogOut,
   BarChart3,
+  Mail,
+  X,
 } from "lucide-react";
 import { signOut } from "next-auth/react";
 import { useAdminNotifications } from "./useAdminNotifications";
+import { useAdminNav } from "./AdminShell";
 
 const nav = [
   { href: "/admin", label: "Kontrol Paneli", icon: LayoutDashboard, exact: true },
@@ -20,27 +23,41 @@ const nav = [
   { href: "/admin/orders", label: "Siparişler", icon: ShoppingCart, badge: true },
   { href: "/admin/products", label: "Ürünler", icon: Package },
   { href: "/admin/customers", label: "Müşteriler", icon: Users },
+  { href: "/admin/subscribers", label: "E-posta Aboneleri", icon: Mail },
 ];
 
 export function AdminSidebar() {
   const pathname = usePathname();
   const { count } = useAdminNotifications();
+  const { open, closeNav } = useAdminNav();
 
   return (
-    <aside className="flex w-60 shrink-0 flex-col bg-[#1a1f1a] text-white">
-      <div className="border-b border-white/10 px-5 py-5">
-        <Link href="/admin" className="flex items-center gap-2">
+    <aside
+      className={`fixed inset-y-0 left-0 z-50 flex w-[min(18rem,85vw)] shrink-0 flex-col bg-[#1a1f1a] text-white transition-transform duration-200 md:static md:z-auto md:w-60 md:translate-x-0 ${
+        open ? "translate-x-0" : "-translate-x-full"
+      }`}
+    >
+      <div className="flex items-center justify-between border-b border-white/10 px-5 py-4 md:py-5">
+        <Link href="/admin" onClick={closeNav} className="flex items-center gap-2">
           <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-bamboo text-sm font-bold">
-            AB
+            CK
           </div>
           <div>
-            <p className="font-semibold leading-tight">AryaBamboo</p>
+            <p className="font-semibold leading-tight">CimcimKids</p>
             <p className="text-[10px] text-white/50">Yönetim Paneli</p>
           </div>
         </Link>
+        <button
+          type="button"
+          onClick={closeNav}
+          className="rounded-lg p-2 text-white/70 hover:bg-white/10 md:hidden"
+          aria-label="Menüyü kapat"
+        >
+          <X className="h-5 w-5" />
+        </button>
       </div>
 
-      <nav className="flex-1 space-y-0.5 p-3">
+      <nav className="flex-1 space-y-0.5 overflow-y-auto p-3">
         {nav.map(({ href, label, icon: Icon, exact, badge }) => {
           const active = exact
             ? pathname === href
@@ -50,7 +67,8 @@ export function AdminSidebar() {
             <Link
               key={href}
               href={href}
-              className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition ${
+              onClick={closeNav}
+              className={`flex min-h-[44px] items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition ${
                 active
                   ? "bg-white/15 font-medium text-white"
                   : "text-white/70 hover:bg-white/10 hover:text-white"
@@ -72,14 +90,15 @@ export function AdminSidebar() {
         <Link
           href="/tr"
           target="_blank"
-          className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-white/70 transition hover:bg-white/10 hover:text-white"
+          onClick={closeNav}
+          className="flex min-h-[44px] items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-white/70 transition hover:bg-white/10 hover:text-white"
         >
           <Store className="h-4 w-4" />
           Mağazayı Görüntüle
         </Link>
         <button
           onClick={() => signOut({ callbackUrl: "/admin/login" })}
-          className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-white/70 transition hover:bg-white/10 hover:text-white"
+          className="flex min-h-[44px] w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm text-white/70 transition hover:bg-white/10 hover:text-white"
         >
           <LogOut className="h-4 w-4" />
           Çıkış Yap

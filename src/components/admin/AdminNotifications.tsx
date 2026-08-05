@@ -46,8 +46,8 @@ export function AdminNotifications() {
   return (
     <>
       {toast && (
-        <div className="fixed right-6 top-16 z-50 flex items-center gap-2 rounded-lg border border-bamboo/30 bg-white px-4 py-3 text-sm shadow-lg">
-          <ShoppingBag className="h-4 w-4 text-bamboo" />
+        <div className="fixed left-3 right-3 top-[4.5rem] z-50 flex items-center gap-2 rounded-lg border border-bamboo/30 bg-white px-4 py-3 text-sm shadow-lg sm:left-auto sm:right-6 sm:max-w-sm">
+          <ShoppingBag className="h-4 w-4 shrink-0 text-bamboo" />
           <span>{toast}</span>
         </div>
       )}
@@ -56,12 +56,12 @@ export function AdminNotifications() {
         <button
           type="button"
           onClick={handleOpen}
-          className="relative rounded-lg p-2 text-gray-600 transition hover:bg-gray-100"
+          className="relative inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg text-gray-600 transition hover:bg-gray-100"
           aria-label="Sipariş bildirimleri"
         >
           <Bell className="h-5 w-5" />
           {count > 0 && (
-            <span className="absolute -right-0.5 -top-0.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white">
+            <span className="absolute right-1 top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white">
               {count > 9 ? "9+" : count}
             </span>
           )}
@@ -75,14 +75,14 @@ export function AdminNotifications() {
               aria-label="Kapat"
               onClick={() => setOpen(false)}
             />
-            <div className="absolute right-0 z-50 mt-2 w-80 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-xl">
-              <div className="flex items-center justify-between border-b border-gray-100 px-4 py-3">
+            <div className="fixed inset-x-3 top-[3.75rem] z-50 max-h-[min(24rem,70vh)] overflow-hidden rounded-xl border border-gray-200 bg-white shadow-xl sm:absolute sm:inset-x-auto sm:right-0 sm:top-auto sm:mt-2 sm:w-80">
+              <div className="flex items-center justify-between gap-2 border-b border-gray-100 px-4 py-3">
                 <p className="font-semibold text-gray-900">Sipariş Bildirimleri</p>
                 {count > 0 && (
                   <button
                     type="button"
                     onClick={handleMarkAll}
-                    className="text-xs text-olive hover:underline"
+                    className="shrink-0 text-xs text-olive hover:underline"
                   >
                     Tümünü okundu işaretle
                   </button>

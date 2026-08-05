@@ -43,10 +43,16 @@ export async function PUT(
     return NextResponse.json({ error: "Slug already exists" }, { status: 400 });
   }
 
+  const nextImage =
+    typeof body.image === "string" &&
+    /^\/products\/(?:uploads\/)?[a-zA-Z0-9._-]+$/.test(body.image)
+      ? body.image
+      : products[index].image;
+
   products[index] = {
     ...products[index],
     slug,
-    image: body.image ?? products[index].image,
+    image: nextImage,
     price: Number(body.price) ?? products[index].price,
     category: body.category ?? products[index].category,
     nameTr: body.nameTr ?? products[index].nameTr,

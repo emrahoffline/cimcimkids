@@ -4,9 +4,10 @@ import { getConfiguredProviders } from "@/lib/auth";
 export async function GET() {
   const providers = getConfiguredProviders();
   return NextResponse.json({
-    ready: providers.length > 0 && !!process.env.NEXTAUTH_SECRET,
-    providers,
-    hasSecret: !!process.env.NEXTAUTH_SECRET,
+    ready:
+      providers.includes("google") ||
+      providers.includes("apple") ||
+      providers.includes("credentials"),
     hasGoogle: providers.includes("google"),
     hasApple: providers.includes("apple"),
   });

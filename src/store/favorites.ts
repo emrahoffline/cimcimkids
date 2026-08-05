@@ -31,6 +31,6 @@ export const useFavoritesStore = create<FavoritesState>()(
         set({ items: get().items.filter((i) => i.id !== id) }),
       isFavorite: (id) => get().items.some((i) => i.id === id),
     }),
-    { name: "aryabamboo-favorites" }
+    { name: "cimcimkids-favorites" }
   )
 );

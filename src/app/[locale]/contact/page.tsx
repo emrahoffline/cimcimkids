@@ -67,10 +67,10 @@ export default function ContactPage() {
             <div>
               <p className="font-medium">E-mail</p>
               <a
-                href="mailto:info@aryabamboo.com"
+                href="mailto:info@cimcimkids.com"
                 className="text-olive/70 hover:text-olive"
               >
-                info@aryabamboo.com
+                info@cimcimkids.com
               </a>
             </div>
           </div>

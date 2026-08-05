@@ -1,0 +1,146 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  admin
+  customer
+}
+
+enum OrderStatus {
+  pending_payment
+  pending
+  confirmed
+  preparing
+  shipped
+  delivered
+  cancelled
+}
+
+enum SubscriberSource {
+  newsletter
+  checkout
+}
+
+enum AnalyticsEventType {
+  page_view
+  session_end
+  favorite_add
+  favorite_remove
+}
+
+model Product {
+  id             String   @id
+  slug           String   @unique
+  image          String
+  price          Float
+  category       String
+  translationKey String?
+  nameTr         String
+  nameEn         String
+  descTr         String
+  descEn         String
+  inStock        Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([category])
+}
+
+model Category {
+  slug   String @id
+  nameTr String
+  nameEn String
+}
+
+model Customer {
+  id           String   @id
+  email        String   @unique
+  name         String?
+  image        String?
+  role         UserRole @default(customer)
+  passwordHash String?
+  createdAt    DateTime @default(now())
+  lastLoginAt  DateTime @default(now())
+  orderCount   Int      @default(0)
+  totalSpent   Float    @default(0)
+
+  @@index([role])
+  @@index([lastLoginAt])
+}
+
+model Order {
+  id               String      @id
+  orderNumber      String      @unique
+  customerEmail    String
+  customerName     String
+  customerPhone    String?
+  total            Float
+  status           OrderStatus @default(pending_payment)
+  shippingAddress  String?
+  adminSeen        Boolean     @default(false)
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
+  items            OrderItem[]
+
+  @@index([customerEmail])
+  @@index([status])
+  @@index([createdAt])
+  @@index([adminSeen])
+}
+
+model OrderItem {
+  id        String @id @default(cuid())
+  orderId   String
+  productId String
+  name      String
+  price     Float
+  quantity  Int
+  image     String
+  order     Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([orderId])
+  @@index([productId])
+}
+
+model Subscriber {
+  id        String            @id
+  email     String            @unique
+  locale    String            @default("tr")
+  source    SubscriberSource  @default(newsletter)
+  createdAt DateTime          @default(now())
+
+  @@index([createdAt])
+}
+
+model AnalyticsEvent {
+  id          String             @id @default(cuid())
+  type        AnalyticsEventType
+  sessionId   String
+  path        String?
+  productId   String?
+  productName String?
+  durationSec Int?
+  country     String?
+  city        String?
+  timezone    String?
+  createdAt   DateTime           @default(now())
+
+  @@index([type])
+  @@index([sessionId])
+  @@index([createdAt])
+  @@index([productId])
+}
+
+model AnalyticsAllTime {
+  id        Int      @id @default(1)
+  revenue   Float    @default(0)
+  orders    Int      @default(0)
+  itemsSold Int      @default(0)
+  updatedAt DateTime @updatedAt
+}

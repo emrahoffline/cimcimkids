@@ -1,7 +1,7 @@
 {
   "meta": {
-    "title": "AryaBamboo | El Yapımı Bamboo Ürünler",
-    "description": "AryaBamboo — doğal, el yapımı bamboo tasarımlar. Sürdürülebilir ve şık ürünler."
+    "title": "CimcimKids | Çocuk Giyim",
+    "description": "CimcimKids — rahat, şık ve özenle seçilmiş çocuk giyim. Bebek, kız ve erkek koleksiyonları."
   },
   "nav": {
     "home": "Anasayfa",
@@ -18,36 +18,42 @@
     "signIn": "Giriş Yap"
   },
   "home": {
-    "heroTitle": "Doğanın Zarafeti, Elinizde",
-    "heroSubtitle": "El yapımı bamboo ürünlerle yaşam alanınıza sıcaklık ve sürdürülebilirlik katın.",
+    "heroTitle": "Küçükler İçin Büyük Konfor",
+    "heroSubtitle": "Gün boyu rahat, oyun için dayanıklı ve her yaşa uygun çocuk giyim.",
     "shopNow": "Alışverişe Başla",
     "learnMore": "Hikayemizi Keşfet",
     "featured": "Öne Çıkan Ürünler",
-    "featuredDesc": "Özenle hazırlanmış, doğal bamboo koleksiyonumuz",
-    "craftTitle": "El İşçiliği & Doğallık",
-    "craftDesc": "Her parça usta zanaatkârlar tarafından özenle üretilir. Sürdürülebilir bamboo, modern tasarımla buluşuyor.",
-    "sustainTitle": "Sürdürülebilir Yaşam",
-    "sustainDesc": "Çevre dostu malzemeler, plastikten uzak bir yaşam tarzı için ideal seçimler.",
+    "featuredDesc": "Sezonun en sevilen çocuk giyim parçaları",
+    "craftTitle": "Yumuşak & Güvenli",
+    "craftDesc": "Hassas ciltler için seçilmiş kumaşlar. Günlük kullanımda konfor ve hareket özgürlüğü.",
+    "sustainTitle": "Büyüdükçe Değişir",
+    "sustainDesc": "Kaliteli dikiş ve zamansız kesimler — sezonlar boyunca giyilebilecek parçalar.",
     "newsletter": "Yeniliklerden haberdar olun",
     "newsletterDesc": "Yeni koleksiyonlar ve özel indirimler için e-posta listemize katılın.",
     "emailPlaceholder": "E-posta adresiniz",
-    "subscribe": "Abone Ol"
+    "subscribe": "Abone Ol",
+    "newsletterSending": "Gönderiliyor...",
+    "newsletterSuccess": "Teşekkürler! E-posta listemize eklendi.",
+    "newsletterAlready": "Bu e-posta zaten listemizde.",
+    "newsletterInvalid": "Geçerli bir e-posta adresi girin.",
+    "newsletterTooMany": "Çok fazla deneme. Lütfen biraz sonra tekrar deneyin.",
+    "newsletterError": "Bir hata oluştu. Lütfen tekrar deneyin."
   },
   "about": {
     "title": "Hakkımızda",
-    "subtitle": "AryaBamboo'nun hikayesi",
-    "p1": "AryaBamboo, doğanın en yenilenebilir kaynağı olan bambuyu el işçiliğiyle buluşturan bir markadır. Amacımız, günlük yaşamınıza estetik ve sürdürülebilir ürünler sunmaktır.",
-    "p2": "Atölyemizde her ürün tek tek, usta zanaatkârlar tarafından hazırlanır. Plastik alternatiflere karşı doğal bir yaşam tarzını destekliyoruz.",
-    "p3": "Kalite, doğallık ve müşteri memnuniyeti temel değerlerimizdir. Siz de bu yolculuğa bizimle katılın.",
+    "subtitle": "CimcimKids'in hikayesi",
+    "p1": "CimcimKids, çocukların özgürce hareket edebileceği, ebeveynlerin güvenle tercih ettiği giyim parçaları sunmak için kuruldu. Amacımız; konforu, kaliteyi ve sade şıklığı bir araya getirmek.",
+    "p2": "Koleksiyonlarımız bebekten okula giden yaşlara kadar uzanır. Her ürün, günlük hayata ve oyuna uygun kumaşlarla özenle seçilir.",
+    "p3": "Konfor, dayanıklılık ve müşteri memnuniyeti temel değerlerimizdir. Küçüklerin gardırobunu birlikte tamamlayalım.",
     "values": "Değerlerimiz",
-    "value1": "El yapımı kalite",
-    "value2": "Sürdürülebilir üretim",
-    "value3": "Doğal malzemeler",
+    "value1": "Cilt dostu kumaşlar",
+    "value2": "Rahat kesimler",
+    "value3": "Özenli işçilik",
     "value4": "Müşteri odaklı hizmet"
   },
   "products": {
     "title": "Ürünlerimiz",
-    "subtitle": "El yapımı bamboo koleksiyonumuz",
+    "subtitle": "Çocuk giyim koleksiyonumuz",
     "addToCart": "Sepete Ekle",
     "viewDetails": "Detayları Gör",
     "price": "Fiyat",
@@ -55,26 +61,34 @@
     "outOfStock": "Tükendi",
     "category": "Kategori",
     "all": "Tümü",
-    "decor": "Dekorasyon",
-    "kitchen": "Mutfak",
-    "storage": "Depolama"
+    "decor": "Kız",
+    "kitchen": "Erkek",
+    "storage": "Bebek"
   },
   "productItems": {
     "lantern": {
-      "name": "Bamboo Fener",
-      "desc": "El örgüsü bamboo fener, sıcak ve doğal bir ambiyans için ideal."
+      "name": "Fiyonklu Tweed Jile",
+      "desc": "Siyah-beyaz dokulu jile elbise, göğüste büyük fiyonk detayıyla."
     },
     "basket": {
-      "name": "Bamboo Sepet",
-      "desc": "Çok amaçlı el yapımı bamboo sepet, ev ve bahçe için."
+      "name": "Sarı Jile Takım",
+      "desc": "Dantel yakalı beyaz bluz ve fiyonklu sarı katlı jile takımı."
     },
     "tray": {
-      "name": "Bamboo Tepsi",
-      "desc": "Zarif bamboo servis tepsisi, mutfak ve sofralarınız için."
+      "name": "Siyah Fırfırlı Elbise",
+      "desc": "Kol ve etek ucunda fırfır detaylı şık siyah elbise."
     },
     "organizer": {
-      "name": "Bamboo Organizer",
-      "desc": "Masaüstü veya mutfak düzeni için şık bamboo organizer."
+      "name": "Yeşil Çiçekli Takım",
+      "desc": "Yeşil zemin üzerine beyaz çiçek baskılı üst ve bol paça pantolon takımı."
+    },
+    "blueFloral": {
+      "name": "Mavi Çiçekli Takım",
+      "desc": "Mavi zemin üzerine beyaz çiçek baskılı askılı üst ve pantolon takımı."
+    },
+    "pinkGingham": {
+      "name": "Pembe Kareli Elbise",
+      "desc": "Pembe-beyaz kareli, fırfır kollu ve katlı etekli günlük elbise."
     }
   },
   "contact": {
@@ -87,21 +101,21 @@
     "send": "Gönder",
     "success": "Mesajınız alındı. En kısa sürede dönüş yapacağız.",
     "address": "Adres",
-    "addressValue": "İstanbul, Türkiye",
+    "addressValue": "Antalya, Türkiye",
     "hours": "Çalışma Saatleri",
     "hoursValue": "Pzt–Cmt 09:00–18:00"
   },
   "faq": {
     "title": "Sıkça Sorulan Sorular",
     "subtitle": "Merak ettiklerinizin cevapları",
-    "q1": "Ürünler gerçekten el yapımı mı?",
-    "a1": "Evet, tüm ürünlerimiz atölyemizde usta zanaatkârlar tarafından el ile üretilmektedir.",
+    "q1": "Beden seçimini nasıl yapmalıyım?",
+    "a1": "Her ürün sayfasında yaş/beden önerileri yer alır. Emin değilseniz bir beden büyük tercih edebilir veya bize yazabilirsiniz.",
     "q2": "Kargo ne kadar sürer?",
     "a2": "Türkiye içi siparişler 2–5 iş günü içinde teslim edilir. Kargo takip sayfamızdan siparişinizi izleyebilirsiniz.",
     "q3": "Hangi ödeme yöntemlerini kabul ediyorsunuz?",
     "a3": "Havale/EFT ile banka transferi kabul ediyoruz. Sipariş sonrası IBAN bilgilerimiz gösterilir ve sipariş e-posta ile tarafımıza iletilir.",
-    "q4": "Ürünler suya dayanıklı mı?",
-    "a4": "Bamboo ürünlerimiz doğal yapısı gereği nemden etkilenebilir. Kullanım talimatları ürün sayfasında belirtilmiştir.",
+    "q4": "Ürünler nasıl yıkanmalı?",
+    "a4": "Çoğu ürünümüz 30°C’de hassas yıkamaya uygundur. Ürün etiketindeki bakım talimatlarını takip etmenizi öneririz.",
     "q5": "Hediye paketi yapılıyor mu?",
     "a5": "Evet, sipariş notuna 'hediye paketi' yazmanız yeterlidir. Ücretsiz hediye paketi sunuyoruz."
   },
@@ -111,11 +125,16 @@
     "orderNumber": "Sipariş Numarası",
     "email": "E-posta Adresi",
     "track": "Sorgula",
+    "tracking": "Sorgulanıyor...",
     "status": "Durum",
     "notFound": "Sipariş bulunamadı. Lütfen bilgilerinizi kontrol edin.",
-    "demoNote": "Demo: AB-12345 ve demo@email.com ile test edebilirsiniz.",
+    "hint": "Sipariş numaranız ve siparişte kullandığınız e-posta ile sorgulayın.",
+    "tooMany": "Çok fazla deneme. Lütfen biraz sonra tekrar deneyin.",
+    "error": "Bir hata oluştu. Lütfen tekrar deneyin.",
+    "cancelled": "Bu sipariş iptal edildi.",
+    "pendingPayment": "Ödeme bekleniyor",
     "steps": {
-      "confirmed": "Sipariş Onaylandı",
+      "confirmed": "Sipariş Alındı",
       "preparing": "Hazırlanıyor",
       "shipped": "Kargoya Verildi",
       "delivered": "Teslim Edildi"
@@ -135,39 +154,39 @@
   },
   "privacy": {
     "title": "Gizlilik ve Güvenlik Politikası",
-    "updated": "Son güncelleme: Mayıs 2026",
-    "intro": "AryaBamboo olarak kişisel verilerinizin güvenliğine önem veriyoruz.",
-    "s1": "Toplanan veriler yalnızca sipariş işleme ve müşteri hizmetleri için kullanılır.",
-    "s2": "Ödeme bilgileriniz yalnızca havale/EFT işlemleri için kullanılır ve üçüncü taraflarla paylaşılmaz.",
-    "s3": "Çerezler site deneyimini iyileştirmek için kullanılır; tarayıcı ayarlarından yönetebilirsiniz."
+    "updated": "Son güncelleme: Ağustos 2026",
+    "intro": "CimcimKids olarak kişisel verilerinizin güvenliğine önem veriyoruz.",
+    "s1": "Toplanan veriler yalnızca sipariş işleme, hesap yönetimi, müşteri hizmetleri ve yasal yükümlülükler için kullanılır. Ayrıntılar KVKK Aydınlatma Metni’nde yer alır.",
+    "s2": "Ödeme bilgileriniz yalnızca havale/EFT işlemleri için kullanılır; kart bilgisi saklanmaz. Web sitesi ve veritabanı altyapımız Almanya / Avrupa Birliği’nde yerleşik Hetzner (ve gerektiğinde AB/AEA’daki bulut veritabanı sağlayıcıları) üzerinde barındırılır; bu nedenle verileriniz teknik olarak yurt dışında işlenebilir.",
+    "s3": "Çerezler ve benzeri teknolojiler site deneyimini iyileştirmek ve oturum yönetimi için kullanılır; tarayıcı ayarlarından yönetebilirsiniz. Google ile giriş kullanıldığında Google’ın kendi gizlilik politikası da geçerlidir."
   },
   "distanceSales": {
     "title": "Mesafeli Satış Sözleşmesi",
     "updated": "Son güncelleme: Mayıs 2026",
-    "s1": "Bu sözleşme, AryaBamboo ile tüketici arasında 6502 sayılı Tüketicinin Korunması Hakkında Kanun kapsamında düzenlenmiştir.",
+    "s1": "Bu sözleşme, CimcimKids ile tüketici arasında 6502 sayılı Tüketicinin Korunması Hakkında Kanun kapsamında düzenlenmiştir.",
     "s2": "Sipariş onayı e-posta ile bildirilir. Cayma hakkı 14 gün içinde kullanılabilir.",
     "s3": "Ürün fiyatları KDV dahildir. Ödeme havale/EFT ile yapılır; kargo ücretsizdir."
   },
   "kvkk": {
     "title": "KVKK Aydınlatma Metni",
-    "updated": "Son güncelleme: Haziran 2026",
-    "intro": "6698 sayılı Kişisel Verilerin Korunması Kanunu (\"KVKK\") kapsamında, AryaBamboo olarak kişisel verilerinizin işlenmesine ilişkin sizi bilgilendiriyoruz.",
+    "updated": "Son güncelleme: Ağustos 2026",
+    "intro": "6698 sayılı Kişisel Verilerin Korunması Kanunu (\"KVKK\") kapsamında, CimcimKids olarak kişisel verilerinizin işlenmesine ilişkin sizi bilgilendiriyoruz.",
     "s1title": "1. Veri Sorumlusu",
-    "s1": "Veri sorumlusu: AryaBamboo. Adres: İstanbul, Türkiye. İletişim: info@aryabamboo.com — Telefon: 0533 700 73 18",
+    "s1": "Veri sorumlusu: CimcimKids. Adres: Antalya, Türkiye. İletişim: info@cimcimkids.com — Telefon: 0533 700 73 18",
     "s2title": "2. İşlenen Kişisel Veriler",
-    "s2": "Kimlik bilgileri (ad, soyad), iletişim bilgileri (e-posta, telefon, adres), sipariş ve işlem bilgileri (ürünler, tutar, sipariş numarası), müşteri işlem geçmişi.",
+    "s2": "Kimlik bilgileri (ad, soyad), iletişim bilgileri (e-posta, telefon, adres), sipariş ve işlem bilgileri (ürünler, tutar, sipariş numarası), hesap ve oturum bilgileri, müşteri işlem geçmişi; isteğe bağlı olarak bülten aboneliği bilgileri.",
     "s3title": "3. Kişisel Verilerin İşlenme Amaçları",
-    "s3": "Siparişlerin alınması ve teslimatının sağlanması, ödeme süreçlerinin yürütülmesi (havale/EFT), müşteri hizmetleri ve iletişim, yasal yükümlülüklerin yerine getirilmesi, mesafeli satış sözleşmesinin ifası.",
-    "s4title": "4. Kişisel Verilerin Aktarılması",
-    "s4": "Kişisel verileriniz yalnızca yasal zorunluluk halinde yetkili kamu kurumlarına ve kargo firmalarına (teslimat için) aktarılabilir. Verileriniz yurt dışına aktarılmamaktadır.",
+    "s3": "Siparişlerin alınması ve teslimatının sağlanması, ödeme süreçlerinin yürütülmesi (havale/EFT), üyelik ve hesap yönetimi, müşteri hizmetleri ve iletişim, site altyapısının güvenli işletilmesi, yasal yükümlülüklerin yerine getirilmesi, mesafeli satış sözleşmesinin ifası; açık rıza verilmesi halinde pazarlama / bülten iletişimi.",
+    "s4title": "4. Kişisel Verilerin Aktarılması ve Yurt Dışı Aktarım",
+    "s4": "Kişisel verileriniz; yasal zorunluluk halinde yetkili kamu kurumlarına, teslimat için kargo firmalarına ve hizmet aldığımız teknik altyapı sağlayıcılarına aktarılabilir. Web sitemiz ve veritabanı, Almanya / Avrupa Birliği’nde yerleşik Hetzner Online GmbH sunucularında (ve gerektiğinde AB/AEA’daki bulut veritabanı sağlayıcılarında) barındırılır. Bu barındırma nedeniyle kişisel verileriniz KVKK m.9 kapsamında yurt dışına aktarılmış sayılır. Aktarım amacı: sitenin güvenli host edilmesi, sipariş ve müşteri verilerinin saklanması ve işlenmesi. Ayrıca Google ile giriş tercih edilmesi halinde kimlik doğrulama için Google’a (yurt dışı) sınırlı veri aktarımı yapılabilir. Yurt dışı aktarım, ilgili kişinin aydınlatılması ve sipariş/üyelik sırasında verilen açık rıza ile; sözleşmenin ifası için zorunlu olduğu ölçüde de KVKK’daki diğer uygun hukuki dayanaklarla yürütülür.",
     "s5title": "5. Kişisel Verilerin Toplanma Yöntemi ve Hukuki Sebep",
-    "s5": "Verileriniz web sitemizdeki sipariş formu, iletişim formu ve hesap oluşturma işlemleri aracılığıyla elektronik ortamda toplanmaktadır. Hukuki sebep: KVKK m.5/2-c (sözleşmenin kurulması veya ifası) ve m.5/2-f (meşru menfaat).",
+    "s5": "Verileriniz web sitemizdeki sipariş formu, iletişim formu, hesap oluşturma / giriş işlemleri, bülten kaydı ve otomatik log / güvenlik kayıtları aracılığıyla elektronik ortamda toplanmaktadır. Hukuki sebepler: KVKK m.5/2-c (sözleşmenin kurulması veya ifası), m.5/2-ç (hukuki yükümlülük), m.5/2-f (meşru menfaat); yurt dışı aktarım ve pazarlama iletişimi için KVKK m.5/1 ve m.9 kapsamında açık rıza.",
     "s6title": "6. Saklama Süresi",
     "s6": "Kişisel verileriniz, işleme amacının gerektirdiği süre boyunca ve yasal saklama süreleri (ticari defter ve belgeler için 10 yıl) dikkate alınarak saklanır; süre sonunda silinir, yok edilir veya anonim hale getirilir.",
     "s7title": "7. İlgili Kişinin Hakları",
-    "s7": "KVKK m.11 kapsamında; verilerinizin işlenip işlenmediğini öğrenme, işlenmişse bilgi talep etme, işlenme amacını ve amacına uygun kullanılıp kullanılmadığını öğrenme, yurt içinde veya yurt dışında aktarıldığı üçüncü kişileri bilme, eksik veya yanlış işlenmişse düzeltilmesini isteme, silinmesini veya yok edilmesini isteme haklarına sahipsiniz.",
+    "s7": "KVKK m.11 kapsamında; verilerinizin işlenip işlenmediğini öğrenme, işlenmişse bilgi talep etme, işlenme amacını ve amacına uygun kullanılıp kullanılmadığını öğrenme, yurt içinde veya yurt dışında aktarıldığı üçüncü kişileri bilme, eksik veya yanlış işlenmişse düzeltilmesini isteme, silinmesini veya yok edilmesini isteme, açık rızaya dayanan işlemlerde rızayı geri çekme haklarına sahipsiniz.",
     "s8title": "8. Başvuru Yöntemi",
-    "s8": "Haklarınızı kullanmak için info@aryabamboo.com adresine yazılı başvuruda bulunabilirsiniz. Başvurularınız en geç 30 gün içinde ücretsiz olarak sonuçlandırılır."
+    "s8": "Haklarınızı kullanmak için info@cimcimkids.com adresine yazılı başvuruda bulunabilirsiniz. Başvurularınız en geç 30 gün içinde ücretsiz olarak sonuçlandırılır."
   },
   "favorites": {
     "title": "Favorilerim",
@@ -202,21 +221,22 @@
     "iban": "IBAN",
     "accountHolder": "Alıcı",
     "bankName": "Banka",
-    "orderHint": "Sipariş tamamlandığında detaylar info@aryabamboo.com adresine e-posta ile gönderilir.",
+    "orderHint": "Sipariş tamamlandığında detaylar info@cimcimkids.com adresine e-posta ile gönderilir.",
     "namePlaceholder": "Ad Soyad",
     "emailPlaceholder": "E-posta",
     "phonePlaceholder": "Telefon (05XX XXX XX XX)",
     "addressPlaceholder": "Adres",
     "cityPlaceholder": "Şehir",
-    "kvkkConsent": "Kişisel verilerimin işlenmesini kabul ediyorum.",
+    "kvkkConsent": "KVKK Aydınlatma Metni’ni okudum; kişisel verilerimin işlenmesini ve Almanya/AB’deki sunucu altyapısına (Hetzner) aktarılmasını kabul ediyorum.",
     "kvkkLink": "KVKK Aydınlatma Metni",
     "kvkkRequired": "Devam etmek için KVKK metnini onaylamanız gerekmektedir.",
+    "marketingConsent": "Kampanya, yeni ürün ve fırsat bilgilendirmelerinin e-posta adresime gönderilmesini kabul ediyorum. (İsteğe bağlı)",
     "error": "Sipariş oluşturulamadı. Lütfen tekrar deneyin."
   },
   "auth": {
     "title": "Hesabım",
     "signInTitle": "Giriş Yap",
-    "signInDesc": "Google veya Apple hesabınızla hızlıca giriş yapın.",
+    "signInDesc": "Google hesabınızla veya e-posta ile giriş yapın.",
     "google": "Google ile Giriş",
     "apple": "Apple ile Giriş",
     "signOut": "Çıkış Yap",
@@ -225,7 +245,33 @@
     "noOrders": "Henüz siparişiniz yok.",
     "envNote": "Google / Apple girişi için .env.local dosyasına API anahtarlarını ekleyin.",
     "adminOnlyStorefront": "Yönetici hesabınızla mağazaya müşteri olarak giriş yapamazsınız. Yönetim panelini kullanın.",
-    "goToAdmin": "Yönetim Paneline Git"
+    "goToAdmin": "Yönetim Paneline Git",
+    "registerTab": "Üye Ol",
+    "loginTab": "Giriş Yap",
+    "backToLogin": "Girişe dön",
+    "namePlaceholder": "Ad Soyad",
+    "emailPlaceholder": "E-posta",
+    "passwordPlaceholder": "Şifre",
+    "passwordConfirmPlaceholder": "Şifre tekrar",
+    "passwordHint": "En az 8 karakter.",
+    "registerSubmit": "Üye Ol",
+    "loginSubmit": "Giriş Yap",
+    "submitting": "Lütfen bekleyin...",
+    "orContinue": "veya",
+    "kvkkConsent": "KVKK Aydınlatma Metni’ni okudum; kişisel verilerimin işlenmesini ve Almanya/AB’deki sunucu altyapısına (Hetzner) aktarılmasını kabul ediyorum.",
+    "kvkkLink": "KVKK Aydınlatma Metni",
+    "kvkkRequired": "Devam etmek için KVKK metnini onaylamanız gerekmektedir.",
+    "marketingConsent": "Kampanya ve fırsat bilgilendirmelerinin e-posta adresime gönderilmesini kabul ediyorum. (İsteğe bağlı)",
+    "passwordMismatch": "Şifreler eşleşmiyor.",
+    "weakPassword": "Şifre en az 8 karakter olmalıdır.",
+    "invalidEmail": "Geçerli bir e-posta girin.",
+    "invalidName": "Lütfen adınızı girin.",
+    "alreadyExists": "Bu e-posta ile zaten üyelik var. Google ile giriş yapın veya mevcut hesabınızı kullanın.",
+    "adminEmail": "Bu e-posta ile üyelik oluşturulamaz.",
+    "tooManyRequests": "Çok fazla deneme. Lütfen biraz sonra tekrar deneyin.",
+    "loginFailed": "E-posta veya şifre hatalı.",
+    "formError": "Bir hata oluştu. Lütfen tekrar deneyin.",
+    "registerOkLogin": "Üyelik oluşturuldu. Şimdi giriş yapabilirsiniz."
   },
   "footer": {
     "shop": "Mağaza",
@@ -236,6 +282,6 @@
     "kvkk": "KVKK",
     "returns": "İptal ve İade",
     "rights": "Tüm hakları saklıdır.",
-    "tagline": "El yapımı bamboo tasarımlar"
+    "tagline": "Rahat ve şık çocuk giyim"
   }
 }

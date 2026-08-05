@@ -20,9 +20,9 @@ export default function FavoritesPage() {
   if (items.length === 0) {
     return (
       <div className="mx-auto max-w-lg px-4 py-20 text-center">
-        <Heart className="mx-auto mb-4 h-12 w-12 text-olive/30" />
+        <Heart className="mx-auto mb-4 h-12 w-12 text-bamboo/40" />
         <h1 className="text-3xl font-semibold">{t("title")}</h1>
-        <p className="mt-4 text-olive/60">{t("empty")}</p>
+        <p className="mt-4 text-slate-500">{t("empty")}</p>
         <Link href={`${base}/products`} className="btn-primary mt-8 inline-flex">
           {t("browse")}
         </Link>
@@ -40,11 +40,11 @@ export default function FavoritesPage() {
           return (
             <li
               key={item.id}
-              className="flex gap-4 rounded-xl border border-olive/10 bg-white p-4"
+              className="flex gap-4 rounded-3xl border border-bamboo/10 bg-white p-4 shadow-sm"
             >
               <Link
                 href={`${base}/products/${item.slug}`}
-                className="relative h-24 w-24 shrink-0 overflow-hidden rounded-lg"
+                className="relative h-24 w-24 shrink-0 overflow-hidden rounded-2xl bg-cream-dark"
               >
                 <Image
                   src={item.image}
@@ -57,18 +57,18 @@ export default function FavoritesPage() {
                 <div>
                   <Link
                     href={`${base}/products/${item.slug}`}
-                    className="font-medium text-olive hover:underline"
+                    className="font-medium text-slate-800 hover:text-bamboo"
                   >
                     {name}
                   </Link>
-                  <p className="text-bamboo">
+                  <p className="font-semibold text-bamboo">
                     {formatPrice(item.price, locale)}
                   </p>
                 </div>
                 <div className="flex gap-2">
                   <button
                     onClick={() => remove(item.id)}
-                    className="flex items-center gap-1 rounded-lg border border-olive/20 px-3 py-2 text-sm text-olive/70 transition hover:border-red-300 hover:text-red-600"
+                    className="flex items-center gap-1 rounded-full border border-bamboo/20 px-3 py-2 text-sm text-slate-500 transition hover:border-red-300 hover:text-red-500"
                     aria-label={t("remove")}
                   >
                     <Trash2 className="h-4 w-4" />

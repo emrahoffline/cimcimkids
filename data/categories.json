@@ -1,5 +1,5 @@
 [
-  { "slug": "decor", "nameTr": "Dekorasyon", "nameEn": "Decor" },
-  { "slug": "kitchen", "nameTr": "Mutfak", "nameEn": "Kitchen" },
-  { "slug": "storage", "nameTr": "Depolama", "nameEn": "Storage" }
+  { "slug": "girls", "nameTr": "Kız", "nameEn": "Girls" },
+  { "slug": "boys", "nameTr": "Erkek", "nameEn": "Boys" },
+  { "slug": "baby", "nameTr": "Bebek", "nameEn": "Baby" }
 ]

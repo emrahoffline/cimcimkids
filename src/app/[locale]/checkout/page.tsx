@@ -28,6 +28,7 @@ export default function CheckoutPage() {
     address: "",
     city: "",
     kvkkConsent: false,
+    marketingConsent: false,
   });
 
   if (items.length === 0 && !done) {
@@ -69,6 +70,8 @@ export default function CheckoutPage() {
         phone: form.phone,
         address: shippingAddress,
         kvkkConsent: true,
+        marketingConsent: form.marketingConsent,
+        locale,
         items: orderItems,
       }),
     });
@@ -225,6 +228,18 @@ export default function CheckoutPage() {
                 {t("kvkkLink")}
               </Link>
             </span>
+          </label>
+
+          <label className="flex min-h-[44px] cursor-pointer items-start gap-3 text-sm text-olive/80">
+            <input
+              type="checkbox"
+              checked={form.marketingConsent}
+              onChange={(e) =>
+                setForm({ ...form, marketingConsent: e.target.checked })
+              }
+              className="checkbox-field mt-0.5"
+            />
+            <span>{t("marketingConsent")}</span>
           </label>
         </div>
 

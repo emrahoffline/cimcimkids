@@ -1,15 +1,16 @@
 @import "tailwindcss";
 
 @theme {
-  --color-cream: #f9f6f0;
-  --color-cream-dark: #f0ebe3;
-  --color-olive: #4a5d44;
-  --color-olive-light: #5a6f54;
-  --color-bamboo: #a68b5b;
-  --color-bamboo-light: #c4a87a;
-  --color-leaf: #7a8c54;
-  --font-serif: "Georgia", "Times New Roman", serif;
-  --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  /* CimcimKids UI — light, playful, kids-friendly (BrandName keeps rainbow) */
+  --color-cream: #fffaf5;
+  --color-cream-dark: #fff0e6;
+  --color-olive: #3db8a8;
+  --color-olive-light: #4ecfbd;
+  --color-bamboo: #ff8a65;
+  --color-bamboo-light: #ffb199;
+  --color-leaf: #6ec1e4;
+  --font-serif: var(--font-display), "Nunito", sans-serif;
+  --font-sans: var(--font-body), "Outfit", sans-serif;
   --mobile-nav-height: 4.25rem;
 }
 
@@ -25,7 +26,11 @@ html {
 
 body {
   background-color: var(--color-cream);
-  color: #2c3329;
+  background-image:
+    radial-gradient(ellipse 70% 45% at 100% 0%, rgba(110, 193, 228, 0.18), transparent 55%),
+    radial-gradient(ellipse 55% 40% at 0% 20%, rgba(61, 184, 168, 0.12), transparent 50%),
+    radial-gradient(ellipse 50% 35% at 50% 100%, rgba(255, 138, 101, 0.1), transparent 55%);
+  color: #4a5568;
   font-family: var(--font-sans);
   -webkit-tap-highlight-color: transparent;
   overflow-x: hidden;
@@ -35,10 +40,56 @@ h1,
 h2,
 h3 {
   font-family: var(--font-serif);
-  color: var(--color-olive);
+  color: #2d3748;
+  letter-spacing: -0.02em;
 }
 
-/* iPhone safe areas */
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes soft-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+.animate-fade-up {
+  animation: fade-up 0.65s ease-out both;
+}
+
+.animate-fade-up-delay {
+  animation: fade-up 0.65s ease-out 0.1s both;
+}
+
+.animate-fade-up-delay-2 {
+  animation: fade-up 0.65s ease-out 0.2s both;
+}
+
+.animate-soft-float {
+  animation: soft-float 5s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-fade-up,
+  .animate-fade-up-delay,
+  .animate-fade-up-delay-2,
+  .animate-soft-float {
+    animation: none;
+  }
+}
+
 .safe-top {
   padding-top: env(safe-area-inset-top, 0px);
 }
@@ -55,7 +106,6 @@ h3 {
   padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 
-/* Main content clearance for bottom nav on mobile */
 .mobile-main {
   padding-bottom: calc(var(--mobile-nav-height) + env(safe-area-inset-bottom, 0px));
 }
@@ -67,15 +117,15 @@ h3 {
 }
 
 .btn-primary {
-  @apply inline-flex min-h-[44px] items-center justify-center gap-2 rounded-full bg-olive px-6 py-3 text-sm font-medium text-white transition active:scale-[0.98] hover:bg-olive-light;
+  @apply inline-flex min-h-[44px] items-center justify-center gap-2 rounded-full bg-bamboo px-6 py-3 text-sm font-semibold text-white transition duration-200 active:scale-[0.98] hover:bg-bamboo-light hover:-translate-y-0.5;
 }
 
 .btn-secondary {
-  @apply inline-flex min-h-[44px] items-center justify-center gap-2 rounded-full border border-olive/30 bg-white px-6 py-3 text-sm font-medium text-olive transition active:scale-[0.98] hover:border-olive hover:bg-cream-dark;
+  @apply inline-flex min-h-[44px] items-center justify-center gap-2 rounded-full border border-bamboo/30 bg-white px-6 py-3 text-sm font-semibold text-bamboo transition duration-200 active:scale-[0.98] hover:border-bamboo/60 hover:bg-[#fff3eb];
 }
 
 .input-field {
-  @apply w-full min-h-[44px] rounded-lg border border-olive/20 bg-white px-4 py-3 text-base outline-none transition focus:border-olive focus:ring-2 focus:ring-olive/10;
+  @apply w-full min-h-[44px] rounded-full border border-bamboo/20 bg-white px-5 py-3 text-base outline-none transition focus:border-bamboo focus:ring-2 focus:ring-bamboo/15;
 }
 
 @media (min-width: 768px) {
@@ -85,37 +135,33 @@ h3 {
 }
 
 .card {
-  @apply rounded-2xl border border-olive/10 bg-white p-4 shadow-sm sm:p-6;
+  @apply rounded-3xl bg-white/80 p-5 sm:p-6;
 }
 
 .prose-page p {
-  @apply mb-4 leading-relaxed text-olive/80;
+  @apply mb-4 leading-relaxed text-slate-600;
 }
 
 .prose-page h2 {
   @apply mb-3 mt-8 text-xl font-semibold;
 }
 
-/* Page headings — responsive on phones */
 .page-title {
-  @apply text-2xl font-semibold sm:text-3xl lg:text-4xl;
+  @apply text-2xl font-semibold tracking-tight sm:text-3xl lg:text-4xl;
 }
 
 .page-subtitle {
-  @apply mt-2 text-sm text-olive/60 sm:text-base;
+  @apply mt-2 text-sm text-slate-500 sm:text-base;
 }
 
-/* Accessible checkbox on mobile */
 .checkbox-field {
   @apply h-5 w-5 shrink-0 accent-olive;
 }
 
-/* Icon button touch target */
 .touch-target {
   @apply inline-flex min-h-[44px] min-w-[44px] items-center justify-center;
 }
 
-/* Mobile touch targets */
 .mobile-nav-item {
   min-height: 44px;
   -webkit-touch-callout: none;
@@ -126,14 +172,12 @@ h3 {
   min-height: 44px;
 }
 
-/* Product grid: 2 columns on phones */
 .mobile-product-grid {
-  @apply grid grid-cols-2 gap-3 sm:gap-6 md:grid-cols-2 lg:grid-cols-4;
+  @apply grid grid-cols-2 gap-4 sm:gap-6 md:grid-cols-2 lg:grid-cols-3;
 }
 
-/* Sticky mobile checkout bar */
 .mobile-sticky-bar {
-  @apply fixed bottom-[calc(var(--mobile-nav-height)+env(safe-area-inset-bottom,0px))] left-0 right-0 z-30 border-t border-olive/10 bg-white/95 p-4 backdrop-blur-lg;
+  @apply fixed bottom-[calc(var(--mobile-nav-height)+env(safe-area-inset-bottom,0px))] left-0 right-0 z-30 border-t border-bamboo/15 bg-gradient-to-t from-[#fff3eb] to-white/95 p-4 backdrop-blur-xl;
 }
 
 @media (min-width: 1024px) {

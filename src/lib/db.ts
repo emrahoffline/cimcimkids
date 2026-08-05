@@ -1,28 +1,19 @@
-import { promises as fs } from "fs";
-import path from "path";
+import "server-only";
+import type {
+  Customer as DbCustomer,
+  Order as DbOrder,
+  OrderItem as DbOrderItem,
+  Product as DbProduct,
+  Category as DbCategory,
+  Subscriber as DbSubscriber,
+  OrderStatus,
+  UserRole,
+  SubscriberSource,
+} from "@prisma/client";
 import type { Product, Category } from "./types";
 import { slugify } from "./product-utils";
 import { syncAllTimeTotals } from "./analytics-db";
-
-const DATA_DIR = path.join(process.cwd(), "data");
-
-async function readJson<T>(file: string, fallback: T): Promise<T> {
-  try {
-    const raw = await fs.readFile(path.join(DATA_DIR, file), "utf-8");
-    return JSON.parse(raw) as T;
-  } catch {
-    return fallback;
-  }
-}
-
-async function writeJson<T>(file: string, data: T): Promise<void> {
-  await fs.mkdir(DATA_DIR, { recursive: true });
-  await fs.writeFile(
-    path.join(DATA_DIR, file),
-    JSON.stringify(data, null, 2),
-    "utf-8"
-  );
-}
+import { prisma, requireDatabaseUrl } from "./prisma";
 
 export type Customer = {
   id: string;
@@ -30,6 +21,7 @@ export type Customer = {
   name: string | null;
   image: string | null;
   role: "admin" | "customer";
+  passwordHash?: string;
   createdAt: string;
   lastLoginAt: string;
   orderCount: number;
@@ -65,28 +57,160 @@ export type Order = {
   adminSeen?: boolean;
 };
 
-export async function getProducts(): Promise<Product[]> {
-  return readJson<Product[]>("products.json", []);
+export type NewsletterSubscriber = {
+  id: string;
+  email: string;
+  locale: string;
+  createdAt: string;
+  source?: "newsletter" | "checkout";
+};
+
+function mapProduct(p: DbProduct): Product {
+  return {
+    id: p.id,
+    slug: p.slug,
+    image: p.image,
+    price: p.price,
+    category: p.category,
+    translationKey: p.translationKey ?? undefined,
+    nameTr: p.nameTr,
+    nameEn: p.nameEn,
+    descTr: p.descTr,
+    descEn: p.descEn,
+    inStock: p.inStock,
+  };
 }
 
-export async function saveProducts(products: Product[]): Promise<void> {
-  await writeJson("products.json", products);
+function mapCategory(c: DbCategory): Category {
+  return { slug: c.slug, nameTr: c.nameTr, nameEn: c.nameEn };
+}
+
+function mapCustomer(c: DbCustomer): Customer {
+  return {
+    id: c.id,
+    email: c.email,
+    name: c.name,
+    image: c.image,
+    role: c.role,
+    passwordHash: c.passwordHash ?? undefined,
+    createdAt: c.createdAt.toISOString(),
+    lastLoginAt: c.lastLoginAt.toISOString(),
+    orderCount: c.orderCount,
+    totalSpent: c.totalSpent,
+  };
+}
+
+function mapOrder(
+  o: DbOrder & { items: DbOrderItem[] }
+): Order {
+  return {
+    id: o.id,
+    orderNumber: o.orderNumber,
+    customerEmail: o.customerEmail,
+    customerName: o.customerName,
+    customerPhone: o.customerPhone ?? undefined,
+    items: o.items.map((i) => ({
+      productId: i.productId,
+      name: i.name,
+      price: i.price,
+      quantity: i.quantity,
+      image: i.image,
+    })),
+    total: o.total,
+    status: o.status,
+    createdAt: o.createdAt.toISOString(),
+    shippingAddress: o.shippingAddress ?? undefined,
+    adminSeen: o.adminSeen,
+  };
+}
+
+function mapSubscriber(s: DbSubscriber): NewsletterSubscriber {
+  return {
+    id: s.id,
+    email: s.email,
+    locale: s.locale,
+    createdAt: s.createdAt.toISOString(),
+    source: s.source,
+  };
 }
 
 const DEFAULT_CATEGORIES: Category[] = [
-  { slug: "decor", nameTr: "Dekorasyon", nameEn: "Decor" },
-  { slug: "kitchen", nameTr: "Mutfak", nameEn: "Kitchen" },
-  { slug: "storage", nameTr: "Depolama", nameEn: "Storage" },
+  { slug: "girls", nameTr: "Kız", nameEn: "Girls" },
+  { slug: "boys", nameTr: "Erkek", nameEn: "Boys" },
+  { slug: "baby", nameTr: "Bebek", nameEn: "Baby" },
 ];
 
+export async function getProducts(): Promise<Product[]> {
+  requireDatabaseUrl();
+  const rows = await prisma.product.findMany({ orderBy: { id: "asc" } });
+  return rows.map(mapProduct);
+}
+
+export async function saveProducts(products: Product[]): Promise<void> {
+  requireDatabaseUrl();
+  const ids = products.map((p) => p.id);
+
+  await prisma.$transaction(async (tx) => {
+    await tx.product.deleteMany({
+      where: ids.length ? { id: { notIn: ids } } : undefined,
+    });
+
+    for (const p of products) {
+      await tx.product.upsert({
+        where: { id: p.id },
+        create: {
+          id: p.id,
+          slug: p.slug,
+          image: p.image,
+          price: p.price,
+          category: p.category,
+          translationKey: p.translationKey ?? null,
+          nameTr: p.nameTr,
+          nameEn: p.nameEn,
+          descTr: p.descTr,
+          descEn: p.descEn,
+          inStock: p.inStock,
+        },
+        update: {
+          slug: p.slug,
+          image: p.image,
+          price: p.price,
+          category: p.category,
+          translationKey: p.translationKey ?? null,
+          nameTr: p.nameTr,
+          nameEn: p.nameEn,
+          descTr: p.descTr,
+          descEn: p.descEn,
+          inStock: p.inStock,
+        },
+      });
+    }
+  });
+}
+
 export async function getCategories(): Promise<Category[]> {
-  const cats = await readJson<Category[]>("categories.json", DEFAULT_CATEGORIES);
-  if (cats.length === 0) return DEFAULT_CATEGORIES;
-  return cats;
+  requireDatabaseUrl();
+  const rows = await prisma.category.findMany({ orderBy: { slug: "asc" } });
+  if (rows.length === 0) return DEFAULT_CATEGORIES;
+  return rows.map(mapCategory);
 }
 
 export async function saveCategories(categories: Category[]): Promise<void> {
-  await writeJson("categories.json", categories);
+  requireDatabaseUrl();
+  const slugs = categories.map((c) => c.slug);
+
+  await prisma.$transaction(async (tx) => {
+    await tx.category.deleteMany({
+      where: slugs.length ? { slug: { notIn: slugs } } : undefined,
+    });
+    for (const c of categories) {
+      await tx.category.upsert({
+        where: { slug: c.slug },
+        create: c,
+        update: { nameTr: c.nameTr, nameEn: c.nameEn },
+      });
+    }
+  });
 }
 
 export async function createCategory(data: {
@@ -94,39 +218,91 @@ export async function createCategory(data: {
   nameEn: string;
   slug?: string;
 }): Promise<Category> {
-  const categories = await getCategories();
+  requireDatabaseUrl();
   const baseSlug = slugify(data.nameTr || data.nameEn);
   let slug = data.slug?.trim() || baseSlug;
   let n = 1;
-  while (categories.some((c) => c.slug === slug)) {
+  while (await prisma.category.findUnique({ where: { slug } })) {
     slug = `${baseSlug}-${n++}`;
   }
 
-  const category: Category = {
-    slug,
-    nameTr: data.nameTr.trim(),
-    nameEn: data.nameEn.trim() || data.nameTr.trim(),
-  };
-
-  categories.push(category);
-  await saveCategories(categories);
-  return category;
+  const category = await prisma.category.create({
+    data: {
+      slug,
+      nameTr: data.nameTr.trim(),
+      nameEn: data.nameEn.trim() || data.nameTr.trim(),
+    },
+  });
+  return mapCategory(category);
 }
 
 export async function getCustomers(): Promise<Customer[]> {
-  return readJson<Customer[]>("customers.json", []);
+  requireDatabaseUrl();
+  const rows = await prisma.customer.findMany({
+    orderBy: { lastLoginAt: "desc" },
+  });
+  return rows.map(mapCustomer);
 }
 
 export async function saveCustomers(customers: Customer[]): Promise<void> {
-  await writeJson("customers.json", customers);
+  requireDatabaseUrl();
+  await prisma.$transaction(async (tx) => {
+    for (const c of customers) {
+      await tx.customer.upsert({
+        where: { id: c.id },
+        create: {
+          id: c.id,
+          email: c.email,
+          name: c.name,
+          image: c.image,
+          role: c.role as UserRole,
+          passwordHash: c.passwordHash ?? null,
+          createdAt: new Date(c.createdAt),
+          lastLoginAt: new Date(c.lastLoginAt),
+          orderCount: c.orderCount,
+          totalSpent: c.totalSpent,
+        },
+        update: {
+          email: c.email,
+          name: c.name,
+          image: c.image,
+          role: c.role as UserRole,
+          passwordHash: c.passwordHash ?? null,
+          lastLoginAt: new Date(c.lastLoginAt),
+          orderCount: c.orderCount,
+          totalSpent: c.totalSpent,
+        },
+      });
+    }
+  });
 }
 
 export async function getOrders(): Promise<Order[]> {
-  return readJson<Order[]>("orders.json", []);
+  requireDatabaseUrl();
+  const rows = await prisma.order.findMany({
+    include: { items: true },
+    orderBy: { createdAt: "desc" },
+  });
+  return rows.map(mapOrder);
 }
 
 export async function saveOrders(orders: Order[]): Promise<void> {
-  await writeJson("orders.json", orders);
+  requireDatabaseUrl();
+  await prisma.$transaction(async (tx) => {
+    for (const o of orders) {
+      await tx.order.update({
+        where: { id: o.id },
+        data: {
+          status: o.status as OrderStatus,
+          adminSeen: o.adminSeen ?? false,
+          customerName: o.customerName,
+          customerPhone: o.customerPhone ?? null,
+          shippingAddress: o.shippingAddress ?? null,
+          total: o.total,
+        },
+      });
+    }
+  });
 }
 
 export function isOrderUnread(order: Order): boolean {
@@ -134,27 +310,25 @@ export function isOrderUnread(order: Order): boolean {
 }
 
 export async function getUnreadOrders(): Promise<Order[]> {
-  const orders = await getOrders();
-  return orders.filter(isOrderUnread);
+  requireDatabaseUrl();
+  const rows = await prisma.order.findMany({
+    where: { adminSeen: false },
+    include: { items: true },
+    orderBy: { createdAt: "desc" },
+  });
+  return rows.map(mapOrder);
 }
 
 export async function markOrdersSeen(orderIds?: string[]): Promise<number> {
-  const orders = await getOrders();
-  let marked = 0;
-
-  for (const order of orders) {
-    if (orderIds && !orderIds.includes(order.id)) continue;
-    if (order.adminSeen === false) {
-      order.adminSeen = true;
-      marked += 1;
-    }
-  }
-
-  if (marked > 0) {
-    await saveOrders(orders);
-  }
-
-  return marked;
+  requireDatabaseUrl();
+  const result = await prisma.order.updateMany({
+    where: {
+      adminSeen: false,
+      ...(orderIds ? { id: { in: orderIds } } : {}),
+    },
+    data: { adminSeen: true },
+  });
+  return result.count;
 }
 
 export async function upsertCustomer(data: {
@@ -162,61 +336,191 @@ export async function upsertCustomer(data: {
   name?: string | null;
   image?: string | null;
   role: "admin" | "customer";
+  passwordHash?: string;
 }): Promise<Customer> {
-  const customers = await getCustomers();
+  requireDatabaseUrl();
   const email = data.email.toLowerCase();
-  const existing = customers.find((c) => c.email === email);
-  const now = new Date().toISOString();
+  const existing = await prisma.customer.findUnique({ where: { email } });
 
   if (existing) {
-    existing.name = data.name ?? existing.name;
-    existing.image = data.image ?? existing.image;
-    existing.lastLoginAt = now;
-    await saveCustomers(customers);
-    return existing;
+    const updated = await prisma.customer.update({
+      where: { email },
+      data: {
+        name: data.name ?? existing.name,
+        image: data.image ?? existing.image,
+        lastLoginAt: new Date(),
+        ...(data.passwordHash ? { passwordHash: data.passwordHash } : {}),
+        role: data.role as UserRole,
+      },
+    });
+    return mapCustomer(updated);
   }
 
-  const customer: Customer = {
-    id: `cust_${Date.now()}`,
-    email,
-    name: data.name ?? null,
-    image: data.image ?? null,
-    role: data.role,
-    createdAt: now,
-    lastLoginAt: now,
-    orderCount: 0,
-    totalSpent: 0,
-  };
-  customers.push(customer);
-  await saveCustomers(customers);
-  return customer;
+  const created = await prisma.customer.create({
+    data: {
+      id: `cust_${Date.now()}`,
+      email,
+      name: data.name ?? null,
+      image: data.image ?? null,
+      role: data.role as UserRole,
+      passwordHash: data.passwordHash ?? null,
+    },
+  });
+  return mapCustomer(created);
 }
 
-export async function createOrder(order: Omit<Order, "id" | "createdAt">): Promise<Order> {
-  const orders = await getOrders();
-  const full: Order = {
-    ...order,
-    id: `ord_${Date.now()}`,
-    createdAt: new Date().toISOString(),
-    adminSeen: false,
-  };
-  orders.unshift(full);
+export async function getCustomerByEmail(
+  email: string
+): Promise<Customer | null> {
+  requireDatabaseUrl();
+  const row = await prisma.customer.findUnique({
+    where: { email: email.toLowerCase().trim() },
+  });
+  return row ? mapCustomer(row) : null;
+}
 
-  if (order.status === "confirmed") {
-    const customers = await getCustomers();
-    const customer = customers.find(
-      (c) => c.email === order.customerEmail.toLowerCase()
-    );
-    if (customer) {
-      customer.orderCount += 1;
-      customer.totalSpent += order.total;
-      await saveCustomers(customers);
-    }
+export async function registerCustomer(data: {
+  email: string;
+  name: string;
+  passwordHash: string;
+}): Promise<{ customer: Customer; created: boolean; error?: string }> {
+  const email = data.email.trim().toLowerCase();
+  const existing = await getCustomerByEmail(email);
+
+  if (existing?.passwordHash) {
+    return { customer: existing, created: false, error: "alreadyExists" };
+  }
+  if (existing) {
+    return { customer: existing, created: false, error: "oauthAccount" };
   }
 
-  await saveOrders(orders);
-  await syncAllTimeTotals(orders).catch((err) =>
+  const customer = await upsertCustomer({
+    email,
+    name: data.name.trim(),
+    role: "customer",
+    passwordHash: data.passwordHash,
+  });
+  return { customer, created: true };
+}
+
+export async function createOrder(
+  order: Omit<Order, "id" | "createdAt">
+): Promise<Order> {
+  requireDatabaseUrl();
+  const id = `ord_${Date.now()}`;
+
+  const created = await prisma.$transaction(async (tx) => {
+    if (order.status === "confirmed") {
+      await tx.customer.updateMany({
+        where: { email: order.customerEmail.toLowerCase() },
+        data: {
+          orderCount: { increment: 1 },
+          totalSpent: { increment: order.total },
+        },
+      });
+    }
+
+    return tx.order.create({
+      data: {
+        id,
+        orderNumber: order.orderNumber,
+        customerEmail: order.customerEmail,
+        customerName: order.customerName,
+        customerPhone: order.customerPhone ?? null,
+        total: order.total,
+        status: order.status as OrderStatus,
+        shippingAddress: order.shippingAddress ?? null,
+        adminSeen: false,
+        items: {
+          create: order.items.map((item) => ({
+            productId: item.productId,
+            name: item.name,
+            price: item.price,
+            quantity: item.quantity,
+            image: item.image,
+          })),
+        },
+      },
+      include: { items: true },
+    });
+  });
+
+  const mapped = mapOrder(created);
+  const allOrders = await getOrders();
+  await syncAllTimeTotals(allOrders).catch((err) =>
     console.error("[analytics] Tüm zamanlar toplamı kaydedilemedi:", err)
   );
-  return full;
+  return mapped;
+}
+
+export async function getNewsletterSubscribers(): Promise<
+  NewsletterSubscriber[]
+> {
+  requireDatabaseUrl();
+  const rows = await prisma.subscriber.findMany({
+    orderBy: { createdAt: "desc" },
+  });
+  return rows.map(mapSubscriber);
+}
+
+export async function saveNewsletterSubscribers(
+  subscribers: NewsletterSubscriber[]
+): Promise<void> {
+  requireDatabaseUrl();
+  const ids = subscribers.map((s) => s.id);
+  await prisma.$transaction(async (tx) => {
+    await tx.subscriber.deleteMany({
+      where: ids.length ? { id: { notIn: ids } } : undefined,
+    });
+    for (const s of subscribers) {
+      await tx.subscriber.upsert({
+        where: { id: s.id },
+        create: {
+          id: s.id,
+          email: s.email,
+          locale: s.locale,
+          source: (s.source ?? "newsletter") as SubscriberSource,
+          createdAt: new Date(s.createdAt),
+        },
+        update: {
+          email: s.email,
+          locale: s.locale,
+          source: (s.source ?? "newsletter") as SubscriberSource,
+        },
+      });
+    }
+  });
+}
+
+export async function addNewsletterSubscriber(data: {
+  email: string;
+  locale?: string;
+  source?: "newsletter" | "checkout";
+}): Promise<{ subscriber: NewsletterSubscriber; created: boolean }> {
+  requireDatabaseUrl();
+  const email = data.email.trim().toLowerCase();
+  const existing = await prisma.subscriber.findUnique({ where: { email } });
+  if (existing) {
+    return { subscriber: mapSubscriber(existing), created: false };
+  }
+
+  const created = await prisma.subscriber.create({
+    data: {
+      id: `sub_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+      email,
+      locale: data.locale === "en" ? "en" : "tr",
+      source: (data.source ?? "newsletter") as SubscriberSource,
+    },
+  });
+  return { subscriber: mapSubscriber(created), created: true };
+}
+
+export async function removeNewsletterSubscriber(id: string): Promise<boolean> {
+  requireDatabaseUrl();
+  try {
+    await prisma.subscriber.delete({ where: { id } });
+    return true;
+  } catch {
+    return false;
+  }
 }

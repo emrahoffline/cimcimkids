@@ -1,8 +1,17 @@
+import type { Viewport } from "next";
 import { Providers } from "@/components/Providers";
+import "@/app/globals.css";
 import "./admin.css";
 
 export const metadata = {
-  title: "AryaBamboo Admin",
+  title: "CimcimKids Admin",
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 5,
+  viewportFit: "cover",
 };
 
 export default function AdminRootLayout({

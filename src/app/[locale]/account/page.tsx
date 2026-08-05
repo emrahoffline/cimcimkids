@@ -5,12 +5,14 @@ import { useTranslations, useLocale } from "next-intl";
 import Link from "next/link";
 import { Shield } from "lucide-react";
 import { AuthButtons } from "@/components/AuthButtons";
+import { CustomerAuthForms } from "@/components/CustomerAuthForms";
 
 export default function AccountPage() {
   const t = useTranslations("auth");
   const locale = useLocale();
   const { data: session, status } = useSession();
   const isAdmin = session?.user?.role === "admin";
+  const callbackUrl = `/${locale}/account`;
 
   if (status === "loading") {
     return (
@@ -69,7 +71,12 @@ export default function AccountPage() {
         {t("signInTitle")}
       </h1>
       <p className="mb-8 text-center text-olive/60">{t("signInDesc")}</p>
-      <AuthButtons callbackUrl={`/${locale}/account`} />
+
+      <AuthButtons callbackUrl={callbackUrl} />
+
+      <div className="mt-6">
+        <CustomerAuthForms callbackUrl={callbackUrl} />
+      </div>
     </div>
   );
 }

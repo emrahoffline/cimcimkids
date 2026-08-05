@@ -65,9 +65,9 @@ export default function AdminAnalyticsPage() {
   return (
     <>
       <AdminHeader title="İstatistikler & Raporlar" />
-      <main className="flex-1 overflow-y-auto p-6">
+      <main className="admin-main">
         {!data ? (
-          <div className="admin-card p-10 text-center text-gray-400">
+          <div className="admin-card p-8 text-center text-gray-400 sm:p-10">
             İstatistikler yükleniyor...
           </div>
         ) : (

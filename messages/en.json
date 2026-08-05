@@ -1,7 +1,7 @@
 {
   "meta": {
-    "title": "AryaBamboo | Handmade Bamboo Products",
-    "description": "AryaBamboo — natural, handmade bamboo designs. Sustainable and elegant products."
+    "title": "CimcimKids | Kids Clothing",
+    "description": "CimcimKids — comfortable, stylish kidswear. Baby, girls, and boys collections."
   },
   "nav": {
     "home": "Home",
@@ -18,36 +18,42 @@
     "signIn": "Sign In"
   },
   "home": {
-    "heroTitle": "Nature's Elegance, In Your Hands",
-    "heroSubtitle": "Bring warmth and sustainability to your space with handmade bamboo products.",
+    "heroTitle": "Big Comfort for Little Ones",
+    "heroSubtitle": "Kids clothing made for all-day comfort, play, and every age.",
     "shopNow": "Shop Now",
     "learnMore": "Discover Our Story",
     "featured": "Featured Products",
-    "featuredDesc": "Our carefully crafted natural bamboo collection",
-    "craftTitle": "Handcrafted & Natural",
-    "craftDesc": "Each piece is carefully made by master artisans. Sustainable bamboo meets modern design.",
-    "sustainTitle": "Sustainable Living",
-    "sustainDesc": "Eco-friendly materials — the perfect choice for a plastic-free lifestyle.",
+    "featuredDesc": "This season’s most-loved kidswear pieces",
+    "craftTitle": "Soft & Safe",
+    "craftDesc": "Fabrics chosen for sensitive skin. Comfort and freedom to move every day.",
+    "sustainTitle": "Made to Grow With",
+    "sustainDesc": "Quality stitching and timeless cuts — pieces that last through seasons.",
     "newsletter": "Stay in the loop",
     "newsletterDesc": "Join our mailing list for new collections and exclusive offers.",
     "emailPlaceholder": "Your email address",
-    "subscribe": "Subscribe"
+    "subscribe": "Subscribe",
+    "newsletterSending": "Sending...",
+    "newsletterSuccess": "Thanks! You're on our mailing list.",
+    "newsletterAlready": "This email is already on our list.",
+    "newsletterInvalid": "Please enter a valid email address.",
+    "newsletterTooMany": "Too many attempts. Please try again shortly.",
+    "newsletterError": "Something went wrong. Please try again."
   },
   "about": {
     "title": "About Us",
-    "subtitle": "The AryaBamboo story",
-    "p1": "AryaBamboo is a brand that combines bamboo — nature's most renewable resource — with artisan craftsmanship. Our mission is to bring aesthetic, sustainable products into your daily life.",
-    "p2": "In our workshop, every product is made one by one by skilled artisans. We support a natural lifestyle as an alternative to plastic.",
-    "p3": "Quality, naturality, and customer satisfaction are our core values. Join us on this journey.",
+    "subtitle": "The CimcimKids story",
+    "p1": "CimcimKids was founded to offer clothing kids can move freely in and parents can trust. Our mission is to bring together comfort, quality, and simple style.",
+    "p2": "Our collections span from baby to school age. Every piece is carefully chosen with fabrics suited to everyday life and play.",
+    "p3": "Comfort, durability, and customer satisfaction are our core values. Let’s complete little wardrobes together.",
     "values": "Our Values",
-    "value1": "Handmade quality",
-    "value2": "Sustainable production",
-    "value3": "Natural materials",
+    "value1": "Skin-friendly fabrics",
+    "value2": "Comfortable fits",
+    "value3": "Careful craftsmanship",
     "value4": "Customer-first service"
   },
   "products": {
     "title": "Our Products",
-    "subtitle": "Our handmade bamboo collection",
+    "subtitle": "Our kids clothing collection",
     "addToCart": "Add to Cart",
     "viewDetails": "View Details",
     "price": "Price",
@@ -55,26 +61,34 @@
     "outOfStock": "Sold Out",
     "category": "Category",
     "all": "All",
-    "decor": "Decor",
-    "kitchen": "Kitchen",
-    "storage": "Storage"
+    "decor": "Girls",
+    "kitchen": "Boys",
+    "storage": "Baby"
   },
   "productItems": {
     "lantern": {
-      "name": "Bamboo Lantern",
-      "desc": "Hand-woven bamboo lantern, perfect for a warm, natural ambiance."
+      "name": "Bow Tweed Pinafore",
+      "desc": "Black-and-white textured pinafore dress with a statement bow."
     },
     "basket": {
-      "name": "Bamboo Basket",
-      "desc": "Versatile handmade bamboo basket for home and garden."
+      "name": "Yellow Pinafore Set",
+      "desc": "White lace-collar blouse with a yellow tiered bow pinafore."
     },
     "tray": {
-      "name": "Bamboo Tray",
-      "desc": "Elegant bamboo serving tray for your kitchen and table."
+      "name": "Black Ruffle Dress",
+      "desc": "Elegant black dress with ruffle details on sleeves and hem."
     },
     "organizer": {
-      "name": "Bamboo Organizer",
-      "desc": "Stylish bamboo organizer for desk or kitchen storage."
+      "name": "Green Floral Set",
+      "desc": "Green floral print top and wide-leg pants set."
+    },
+    "blueFloral": {
+      "name": "Blue Floral Set",
+      "desc": "Blue floral print camisole top and matching pants set."
+    },
+    "pinkGingham": {
+      "name": "Pink Gingham Dress",
+      "desc": "Pink-and-white gingham dress with flutter sleeves and tiered skirt."
     }
   },
   "contact": {
@@ -87,21 +101,21 @@
     "send": "Send",
     "success": "Message received. We'll get back to you soon.",
     "address": "Address",
-    "addressValue": "Istanbul, Turkey",
+    "addressValue": "Antalya, Turkey",
     "hours": "Business Hours",
     "hoursValue": "Mon–Sat 09:00–18:00"
   },
   "faq": {
     "title": "Frequently Asked Questions",
     "subtitle": "Answers to your questions",
-    "q1": "Are the products truly handmade?",
-    "a1": "Yes, all our products are handcrafted by skilled artisans in our workshop.",
+    "q1": "How should I choose a size?",
+    "a1": "Each product page includes age/size guidance. If unsure, size up or contact us.",
     "q2": "How long does shipping take?",
     "a2": "Domestic orders are delivered within 2–5 business days. Track your order on our tracking page.",
     "q3": "What payment methods do you accept?",
     "a3": "We accept bank transfer (wire/EFT). After placing your order, IBAN details are shown and the order is emailed to us.",
-    "q4": "Are the products water-resistant?",
-    "a4": "Our bamboo products may be affected by moisture due to their natural composition. Care instructions are on each product page.",
+    "q4": "How should I wash the products?",
+    "a4": "Most of our products are suitable for a gentle 30°C wash. Please follow the care label on each item.",
     "q5": "Do you offer gift wrapping?",
     "a5": "Yes, just note 'gift wrap' in your order. We offer complimentary gift wrapping."
   },
@@ -111,11 +125,16 @@
     "orderNumber": "Order Number",
     "email": "Email Address",
     "track": "Track",
+    "tracking": "Tracking...",
     "status": "Status",
     "notFound": "Order not found. Please check your details.",
-    "demoNote": "Demo: try AB-12345 and demo@email.com",
+    "hint": "Use your order number and the email from checkout.",
+    "tooMany": "Too many attempts. Please try again shortly.",
+    "error": "Something went wrong. Please try again.",
+    "cancelled": "This order was cancelled.",
+    "pendingPayment": "Awaiting payment",
     "steps": {
-      "confirmed": "Order Confirmed",
+      "confirmed": "Order Received",
       "preparing": "Preparing",
       "shipped": "Shipped",
       "delivered": "Delivered"
@@ -135,39 +154,39 @@
   },
   "privacy": {
     "title": "Privacy & Security Policy",
-    "updated": "Last updated: May 2026",
-    "intro": "At AryaBamboo, we take the security of your personal data seriously.",
-    "s1": "Collected data is used only for order processing and customer service.",
-    "s2": "Payment information is used only for bank transfer processing and is not shared with third parties.",
-    "s3": "Cookies are used to improve site experience; you can manage them in browser settings."
+    "updated": "Last updated: August 2026",
+    "intro": "At CimcimKids, we take the security of your personal data seriously.",
+    "s1": "Collected data is used only for order processing, account management, customer service, and legal obligations. Details are set out in the KVKK Privacy Notice.",
+    "s2": "Payment details are used only for bank transfers; we do not store card data. Our website and database run on Hetzner infrastructure in Germany / the EU (and, where needed, cloud database providers in the EU/EEA), so your data may be processed abroad for hosting purposes.",
+    "s3": "Cookies and similar technologies are used to improve site experience and manage sessions; you can control them in browser settings. If you sign in with Google, Google’s own privacy policy also applies."
   },
   "distanceSales": {
     "title": "Distance Sales Agreement",
     "updated": "Last updated: May 2026",
-    "s1": "This agreement is governed by applicable consumer protection laws between AryaBamboo and the consumer.",
+    "s1": "This agreement is governed by applicable consumer protection laws between CimcimKids and the consumer.",
     "s2": "Order confirmation is sent by email. Right of withdrawal can be exercised within 14 days.",
     "s3": "Product prices include VAT. Payment is made via bank transfer; shipping is free."
   },
   "kvkk": {
     "title": "Personal Data Protection Notice (KVKK)",
-    "updated": "Last updated: June 2026",
-    "intro": "Under the Turkish Personal Data Protection Law No. 6698 (\"KVKK\"), we inform you about how AryaBamboo processes your personal data.",
+    "updated": "Last updated: August 2026",
+    "intro": "Under the Turkish Personal Data Protection Law No. 6698 (\"KVKK\"), we inform you about how CimcimKids processes your personal data.",
     "s1title": "1. Data Controller",
-    "s1": "Data controller: AryaBamboo. Address: Istanbul, Turkey. Contact: info@aryabamboo.com — Phone: +90 533 700 73 18",
+    "s1": "Data controller: CimcimKids. Address: Antalya, Turkey. Contact: info@cimcimkids.com — Phone: +90 533 700 73 18",
     "s2title": "2. Processed Personal Data",
-    "s2": "Identity data (name, surname), contact data (email, phone, address), order and transaction data (products, amount, order number), customer transaction history.",
+    "s2": "Identity data (name, surname), contact data (email, phone, address), order and transaction data (products, amount, order number), account and session data, customer transaction history; and, if you opt in, newsletter subscription data.",
     "s3title": "3. Purposes of Processing",
-    "s3": "Receiving and delivering orders, managing payment processes (bank transfer), customer service and communication, fulfilling legal obligations, performance of the distance sales agreement.",
-    "s4title": "4. Transfer of Personal Data",
-    "s4": "Your personal data may only be transferred to authorized public institutions when legally required and to shipping companies for delivery. Your data is not transferred abroad.",
+    "s3": "Receiving and delivering orders, managing payment processes (bank transfer), membership and account management, customer service and communication, securely operating site infrastructure, fulfilling legal obligations, performance of the distance sales agreement; and, with explicit consent, marketing / newsletter communication.",
+    "s4title": "4. Transfer of Personal Data and Cross-Border Transfer",
+    "s4": "Your personal data may be transferred to authorized public institutions when legally required, to shipping companies for delivery, and to technical infrastructure providers we use. Our website and database are hosted on servers of Hetzner Online GmbH in Germany / the European Union (and, where needed, cloud database providers in the EU/EEA). Due to this hosting, your personal data is transferred abroad under KVKK Art. 9. Purpose of the transfer: secure website hosting and storage/processing of order and customer data. If you choose Google sign-in, limited data may also be transferred to Google abroad for authentication. Cross-border transfers are carried out with the data subject’s information and explicit consent given at checkout/registration and, to the extent necessary for contract performance, under other applicable KVKK grounds.",
     "s5title": "5. Collection Method and Legal Basis",
-    "s5": "Your data is collected electronically through our website order form, contact form, and account creation. Legal basis: KVKK Art. 5/2-c (establishment or performance of a contract) and Art. 5/2-f (legitimate interest).",
+    "s5": "Your data is collected electronically via the website order form, contact form, account registration / sign-in, newsletter signup, and automated log / security records. Legal bases: KVKK Art. 5/2-c (establishment or performance of a contract), Art. 5/2-ç (legal obligation), Art. 5/2-f (legitimate interest); and for cross-border transfer and marketing communications, explicit consent under KVKK Art. 5/1 and Art. 9.",
     "s6title": "6. Retention Period",
     "s6": "Your personal data is retained for the period required by the processing purpose and applicable legal retention periods (10 years for commercial records), then deleted, destroyed, or anonymized.",
     "s7title": "7. Your Rights",
-    "s7": "Under KVKK Art. 11, you have the right to learn whether your data is processed, request information, learn the purpose and whether it is used accordingly, know third parties to whom data is transferred, request correction, and request deletion or destruction.",
+    "s7": "Under KVKK Art. 11, you have the right to learn whether your data is processed, request information, learn the purpose and whether it is used accordingly, know third parties in Turkey or abroad to whom data is transferred, request correction, request deletion or destruction, and withdraw consent where processing is based on consent.",
     "s8title": "8. How to Apply",
-    "s8": "To exercise your rights, send a written request to info@aryabamboo.com. Your requests will be answered free of charge within 30 days at the latest."
+    "s8": "To exercise your rights, send a written request to info@cimcimkids.com. Your requests will be answered free of charge within 30 days at the latest."
   },
   "favorites": {
     "title": "My Favorites",
@@ -202,21 +221,22 @@
     "iban": "IBAN",
     "accountHolder": "Account holder",
     "bankName": "Bank",
-    "orderHint": "Order details will be emailed to info@aryabamboo.com when completed.",
+    "orderHint": "Order details will be emailed to info@cimcimkids.com when completed.",
     "namePlaceholder": "Full Name",
     "emailPlaceholder": "Email",
     "phonePlaceholder": "Phone",
     "addressPlaceholder": "Address",
     "cityPlaceholder": "City",
-    "kvkkConsent": "I consent to the processing of my personal data.",
+    "kvkkConsent": "I have read the KVKK Privacy Notice and consent to the processing of my personal data and its transfer to server infrastructure in Germany/the EU (Hetzner).",
     "kvkkLink": "KVKK Privacy Notice",
     "kvkkRequired": "You must accept the KVKK notice to continue.",
+    "marketingConsent": "I agree to receive campaigns, new product news, and offers by email. (Optional)",
     "error": "Could not place order. Please try again."
   },
   "auth": {
     "title": "My Account",
     "signInTitle": "Sign In",
-    "signInDesc": "Sign in quickly with your Google or Apple account.",
+    "signInDesc": "Sign in with Google or your email.",
     "google": "Sign in with Google",
     "apple": "Sign in with Apple",
     "signOut": "Sign Out",
@@ -225,7 +245,33 @@
     "noOrders": "No orders yet.",
     "envNote": "Add API keys to .env.local for Google / Apple sign-in.",
     "adminOnlyStorefront": "You cannot use the store as a customer with an admin account. Please use the admin panel.",
-    "goToAdmin": "Go to Admin Panel"
+    "goToAdmin": "Go to Admin Panel",
+    "registerTab": "Sign Up",
+    "loginTab": "Sign In",
+    "backToLogin": "Back to sign in",
+    "namePlaceholder": "Full name",
+    "emailPlaceholder": "Email",
+    "passwordPlaceholder": "Password",
+    "passwordConfirmPlaceholder": "Confirm password",
+    "passwordHint": "At least 8 characters.",
+    "registerSubmit": "Create account",
+    "loginSubmit": "Sign in",
+    "submitting": "Please wait...",
+    "orContinue": "or",
+    "kvkkConsent": "I have read the KVKK Privacy Notice and consent to the processing of my personal data and its transfer to server infrastructure in Germany/the EU (Hetzner).",
+    "kvkkLink": "KVKK Privacy Notice",
+    "kvkkRequired": "You must accept the KVKK notice to continue.",
+    "marketingConsent": "I agree to receive campaigns and offers by email. (Optional)",
+    "passwordMismatch": "Passwords do not match.",
+    "weakPassword": "Password must be at least 8 characters.",
+    "invalidEmail": "Enter a valid email address.",
+    "invalidName": "Please enter your name.",
+    "alreadyExists": "An account with this email already exists. Sign in with Google or your existing account.",
+    "adminEmail": "This email cannot be used for registration.",
+    "tooManyRequests": "Too many attempts. Please try again shortly.",
+    "loginFailed": "Incorrect email or password.",
+    "formError": "Something went wrong. Please try again.",
+    "registerOkLogin": "Account created. You can sign in now."
   },
   "footer": {
     "shop": "Shop",
@@ -236,6 +282,6 @@
     "kvkk": "KVKK",
     "returns": "Returns & Cancellation",
     "rights": "All rights reserved.",
-    "tagline": "Handmade bamboo designs"
+    "tagline": "Comfortable, stylish kidswear"
   }
 }

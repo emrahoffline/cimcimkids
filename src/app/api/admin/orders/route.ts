@@ -15,6 +15,18 @@ export async function PATCH(request: Request) {
   if (error) return error;
 
   const { id, status } = await request.json();
+  const allowed = [
+    "pending_payment",
+    "pending",
+    "confirmed",
+    "preparing",
+    "shipped",
+    "delivered",
+    "cancelled",
+  ] as const;
+  if (!allowed.includes(status)) {
+    return NextResponse.json({ error: "Geçersiz durum" }, { status: 400 });
+  }
   const orders = await getOrders();
   const order = orders.find((o) => o.id === id);
 

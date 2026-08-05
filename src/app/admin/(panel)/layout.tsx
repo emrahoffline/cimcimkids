@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { isAdminEmail } from "@/lib/admin";
-import { AdminSidebar } from "@/components/admin/AdminSidebar";
+import { AdminShell } from "@/components/admin/AdminShell";
 
 export default async function AdminPanelLayout({
   children,
@@ -15,12 +15,5 @@ export default async function AdminPanelLayout({
     redirect("/admin/login");
   }
 
-  return (
-    <>
-      <AdminSidebar />
-      <div className="flex min-h-screen flex-1 flex-col overflow-hidden">
-        {children}
-      </div>
-    </>
-  );
+  return <AdminShell>{children}</AdminShell>;
 }

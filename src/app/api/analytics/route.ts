@@ -1,8 +1,15 @@
 import { NextResponse } from "next/server";
 import { recordAnalyticsEvent } from "@/lib/analytics-db";
 import { resolveVisitorGeo } from "@/lib/analytics-geo";
+import { getClientIp, rateLimit } from "@/lib/rate-limit";
 
 export async function POST(request: Request) {
+  const ip = getClientIp(request);
+  const rl = rateLimit(ip, { windowMs: 60_000, max: 120, keyPrefix: "analytics" });
+  if (!rl.ok) {
+    return NextResponse.json({ ok: true });
+  }
+
   const body = await request.json().catch(() => null);
 
   if (!body?.type || !body?.sessionId) {

@@ -52,7 +52,7 @@ export function MobileBottomNav({ onMenuOpen }: Props) {
 
   return (
     <nav
-      className="mobile-bottom-nav fixed bottom-0 left-0 right-0 z-50 border-t border-olive/10 bg-white/95 backdrop-blur-lg md:hidden"
+      className="mobile-bottom-nav fixed bottom-0 left-0 right-0 z-50 border-t border-bamboo/15 bg-gradient-to-t from-[#fff3eb] to-white/95 backdrop-blur-xl md:hidden"
       aria-label="Mobile navigation"
     >
       <div className="mx-auto flex max-w-lg items-stretch justify-around px-1">
@@ -64,21 +64,29 @@ export function MobileBottomNav({ onMenuOpen }: Props) {
             <Link
               key={key}
               href={href}
-              className={`mobile-nav-item flex flex-1 flex-col items-center justify-center gap-0.5 py-2 ${
-                active ? "text-olive" : "text-olive/50"
+              className={`mobile-nav-item flex flex-1 flex-col items-center justify-center gap-0.5 py-2 transition ${
+                active ? "text-bamboo" : "text-slate-400"
               }`}
             >
-              <span className="relative">
+              <span
+                className={`relative flex h-9 w-9 items-center justify-center rounded-2xl transition ${
+                  active ? "bg-bamboo/15" : ""
+                }`}
+              >
                 <Icon
-                  className={`h-6 w-6 ${active ? "stroke-[2.5]" : ""} ${key === "favorites" && active ? "fill-red-500 text-red-500" : ""}`}
+                  className={`h-5 w-5 ${active ? "stroke-[2.5]" : ""} ${
+                    key === "favorites" && active
+                      ? "fill-bamboo text-bamboo"
+                      : ""
+                  }`}
                 />
                 {badge > 0 && (
-                  <span className="absolute -right-2 -top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-bamboo px-1 text-[10px] font-bold text-white">
+                  <span className="absolute -right-1 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-bamboo px-1 text-[10px] font-bold text-white shadow-sm">
                     {badge > 9 ? "9+" : badge}
                   </span>
                 )}
               </span>
-              <span className="max-w-[4.5rem] truncate text-[10px] font-medium leading-tight">
+              <span className="max-w-[4.5rem] truncate text-[10px] font-semibold leading-tight">
                 {label}
               </span>
             </Link>
@@ -87,11 +95,13 @@ export function MobileBottomNav({ onMenuOpen }: Props) {
         <button
           type="button"
           onClick={onMenuOpen}
-          className="mobile-nav-item flex flex-1 flex-col items-center justify-center gap-0.5 py-2 text-olive/50"
+          className="mobile-nav-item flex flex-1 flex-col items-center justify-center gap-0.5 py-2 text-slate-400 transition active:text-bamboo"
           aria-label={t("menu")}
         >
-          <Menu className="h-6 w-6" />
-          <span className="text-[10px] font-medium">{t("menu")}</span>
+          <span className="flex h-9 w-9 items-center justify-center rounded-2xl">
+            <Menu className="h-5 w-5" />
+          </span>
+          <span className="text-[10px] font-semibold">{t("menu")}</span>
         </button>
       </div>
     </nav>

@@ -69,8 +69,8 @@ export function FavoriteButton({
         <Heart
           className={cn(
             "h-4 w-4 transition",
-            active && "fill-red-500 text-red-500",
-            !active && "text-olive/70"
+            active && "fill-bamboo text-bamboo",
+            !active && "text-slate-400"
           )}
         />
       </button>
@@ -84,15 +84,15 @@ export function FavoriteButton({
       aria-label={active ? t("remove") : t("add")}
       aria-pressed={active}
       className={cn(
-        "rounded-full p-2 transition hover:bg-olive/10",
+        "rounded-full p-2 transition hover:bg-bamboo/10",
         className
       )}
     >
       <Heart
         className={cn(
           "h-5 w-5 transition",
-          active && "fill-red-500 text-red-500",
-          !active && "text-olive"
+          active && "fill-bamboo text-bamboo",
+          !active && "text-slate-500"
         )}
       />
     </button>

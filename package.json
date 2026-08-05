@@ -1,26 +1,44 @@
 {
-  "name": "aryabamboo",
+  "name": "cimcimkids",
   "version": "1.0.0",
   "private": true,
   "scripts": {
     "dev": "node scripts/dev.mjs",
     "dev:webpack": "rm -rf .next node_modules/.cache && next dev",
-    "build": "next build",
-    "build:clean": "rm -rf .next && next build",
+    "build": "prisma generate && next build",
+    "build:clean": "rm -rf .next && npm run build",
     "start": "next start",
     "start:prod": "rm -rf .next && npm run build && next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "postinstall": "prisma generate",
+    "db:generate": "prisma generate",
+    "db:migrate": "prisma migrate dev",
+    "db:push": "prisma db push",
+    "db:studio": "prisma studio",
+    "db:migrate-json": "tsx --env-file=.env.local scripts/migrate-json-to-pg.ts"
   },
   "dependencies": {
+    "@prisma/client": "^6.19.0",
     "lucide-react": "^0.511.0",
     "next": "^15.3.3",
     "next-auth": "^4.24.11",
     "next-intl": "^4.1.0",
-    "nodemailer": "^7.0.13",
+    "nodemailer": "^9.0.3",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "server-only": "^0.0.1",
     "zustand": "^5.0.5"
+  },
+  "overrides": {
+    "next": {
+      "postcss": "8.5.15"
+    },
+    "@eslint/eslintrc": {
+      "js-yaml": "^4.1.2"
+    },
+    "next-auth": {
+      "uuid": "^11.1.1"
+    }
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.1",
@@ -31,8 +49,10 @@
     "@types/react-dom": "^19.1.5",
     "eslint": "^9.27.0",
     "eslint-config-next": "^15.3.3",
-    "postcss": "^8.5.4",
+    "postcss": "^8.5.15",
+    "prisma": "^6.19.0",
     "tailwindcss": "^4.1.7",
+    "tsx": "^4.23.7",
     "typescript": "^5.8.3"
   }
 }

@@ -65,7 +65,10 @@ export function ProductForm({ product }: Props) {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="admin-card max-w-2xl space-y-5 p-6">
+    <form
+      onSubmit={handleSubmit}
+      className="admin-card mx-auto max-w-2xl space-y-5 p-4 sm:p-6"
+    >
       {error && (
         <p className="rounded-lg bg-red-50 p-3 text-sm text-red-600">{error}</p>
       )}
@@ -151,16 +154,20 @@ export function ProductForm({ product }: Props) {
         onChange={(image) => setForm({ ...form, image })}
       />
 
-      <div className="flex gap-3 pt-2">
-        <button type="submit" disabled={loading} className="admin-btn-primary">
-          {loading ? "Kaydediliyor..." : product ? "Güncelle" : "Ürün Ekle"}
-        </button>
+      <div className="flex flex-col-reverse gap-3 pt-2 sm:flex-row">
         <button
           type="button"
           onClick={() => router.back()}
-          className="admin-btn-secondary"
+          className="admin-btn-secondary w-full sm:w-auto"
         >
           İptal
+        </button>
+        <button
+          type="submit"
+          disabled={loading}
+          className="admin-btn-primary w-full sm:w-auto"
+        >
+          {loading ? "Kaydediliyor..." : product ? "Güncelle" : "Ürün Ekle"}
         </button>
       </div>
     </form>

@@ -22,8 +22,8 @@ export default async function AboutPage({
       <div className="grid items-center gap-12 lg:grid-cols-2">
         <div className="relative aspect-[4/3] overflow-hidden rounded-3xl">
           <Image
-            src="/products/product-2.jpg"
-            alt="AryaBamboo workshop"
+            src="/products/product-2.png"
+            alt="CimcimKids children clothing"
             fill
             className="object-cover"
             sizes="(max-width: 1024px) 100vw, 50vw"

@@ -32,7 +32,7 @@ export default async function ProductDetailPage({
     <div className="mx-auto max-w-7xl px-4 py-8 pb-28 sm:px-6 sm:py-12 lg:px-8 lg:pb-12">
       <Link
         href={`/${locale}/products`}
-        className="mb-6 inline-flex items-center gap-2 text-sm text-olive/70 hover:text-olive"
+        className="mb-6 inline-flex items-center gap-2 text-sm text-slate-500 hover:text-bamboo"
       >
         <ArrowLeft className="h-4 w-4" />
         {t("title")}
@@ -52,14 +52,14 @@ export default async function ProductDetailPage({
           <p className="text-sm font-medium uppercase tracking-wider text-bamboo">
             {categoryLabel}
           </p>
-          <h1 className="mt-2 text-2xl font-semibold sm:text-4xl">{name}</h1>
+          <h1 className="mt-2 text-2xl font-semibold text-slate-800 sm:text-4xl">{name}</h1>
           <p className="mt-4 text-2xl font-semibold text-bamboo">
             {formatPrice(product.price, locale)}
           </p>
-          <p className="mt-2 text-sm text-leaf">
+          <p className="mt-2 text-sm font-medium text-olive">
             {product.inStock ? t("inStock") : t("outOfStock")}
           </p>
-          <p className="mt-6 leading-relaxed text-olive/70">{desc}</p>
+          <p className="mt-6 leading-relaxed text-slate-500">{desc}</p>
           <ProductDetailActions product={product} name={name} />
         </div>
       </div>

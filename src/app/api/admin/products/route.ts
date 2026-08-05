@@ -23,10 +23,16 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Slug already exists" }, { status: 400 });
   }
 
+  const image =
+    typeof body.image === "string" &&
+    /^\/products\/(?:uploads\/)?[a-zA-Z0-9._-]+$/.test(body.image)
+      ? body.image
+      : "/products/product-1.png";
+
   const product: Product = {
     id: `prod_${Date.now()}`,
     slug,
-    image: body.image || "/products/product-1.jpg",
+    image,
     price: Number(body.price) || 0,
     category: body.category || "",
     nameTr: body.nameTr || "",

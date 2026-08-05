@@ -39,8 +39,8 @@ export function ProductsGrid({ products }: { products: Product[] }) {
             onClick={() => setCategory(c.key)}
             className={`shrink-0 rounded-full px-4 py-2.5 text-sm font-medium transition ${
               category === c.key
-                ? "bg-olive text-white"
-                : "bg-white text-olive/70 hover:bg-cream-dark"
+                ? "bg-bamboo text-white"
+                : "bg-white text-slate-600 hover:bg-[#fff3eb]"
             }`}
           >
             {c.label}

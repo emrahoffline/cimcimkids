@@ -1,9 +1,8 @@
-import { promises as fs } from "fs";
-import path from "path";
-import type { Order, OrderItem } from "./db";
+import type { AnalyticsEventType as PrismaEventType } from "@prisma/client";
+import type { Order } from "./db";
 import type { Product } from "./types";
+import { prisma, requireDatabaseUrl } from "./prisma";
 
-const DATA_DIR = path.join(process.cwd(), "data");
 const MAX_EVENTS = 3000;
 
 export type AnalyticsEventType =
@@ -26,11 +25,6 @@ export type AnalyticsEvent = {
   createdAt: string;
 };
 
-type AnalyticsStore = {
-  events: AnalyticsEvent[];
-  allTime?: AllTimeTotals;
-};
-
 export type AllTimeTotals = {
   revenue: number;
   orders: number;
@@ -38,23 +32,41 @@ export type AllTimeTotals = {
   updatedAt: string;
 };
 
-async function readStore(): Promise<AnalyticsStore> {
-  try {
-    const raw = await fs.readFile(path.join(DATA_DIR, "analytics.json"), "utf-8");
-    return JSON.parse(raw) as AnalyticsStore;
-  } catch {
-    return { events: [] };
-  }
+function mapEvent(e: {
+  id: string;
+  type: PrismaEventType;
+  sessionId: string;
+  path: string | null;
+  productId: string | null;
+  productName: string | null;
+  durationSec: number | null;
+  country: string | null;
+  city: string | null;
+  timezone: string | null;
+  createdAt: Date;
+}): AnalyticsEvent {
+  return {
+    id: e.id,
+    type: e.type,
+    sessionId: e.sessionId,
+    path: e.path ?? undefined,
+    productId: e.productId ?? undefined,
+    productName: e.productName ?? undefined,
+    durationSec: e.durationSec ?? undefined,
+    country: e.country ?? undefined,
+    city: e.city ?? undefined,
+    timezone: e.timezone ?? undefined,
+    createdAt: e.createdAt.toISOString(),
+  };
 }
 
-async function writeStore(store: AnalyticsStore): Promise<void> {
-  await fs.mkdir(DATA_DIR, { recursive: true });
-  const events = store.events.slice(-MAX_EVENTS);
-  await fs.writeFile(
-    path.join(DATA_DIR, "analytics.json"),
-    JSON.stringify({ events, allTime: store.allTime }, null, 2),
-    "utf-8"
-  );
+async function getEvents(): Promise<AnalyticsEvent[]> {
+  requireDatabaseUrl();
+  const rows = await prisma.analyticsEvent.findMany({
+    orderBy: { createdAt: "asc" },
+    take: MAX_EVENTS,
+  });
+  return rows.map(mapEvent);
 }
 
 export function buildAllTimeStats(orders: Order[]): AllTimeTotals {
@@ -73,28 +85,68 @@ export function buildAllTimeStats(orders: Order[]): AllTimeTotals {
 }
 
 export async function syncAllTimeTotals(orders: Order[]): Promise<AllTimeTotals> {
-  const store = await readStore();
+  requireDatabaseUrl();
   const allTime = buildAllTimeStats(orders);
-  store.allTime = allTime;
-  await writeStore(store);
+  await prisma.analyticsAllTime.upsert({
+    where: { id: 1 },
+    create: {
+      id: 1,
+      revenue: allTime.revenue,
+      orders: allTime.orders,
+      itemsSold: allTime.itemsSold,
+    },
+    update: {
+      revenue: allTime.revenue,
+      orders: allTime.orders,
+      itemsSold: allTime.itemsSold,
+    },
+  });
   return allTime;
 }
 
 export async function getStoredAllTimeTotals(): Promise<AllTimeTotals | null> {
-  const store = await readStore();
-  return store.allTime ?? null;
+  requireDatabaseUrl();
+  const row = await prisma.analyticsAllTime.findUnique({ where: { id: 1 } });
+  if (!row) return null;
+  return {
+    revenue: row.revenue,
+    orders: row.orders,
+    itemsSold: row.itemsSold,
+    updatedAt: row.updatedAt.toISOString(),
+  };
 }
 
 export async function recordAnalyticsEvent(
   event: Omit<AnalyticsEvent, "id" | "createdAt">
 ): Promise<void> {
-  const store = await readStore();
-  store.events.push({
-    ...event,
-    id: `evt_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
-    createdAt: new Date().toISOString(),
+  requireDatabaseUrl();
+  await prisma.analyticsEvent.create({
+    data: {
+      type: event.type,
+      sessionId: event.sessionId,
+      path: event.path ?? null,
+      productId: event.productId ?? null,
+      productName: event.productName ?? null,
+      durationSec: event.durationSec ?? null,
+      country: event.country ?? null,
+      city: event.city ?? null,
+      timezone: event.timezone ?? null,
+    },
   });
-  await writeStore(store);
+
+  const count = await prisma.analyticsEvent.count();
+  if (count > MAX_EVENTS) {
+    const oldest = await prisma.analyticsEvent.findMany({
+      orderBy: { createdAt: "asc" },
+      take: count - MAX_EVENTS,
+      select: { id: true },
+    });
+    if (oldest.length) {
+      await prisma.analyticsEvent.deleteMany({
+        where: { id: { in: oldest.map((e) => e.id) } },
+      });
+    }
+  }
 }
 
 function dayKey(date: string) {
@@ -179,7 +231,12 @@ export function buildTopFavorites(
 
   for (const event of events) {
     if (!event.productId) continue;
-    const delta = event.type === "favorite_add" ? 1 : event.type === "favorite_remove" ? -1 : 0;
+    const delta =
+      event.type === "favorite_add"
+        ? 1
+        : event.type === "favorite_remove"
+          ? -1
+          : 0;
     if (delta === 0) continue;
     counts.set(event.productId, (counts.get(event.productId) ?? 0) + delta);
   }
@@ -248,28 +305,31 @@ export function buildLocationStats(events: AnalyticsEvent[], limit = 8) {
 }
 
 export async function getAdminAnalytics(orders: Order[], products: Product[]) {
-  const store = await readStore();
-  const sessionStats = buildSessionStats(store.events);
+  const events = await getEvents();
+  const sessionStats = buildSessionStats(events);
   const allTime = buildAllTimeStats(orders);
+  const stored = await getStoredAllTimeTotals();
 
   if (
-    !store.allTime ||
-    store.allTime.revenue !== allTime.revenue ||
-    store.allTime.orders !== allTime.orders
+    !stored ||
+    stored.revenue !== allTime.revenue ||
+    stored.orders !== allTime.orders
   ) {
     await syncAllTimeTotals(orders);
   }
 
+  const salesChart = buildSalesChart(orders, 14);
+
   return {
     allTime,
-    salesChart: buildSalesChart(orders, 14),
+    salesChart,
     topSellers: buildTopSellers(orders, products),
-    topFavorites: buildTopFavorites(store.events, products),
+    topFavorites: buildTopFavorites(events, products),
     sessionStats,
-    locations: buildLocationStats(store.events),
+    locations: buildLocationStats(events),
     summary: {
-      chartRevenueTotal: buildSalesChart(orders, 14).reduce((s, d) => s + d.revenue, 0),
-      chartOrdersTotal: buildSalesChart(orders, 14).reduce((s, d) => s + d.orders, 0),
+      chartRevenueTotal: salesChart.reduce((s, d) => s + d.revenue, 0),
+      chartOrdersTotal: salesChart.reduce((s, d) => s + d.orders, 0),
     },
   };
 }

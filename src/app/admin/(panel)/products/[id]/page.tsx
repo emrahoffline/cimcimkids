@@ -19,7 +19,7 @@ export default function EditProductPage() {
   return (
     <>
       <AdminHeader title="Ürün Düzenle" />
-      <main className="flex-1 overflow-y-auto p-6">
+      <main className="admin-main">
         {product ? (
           <ProductForm product={product} />
         ) : (

@@ -2,7 +2,9 @@ import Link from "next/link";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { getAllProducts } from "@/lib/products-server";
 import { ProductCard } from "@/components/ProductCard";
-import { ArrowRight, Leaf, HandHeart } from "lucide-react";
+import { BrandName } from "@/components/BrandName";
+import { NewsletterForm } from "@/components/NewsletterForm";
+import { ArrowRight, Shirt, Sparkles } from "lucide-react";
 
 export default async function HomePage({
   params,
@@ -17,10 +19,32 @@ export default async function HomePage({
 
   return (
     <>
-      <section className="mx-auto max-w-7xl px-4 pt-8 pb-10 sm:px-6 sm:pt-12 sm:pb-16 lg:px-8">
-        <div className="mb-6 text-center sm:mb-10">
-          <h1 className="text-2xl font-semibold sm:text-3xl">{t("featured")}</h1>
-          <p className="mt-2 text-sm text-olive/60 sm:text-base">
+      <section className="relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-b from-leaf/15 via-transparent to-transparent" />
+        <div className="relative mx-auto flex max-w-3xl flex-col items-center px-4 py-16 text-center sm:px-6 sm:py-24 lg:py-28">
+          <BrandName className="animate-fade-up font-serif text-4xl font-extrabold tracking-tight sm:text-5xl" />
+          <h1 className="animate-fade-up-delay mt-5 max-w-xl font-serif text-xl font-semibold text-slate-700 sm:text-2xl">
+            {t("heroTitle")}
+          </h1>
+          <p className="animate-fade-up-delay-2 mt-3 max-w-md text-sm leading-relaxed text-slate-500 sm:text-base">
+            {t("heroSubtitle")}
+          </p>
+          <div className="animate-fade-up-delay-2 mt-8 flex flex-wrap items-center justify-center gap-3">
+            <Link href={`${base}/products`} className="btn-primary">
+              {t("shopNow")}
+              <ArrowRight className="h-4 w-4" />
+            </Link>
+            <Link href={`${base}/about`} className="btn-secondary">
+              {t("learnMore")}
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      <section className="mx-auto max-w-7xl px-4 pb-12 sm:px-6 sm:pb-16 lg:px-8">
+        <div className="mb-8 text-center sm:mb-10">
+          <h2 className="text-2xl font-semibold sm:text-3xl">{t("featured")}</h2>
+          <p className="mt-2 text-sm text-slate-500 sm:text-base">
             {t("featuredDesc")}
           </p>
         </div>
@@ -37,38 +61,38 @@ export default async function HomePage({
         </div>
       </section>
 
-      <section className="bg-white py-16">
-        <div className="mx-auto grid max-w-7xl gap-8 px-4 sm:grid-cols-2 sm:px-6 lg:px-8">
-          <div className="card flex flex-col items-start gap-4">
-            <div className="rounded-full bg-leaf/10 p-3 text-leaf">
-              <HandHeart className="h-6 w-6" />
+      <section className="border-y border-olive/10 bg-white/60 py-14 sm:py-16">
+        <div className="mx-auto grid max-w-5xl gap-10 px-4 sm:grid-cols-2 sm:gap-12 sm:px-6 lg:px-8">
+          <div className="flex flex-col items-start gap-3">
+            <div className="animate-soft-float flex h-11 w-11 items-center justify-center rounded-2xl bg-olive/15 text-olive">
+              <Shirt className="h-5 w-5" />
             </div>
-            <h2 className="text-xl font-semibold">{t("craftTitle")}</h2>
-            <p className="text-olive/70">{t("craftDesc")}</p>
+            <h2 className="text-lg font-semibold sm:text-xl">{t("craftTitle")}</h2>
+            <p className="text-sm leading-relaxed text-slate-500 sm:text-base">
+              {t("craftDesc")}
+            </p>
           </div>
-          <div className="card flex flex-col items-start gap-4">
-            <div className="rounded-full bg-leaf/10 p-3 text-leaf">
-              <Leaf className="h-6 w-6" />
+          <div className="flex flex-col items-start gap-3">
+            <div
+              className="animate-soft-float flex h-11 w-11 items-center justify-center rounded-2xl bg-bamboo/15 text-bamboo"
+              style={{ animationDelay: "1.2s" }}
+            >
+              <Sparkles className="h-5 w-5" />
             </div>
-            <h2 className="text-xl font-semibold">{t("sustainTitle")}</h2>
-            <p className="text-olive/70">{t("sustainDesc")}</p>
+            <h2 className="text-lg font-semibold sm:text-xl">{t("sustainTitle")}</h2>
+            <p className="text-sm leading-relaxed text-slate-500 sm:text-base">
+              {t("sustainDesc")}
+            </p>
           </div>
         </div>
       </section>
 
-      <section className="mx-auto max-w-3xl px-4 py-16 text-center sm:px-6">
+      <section className="mx-auto max-w-xl px-4 py-14 text-center sm:px-6 sm:py-16">
         <h2 className="text-2xl font-semibold">{t("newsletter")}</h2>
-        <p className="mt-2 text-olive/60">{t("newsletterDesc")}</p>
-        <form className="mt-6 flex flex-col gap-3 sm:flex-row sm:justify-center">
-          <input
-            type="email"
-            placeholder={t("emailPlaceholder")}
-            className="input-field sm:max-w-xs"
-          />
-          <button type="button" className="btn-primary shrink-0">
-            {t("subscribe")}
-          </button>
-        </form>
+        <p className="mt-2 text-sm text-slate-500 sm:text-base">
+          {t("newsletterDesc")}
+        </p>
+        <NewsletterForm />
       </section>
     </>
   );

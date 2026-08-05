@@ -5,7 +5,7 @@ export default function NewProductPage() {
   return (
     <>
       <AdminHeader title="Yeni Ürün" />
-      <main className="flex-1 overflow-y-auto p-6">
+      <main className="admin-main">
         <ProductForm />
       </main>
     </>

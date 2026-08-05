@@ -20,15 +20,15 @@ export function LanguageSwitcher() {
   };
 
   return (
-    <div className="flex items-center gap-1 rounded-full border border-olive/20 bg-white/80 p-0.5 text-xs font-medium">
+    <div className="flex items-center gap-1 rounded-full border border-bamboo/20 bg-white/80 p-0.5 text-xs font-medium">
       {routing.locales.map((l) => (
         <button
           key={l}
           onClick={() => switchLocale(l)}
           className={`rounded-full px-2.5 py-1 uppercase transition ${
             locale === l
-              ? "bg-olive text-white"
-              : "text-olive/70 hover:text-olive"
+              ? "bg-bamboo text-white"
+              : "text-slate-500 hover:text-bamboo"
           }`}
         >
           {l}

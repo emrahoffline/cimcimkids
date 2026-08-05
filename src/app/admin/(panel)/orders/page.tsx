@@ -56,77 +56,79 @@ export default function AdminOrdersPage() {
   return (
     <>
       <AdminHeader title="Siparişler" />
-      <main className="flex-1 overflow-y-auto p-6">
-        <div className="admin-card overflow-x-auto">
-          <table className="admin-table w-full min-w-[720px]">
-            <thead>
-              <tr>
-                <th>Sipariş No</th>
-                <th>Müşteri</th>
-                <th>Ürünler</th>
-                <th>Tutar</th>
-                <th>Durum</th>
-                <th>Tarih</th>
-              </tr>
-            </thead>
-            <tbody>
-              {orders.length === 0 && (
+      <main className="admin-main">
+        <div className="admin-card overflow-hidden">
+          <div className="admin-table-wrap">
+            <table className="admin-table w-full min-w-[720px]">
+              <thead>
                 <tr>
-                  <td colSpan={6} className="py-8 text-center text-gray-400">
-                    Henüz sipariş yok
-                  </td>
+                  <th>Sipariş No</th>
+                  <th>Müşteri</th>
+                  <th>Ürünler</th>
+                  <th>Tutar</th>
+                  <th>Durum</th>
+                  <th>Tarih</th>
                 </tr>
-              )}
-              {orders.map((order) => (
-                <tr
-                  key={order.id}
-                  className={
-                    order.adminSeen === false ? "bg-amber-50/80" : undefined
-                  }
-                >
-                  <td className="font-medium">
-                    {order.orderNumber}
-                    {order.adminSeen === false && (
-                      <span className="ml-2 rounded-full bg-red-500 px-1.5 py-0.5 text-[10px] font-bold text-white">
-                        Yeni
-                      </span>
-                    )}
-                  </td>
-                  <td>
-                    <p>{order.customerName}</p>
-                    <p className="text-xs text-gray-400">{order.customerEmail}</p>
-                    {order.customerPhone && (
-                      <p className="text-xs text-gray-400">{order.customerPhone}</p>
-                    )}
-                  </td>
-                  <td className="text-xs">
-                    {order.items.map((i) => (
-                      <p key={i.productId}>
-                        {i.name} × {i.quantity}
-                      </p>
-                    ))}
-                  </td>
-                  <td>{formatPrice(order.total, "tr")}</td>
-                  <td>
-                    <select
-                      className="rounded-lg border border-gray-200 px-2 py-1 text-xs"
-                      value={order.status}
-                      onChange={(e) => updateStatus(order.id, e.target.value)}
-                    >
-                      {statuses.map((s) => (
-                        <option key={s.value} value={s.value}>
-                          {s.label}
-                        </option>
+              </thead>
+              <tbody>
+                {orders.length === 0 && (
+                  <tr>
+                    <td colSpan={6} className="py-8 text-center text-gray-400">
+                      Henüz sipariş yok
+                    </td>
+                  </tr>
+                )}
+                {orders.map((order) => (
+                  <tr
+                    key={order.id}
+                    className={
+                      order.adminSeen === false ? "bg-amber-50/80" : undefined
+                    }
+                  >
+                    <td className="font-medium">
+                      {order.orderNumber}
+                      {order.adminSeen === false && (
+                        <span className="ml-2 rounded-full bg-red-500 px-1.5 py-0.5 text-[10px] font-bold text-white">
+                          Yeni
+                        </span>
+                      )}
+                    </td>
+                    <td>
+                      <p>{order.customerName}</p>
+                      <p className="text-xs text-gray-400">{order.customerEmail}</p>
+                      {order.customerPhone && (
+                        <p className="text-xs text-gray-400">{order.customerPhone}</p>
+                      )}
+                    </td>
+                    <td className="text-xs">
+                      {order.items.map((i) => (
+                        <p key={i.productId}>
+                          {i.name} × {i.quantity}
+                        </p>
                       ))}
-                    </select>
-                  </td>
-                  <td className="text-gray-400">
-                    {new Date(order.createdAt).toLocaleString("tr-TR")}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                    </td>
+                    <td>{formatPrice(order.total, "tr")}</td>
+                    <td>
+                      <select
+                        className="min-h-[40px] rounded-lg border border-gray-200 px-2 py-1.5 text-xs"
+                        value={order.status}
+                        onChange={(e) => updateStatus(order.id, e.target.value)}
+                      >
+                        {statuses.map((s) => (
+                          <option key={s.value} value={s.value}>
+                            {s.label}
+                          </option>
+                        ))}
+                      </select>
+                    </td>
+                    <td className="whitespace-nowrap text-gray-400">
+                      {new Date(order.createdAt).toLocaleString("tr-TR")}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       </main>
     </>
