@@ -13,7 +13,7 @@ import type {
 import type { Product, Category } from "./types";
 import { slugify } from "./product-utils";
 import { syncAllTimeTotals } from "./analytics-db";
-import { prisma, requireDatabaseUrl } from "./prisma";
+import { prisma, requireDatabaseUrl, hasDatabaseUrl, isNextBuild } from "./prisma";
 
 export type Customer = {
   id: string;
@@ -141,7 +141,10 @@ const DEFAULT_CATEGORIES: Category[] = [
 ];
 
 export async function getProducts(): Promise<Product[]> {
-  requireDatabaseUrl();
+  if (!hasDatabaseUrl()) {
+    if (isNextBuild()) return [];
+    requireDatabaseUrl();
+  }
   const rows = await prisma.product.findMany({ orderBy: { id: "asc" } });
   return rows.map(mapProduct);
 }
@@ -189,7 +192,10 @@ export async function saveProducts(products: Product[]): Promise<void> {
 }
 
 export async function getCategories(): Promise<Category[]> {
-  requireDatabaseUrl();
+  if (!hasDatabaseUrl()) {
+    if (isNextBuild()) return DEFAULT_CATEGORIES;
+    requireDatabaseUrl();
+  }
   const rows = await prisma.category.findMany({ orderBy: { slug: "asc" } });
   if (rows.length === 0) return DEFAULT_CATEGORIES;
   return rows.map(mapCategory);

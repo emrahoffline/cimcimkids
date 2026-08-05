@@ -24,3 +24,14 @@ export function requireDatabaseUrl() {
     );
   }
 }
+
+export function hasDatabaseUrl() {
+  return Boolean(process.env.DATABASE_URL?.trim());
+}
+
+export function isNextBuild() {
+  return (
+    process.env.NEXT_PHASE === "phase-production-build" ||
+    process.env.npm_lifecycle_event === "build"
+  );
+}

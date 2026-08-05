@@ -27,6 +27,9 @@ export const viewport: Viewport = {
   themeColor: "#fffaf5",
 };
 
+// Postgres-backed pages must not be statically prerendered at build time.
+export const dynamic = "force-dynamic";
+
 export function generateStaticParams() {
   return routing.locales.map((locale) => ({ locale }));
 }
