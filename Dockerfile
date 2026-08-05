@@ -37,9 +37,6 @@ COPY --from=builder /app/package.json ./package.json
 COPY --from=builder /app/scripts/migrate-json-to-pg.ts ./scripts/migrate-json-to-pg.ts
 COPY --from=builder /app/scripts/docker-entrypoint.sh ./docker-entrypoint.sh
 COPY --from=builder /app/data ./data
-# Prisma CLI + engines (migrate deploy)
-COPY --from=deps /app/node_modules/prisma ./node_modules/prisma
-COPY --from=deps /app/node_modules/@prisma ./node_modules/@prisma
 COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=builder /app/node_modules/@prisma/client ./node_modules/@prisma/client
 COPY --from=builder /app/.next/standalone ./

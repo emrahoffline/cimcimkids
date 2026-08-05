@@ -20,6 +20,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
     env_file:
       - .env.production
     environment:
@@ -31,6 +33,22 @@ services:
       - ./data:/app/data
     expose:
       - "3000"
+
+  migrate:
+    image: node:22-bookworm-slim
+    working_dir: /app
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-cimcim}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-cimcimkids}
+    volumes:
+      - ./prisma:/app/prisma:ro
+      - migrate_npm:/root/.npm
+    command:
+      - sh
+      - -c
+      - apt-get update -qq && apt-get install -y -qq openssl ca-certificates >/dev/null && npx --yes prisma@6.19.0 migrate deploy --schema=./prisma/schema.prisma
 
   caddy:
     image: caddy:2-alpine
@@ -52,3 +70,4 @@ volumes:
   uploads:
   caddy_data:
   caddy_config:
+  migrate_npm:
