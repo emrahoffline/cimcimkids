@@ -31,6 +31,7 @@ const nextConfig: NextConfig = {
           "font-src 'self' data: https:",
           "style-src 'self' 'unsafe-inline'",
           "script-src 'self' 'unsafe-inline'",
+          "worker-src 'self'",
           "connect-src 'self' https:",
           "form-action 'self'",
           "upgrade-insecure-requests",
@@ -64,6 +65,14 @@ const nextConfig: NextConfig = {
     }
 
     return [
+      {
+        source: "/admin-sw.js",
+        headers: [
+          ...headers,
+          { key: "Service-Worker-Allowed", value: "/" },
+          { key: "Cache-Control", value: "no-cache, no-store, must-revalidate" },
+        ],
+      },
       {
         source: "/:path*",
         headers,

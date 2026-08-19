@@ -178,6 +178,17 @@ export async function POST(request: Request) {
     console.error("[email] Sipariş bildirimi gönderilemedi:", err);
   }
 
+  try {
+    const { sendAdminOrderPush } = await import("@/lib/admin-push");
+    await sendAdminOrderPush({
+      orderNumber: order.orderNumber,
+      customerName: order.customerName,
+      total: order.total,
+    });
+  } catch (err) {
+    console.error("[push] Sipariş bildirimi gönderilemedi:", err);
+  }
+
   return NextResponse.json(
     {
       id: order.id,

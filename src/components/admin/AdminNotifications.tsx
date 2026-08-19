@@ -5,13 +5,68 @@ import Link from "next/link";
 import { Bell, ShoppingBag } from "lucide-react";
 import { formatPrice } from "@/lib/products";
 import { useAdminNotifications } from "./useAdminNotifications";
+import {
+  enableAdminAlertsFromUserGesture,
+  iosNeedsHomeScreenForNotifications,
+  prefetchAdminPush,
+  requestNotificationPermissionNow,
+  listenForServiceWorkerAlerts,
+  playOrderAlertSound,
+  registerAdminPush,
+  showOrderSystemNotification,
+  unlockAdminAlertAudio,
+} from "./order-alert";
 
 export function AdminNotifications() {
   const { count, orders, markAllSeen, refresh } = useAdminNotifications();
   const [open, setOpen] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
+  const [pushHint, setPushHint] = useState(false);
+  const [pushStatus, setPushStatus] = useState<string | null>(null);
+  const [enabling, setEnabling] = useState(false);
+  const [permissionGranted, setPermissionGranted] = useState(false);
   const prevCount = useRef(count);
   const initialized = useRef(false);
+
+  useEffect(() => {
+    prefetchAdminPush();
+
+    // Only unlock audio on first tap — do NOT request notification permission here
+    // (mobile browsers suppress the dialog if it's not from an explicit button).
+    const unlock = () => {
+      unlockAdminAlertAudio();
+      window.removeEventListener("pointerdown", unlock);
+      window.removeEventListener("keydown", unlock);
+    };
+    window.addEventListener("pointerdown", unlock);
+    window.addEventListener("keydown", unlock);
+
+    if (
+      typeof Notification !== "undefined" &&
+      Notification.permission === "granted"
+    ) {
+      setPermissionGranted(true);
+      unlockAdminAlertAudio();
+      void registerAdminPush().then((ok) => setPushHint(!ok));
+    } else if (
+      typeof Notification === "undefined" ||
+      Notification.permission === "default" ||
+      Notification.permission === "denied"
+    ) {
+      setPushHint(true);
+    }
+
+    return () => {
+      window.removeEventListener("pointerdown", unlock);
+      window.removeEventListener("keydown", unlock);
+    };
+  }, []);
+
+  useEffect(() => {
+    return listenForServiceWorkerAlerts(() => {
+      playOrderAlertSound();
+    });
+  }, []);
 
   useEffect(() => {
     if (!initialized.current) {
@@ -21,17 +76,42 @@ export function AdminNotifications() {
     }
     if (count > prevCount.current) {
       const latest = orders[0];
-      setToast(
-        latest
-          ? `Yeni sipariş: ${latest.orderNumber}`
-          : "Yeni sipariş alındı"
-      );
+      const title = "Yeni sipariş";
+      const body = latest
+        ? `${latest.orderNumber} · ${latest.customerName}`
+        : "Yeni sipariş alındı";
+      setToast(latest ? `Yeni sipariş: ${latest.orderNumber}` : body);
+      playOrderAlertSound();
+      showOrderSystemNotification({
+        title,
+        body,
+        orderNumber: latest?.orderNumber,
+      });
       const id = setTimeout(() => setToast(null), 5000);
       prevCount.current = count;
       return () => clearTimeout(id);
     }
     prevCount.current = count;
   }, [count, orders]);
+
+  const handleEnablePush = () => {
+    // Start the permission prompt in this tap, before React setState.
+    const permissionPromise = requestNotificationPermissionNow();
+    setEnabling(true);
+    setPushStatus(null);
+    void (async () => {
+      const result = await enableAdminAlertsFromUserGesture(permissionPromise);
+      setEnabling(false);
+      setPushStatus(result.message);
+      if (typeof Notification !== "undefined" && Notification.permission === "granted") {
+        setPermissionGranted(true);
+      }
+      if (result.ok) {
+        setPushHint(false);
+        setTimeout(() => setPushStatus(null), 12000);
+      }
+    })();
+  };
 
   const handleOpen = () => {
     setOpen((v) => !v);
@@ -49,6 +129,39 @@ export function AdminNotifications() {
         <div className="fixed left-3 right-3 top-[4.5rem] z-50 flex items-center gap-2 rounded-lg border border-bamboo/30 bg-white px-4 py-3 text-sm shadow-lg sm:left-auto sm:right-6 sm:max-w-sm">
           <ShoppingBag className="h-4 w-4 shrink-0 text-bamboo" />
           <span>{toast}</span>
+        </div>
+      )}
+
+      {pushHint && (
+        <div className="fixed bottom-4 left-3 right-3 z-50 space-y-2 rounded-lg border border-olive/20 bg-white px-4 py-3 text-sm shadow-lg sm:left-auto sm:right-6 sm:max-w-md">
+          <p className="text-gray-700">
+            {iosNeedsHomeScreenForNotifications()
+              ? "iPhone Safari’de arka plan bildirimi için siteyi Ana Ekrana eklemeniz gerekir."
+              : permissionGranted
+                ? "Telefon izni açık ama kilit ekranı kaydı tamamlanmadı. Chrome ile www.cimcimkids.com/admin açık olsun."
+                : "Arka planda sipariş sesi için bildirim izni verin."}
+          </p>
+          <button
+            type="button"
+            onClick={handleEnablePush}
+            disabled={enabling}
+            className="min-h-[44px] w-full rounded-lg bg-olive px-3 py-2.5 text-sm font-medium text-white hover:bg-olive/90 disabled:opacity-60 sm:w-auto"
+          >
+            {enabling
+              ? "Kaydediliyor..."
+              : permissionGranted
+                ? "Kaydet ve test bildirimi gönder"
+                : "Bildirimleri aç"}
+          </button>
+          {pushStatus && (
+            <p className="text-xs leading-relaxed text-amber-800">{pushStatus}</p>
+          )}
+        </div>
+      )}
+
+      {!pushHint && pushStatus && (
+        <div className="fixed bottom-4 left-3 right-3 z-50 rounded-lg border border-green-200 bg-white px-4 py-3 text-sm text-green-800 shadow-lg sm:left-auto sm:right-6 sm:max-w-md">
+          {pushStatus}
         </div>
       )}
 
