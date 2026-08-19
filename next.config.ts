@@ -7,6 +7,7 @@ const isProd = process.env.NODE_ENV === "production";
 
 const nextConfig: NextConfig = {
   output: "standalone",
+  trailingSlash: false,
   // Phone / ngrok access in `next dev` — without this, assets/HMR are blocked.
   allowedDevOrigins: [
     "*.ngrok-free.app",

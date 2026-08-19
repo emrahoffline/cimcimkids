@@ -11,7 +11,24 @@ export default function middleware(request: NextRequest) {
   ) {
     return NextResponse.next();
   }
-  return intlMiddleware(request);
+
+  const response = intlMiddleware(request);
+
+  // next-intl uses 307; Google consolidates ranking signals on 308/301.
+  if (response.status === 307 || response.status === 302) {
+    const location = response.headers.get("location");
+    if (location) {
+      const redirect = NextResponse.redirect(
+        new URL(location, request.url),
+        308
+      );
+      const cookie = response.headers.get("set-cookie");
+      if (cookie) redirect.headers.set("set-cookie", cookie);
+      return redirect;
+    }
+  }
+
+  return response;
 }
 
 export const config = {

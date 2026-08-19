@@ -1,16 +1,35 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { getAllProducts } from "@/lib/products-server";
 import { ProductCard } from "@/components/ProductCard";
 import { BrandName } from "@/components/BrandName";
 import { NewsletterForm } from "@/components/NewsletterForm";
+import { JsonLd } from "@/components/JsonLd";
+import {
+  buildMetadata,
+  organizationJsonLd,
+  websiteJsonLd,
+} from "@/lib/seo";
 import { ArrowRight, Shirt, Sparkles } from "lucide-react";
 
-export default async function HomePage({
-  params,
-}: {
+type Props = {
   params: Promise<{ locale: string }>;
-}) {
+};
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "meta" });
+  return buildMetadata({
+    locale,
+    path: "",
+    title: t("title"),
+    description: t("description"),
+    absoluteTitle: true,
+  });
+}
+
+export default async function HomePage({ params }: Props) {
   const { locale } = await params;
   setRequestLocale(locale);
   const t = await getTranslations("home");
@@ -19,6 +38,8 @@ export default async function HomePage({
 
   return (
     <>
+      <JsonLd data={organizationJsonLd()} />
+      <JsonLd data={websiteJsonLd()} />
       <section className="relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-b from-leaf/15 via-transparent to-transparent" />
         <div className="relative mx-auto flex max-w-3xl flex-col items-center px-4 py-16 text-center sm:px-6 sm:py-24 lg:py-28">

@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -10,13 +11,32 @@ import {
   getProductDesc,
 } from "@/lib/products";
 import { ProductDetailActions } from "@/components/ProductDetailActions";
+import { JsonLd } from "@/components/JsonLd";
+import { buildMetadata, productJsonLd, productMetaDescription } from "@/lib/seo";
 import { ArrowLeft } from "lucide-react";
 
-export default async function ProductDetailPage({
-  params,
-}: {
+type Props = {
   params: Promise<{ locale: string; slug: string }>;
-}) {
+};
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { locale, slug } = await params;
+  const product = await getProductBySlug(slug);
+  if (!product) {
+    return { robots: { index: false, follow: false } };
+  }
+  const name = getProductName(product, locale);
+  return buildMetadata({
+    locale,
+    path: `/products/${product.slug}`,
+    title: `${name} | Cimcim Kids`,
+    description: productMetaDescription(product, locale),
+    image: product.image,
+    absoluteTitle: true,
+  });
+}
+
+export default async function ProductDetailPage({ params }: Props) {
   const { locale, slug } = await params;
   setRequestLocale(locale);
   const product = await getProductBySlug(slug);
@@ -30,6 +50,9 @@ export default async function ProductDetailPage({
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 pb-28 sm:px-6 sm:py-12 lg:px-8 lg:pb-12">
+      <JsonLd
+        data={productJsonLd({ product, locale, categoryLabel })}
+      />
       <Link
         href={`/${locale}/products`}
         className="mb-6 inline-flex items-center gap-2 text-sm text-slate-500 hover:text-bamboo"

@@ -1,11 +1,25 @@
+import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { LegalPage } from "@/components/LegalPage";
+import { buildMetadata } from "@/lib/seo";
 
-export default async function KVKKPage({
-  params,
-}: {
+type Props = {
   params: Promise<{ locale: string }>;
-}) {
+};
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "kvkk" });
+  return buildMetadata({
+    locale,
+    path: "/kvkk",
+    title: `${t("title")} | Cimcim Kids`,
+    description: t("intro"),
+    absoluteTitle: true,
+  });
+}
+
+export default async function KVKKPage({ params }: Props) {
   const { locale } = await params;
   setRequestLocale(locale);
   const t = await getTranslations("kvkk");

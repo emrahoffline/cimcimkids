@@ -3,6 +3,12 @@
     "title": "CimcimKids | Kids Clothing",
     "description": "CimcimKids — comfortable, stylish kidswear. Baby, girls, and boys collections."
   },
+  "seo": {
+    "notFoundTitle": "Page not found",
+    "notFoundDescription": "The page you are looking for may have moved or never existed.",
+    "notFoundHome": "Back to home",
+    "notFoundProducts": "Browse products"
+  },
   "nav": {
     "home": "Home",
     "about": "About Us",

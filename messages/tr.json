@@ -3,6 +3,12 @@
     "title": "CimcimKids | Çocuk Giyim",
     "description": "CimcimKids — rahat, şık ve özenle seçilmiş çocuk giyim. Bebek, kız ve erkek koleksiyonları."
   },
+  "seo": {
+    "notFoundTitle": "Sayfa bulunamadı",
+    "notFoundDescription": "Aradığınız sayfa taşınmış veya hiç var olmamış olabilir.",
+    "notFoundHome": "Ana sayfaya dön",
+    "notFoundProducts": "Ürünlere göz at"
+  },
   "nav": {
     "home": "Anasayfa",
     "about": "Hakkımızda",
