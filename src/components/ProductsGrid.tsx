@@ -26,7 +26,7 @@ export function ProductsGrid({ products }: { products: Product[] }) {
     { key: "all", label: t("all") },
     ...categories.map((c) => ({
       key: c.slug,
-      label: locale === "tr" ? c.nameTr : c.nameEn,
+      label: locale === "tr" ? c.nameTr : c.nameEn?.trim() || c.nameTr,
     })),
   ];
 
