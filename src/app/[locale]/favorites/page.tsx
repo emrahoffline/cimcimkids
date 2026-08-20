@@ -7,6 +7,7 @@ import { Heart, ShoppingBag, Trash2 } from "lucide-react";
 import { useFavoritesStore } from "@/store/favorites";
 import { useCartStore } from "@/store/cart";
 import { formatPrice } from "@/lib/products";
+import { isUploadedProductImage } from "@/lib/image-utils";
 
 export default function FavoritesPage() {
   const t = useTranslations("favorites");
@@ -51,6 +52,7 @@ export default function FavoritesPage() {
                   alt={name}
                   fill
                   className="object-cover"
+                  unoptimized={isUploadedProductImage(item.image)}
                 />
               </Link>
               <div className="flex flex-1 flex-col justify-between gap-3 sm:flex-row sm:items-center">

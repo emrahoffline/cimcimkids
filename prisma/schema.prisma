@@ -144,3 +144,15 @@ model AnalyticsAllTime {
   itemsSold Int      @default(0)
   updatedAt DateTime @updatedAt
 }
+
+model AdminPushSubscription {
+  id        String   @id
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  userEmail String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userEmail])
+}
