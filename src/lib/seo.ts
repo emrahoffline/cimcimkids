@@ -159,7 +159,7 @@ export function organizationJsonLd() {
     "@type": "Organization",
     name: SITE_NAME,
     url: canonicalUrl("tr"),
-    logo: absoluteUrl("/logo.png"),
+    logo: absoluteUrl("/favicon-96.png"),
     email: SITE_EMAIL,
     telephone: "+905337007318",
   };
