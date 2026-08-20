@@ -84,12 +84,15 @@ export function ProductForm({ product }: Props) {
           />
         </div>
         <div>
-          <label className="mb-1 block text-sm font-medium">Ad (EN)</label>
+          <label className="mb-1 block text-sm font-medium">
+            Ad (EN){" "}
+            <span className="font-normal text-gray-400">(opsiyonel)</span>
+          </label>
           <input
-            required
             className="admin-input"
             value={form.nameEn}
             onChange={(e) => setForm({ ...form, nameEn: e.target.value })}
+            placeholder="Boş bırakılırsa Türkçe ad kullanılır"
           />
         </div>
       </div>
@@ -105,13 +108,16 @@ export function ProductForm({ product }: Props) {
         />
       </div>
       <div>
-        <label className="mb-1 block text-sm font-medium">Açıklama (EN)</label>
+        <label className="mb-1 block text-sm font-medium">
+          Açıklama (EN){" "}
+          <span className="font-normal text-gray-400">(opsiyonel)</span>
+        </label>
         <textarea
-          required
           rows={3}
           className="admin-input resize-none"
           value={form.descEn}
           onChange={(e) => setForm({ ...form, descEn: e.target.value })}
+          placeholder="Boş bırakılırsa Türkçe açıklama kullanılır"
         />
       </div>
 

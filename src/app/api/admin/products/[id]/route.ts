@@ -56,9 +56,17 @@ export async function PUT(
     price: Number(body.price) ?? products[index].price,
     category: body.category ?? products[index].category,
     nameTr: body.nameTr ?? products[index].nameTr,
-    nameEn: body.nameEn ?? products[index].nameEn,
+    nameEn:
+      body.nameEn !== undefined
+        ? String(body.nameEn).trim() ||
+          String(body.nameTr ?? products[index].nameTr)
+        : products[index].nameEn,
     descTr: body.descTr ?? products[index].descTr,
-    descEn: body.descEn ?? products[index].descEn,
+    descEn:
+      body.descEn !== undefined
+        ? String(body.descEn).trim() ||
+          String(body.descTr ?? products[index].descTr)
+        : products[index].descEn,
     inStock: body.inStock ?? products[index].inStock,
   };
 

@@ -13,5 +13,5 @@ export function getCategoryLabel(
 ): string {
   const cat = categories.find((c) => c.slug === slug);
   if (!cat) return slug;
-  return locale === "tr" ? cat.nameTr : cat.nameEn;
+  return locale === "tr" ? cat.nameTr : cat.nameEn?.trim() || cat.nameTr;
 }

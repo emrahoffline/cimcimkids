@@ -115,13 +115,14 @@ export function CategorySelect({ value, onChange }: Props) {
             </div>
             <div>
               <label className="mb-1 block text-xs text-gray-600">
-                Kategori adı (EN)
+                Kategori adı (EN){" "}
+                <span className="font-normal text-gray-400">(opsiyonel)</span>
               </label>
               <input
                 className="admin-input"
                 value={newNameEn}
                 onChange={(e) => setNewNameEn(e.target.value)}
-                placeholder="Örn: Lighting"
+                placeholder="Boş bırakılırsa Türkçe ad kullanılır"
               />
             </div>
             {error && <p className="text-xs text-red-600">{error}</p>}

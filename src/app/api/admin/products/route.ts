@@ -36,9 +36,9 @@ export async function POST(request: Request) {
     price: Number(body.price) || 0,
     category: body.category || "",
     nameTr: body.nameTr || "",
-    nameEn: body.nameEn || "",
+    nameEn: String(body.nameEn || "").trim() || String(body.nameTr || "").trim(),
     descTr: body.descTr || "",
-    descEn: body.descEn || "",
+    descEn: String(body.descEn || "").trim() || String(body.descTr || ""),
     inStock: body.inStock !== false,
   };
 

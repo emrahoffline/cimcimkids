@@ -1,11 +1,13 @@
 import type { Product } from "./types";
 
 export function getProductName(product: Product, locale: string) {
-  return locale === "tr" ? product.nameTr : product.nameEn;
+  if (locale === "tr") return product.nameTr;
+  return product.nameEn?.trim() || product.nameTr;
 }
 
 export function getProductDesc(product: Product, locale: string) {
-  return locale === "tr" ? product.descTr : product.descEn;
+  if (locale === "tr") return product.descTr;
+  return product.descEn?.trim() || product.descTr;
 }
 
 export function formatPrice(price: number, locale: string) {
