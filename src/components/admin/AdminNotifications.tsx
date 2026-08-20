@@ -163,7 +163,7 @@ export function AdminNotifications() {
             {enabling
               ? "Kaydediliyor..."
               : permissionGranted
-                ? "Kaydet ve test bildirimi gönder"
+                ? "Bildirimleri kaydet"
                 : "Bildirimleri aç"}
           </button>
           {pushStatus && (

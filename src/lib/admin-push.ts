@@ -72,53 +72,6 @@ export async function deleteAdminPushSubscription(endpoint: string) {
   }
 }
 
-export async function sendAdminTestPush(endpoint: string) {
-  if (!configureWebPush() || !hasDatabaseUrl()) {
-    throw new Error("Push yapılandırılmamış");
-  }
-  requireDatabaseUrl();
-  const trimmed = endpoint.trim();
-  const sub = await prisma.adminPushSubscription.findUnique({
-    where: { endpoint: trimmed },
-  });
-  if (!sub) {
-    throw new Error("Abonelik bulunamadı");
-  }
-
-  try {
-    await webpush.sendNotification(
-      {
-        endpoint: sub.endpoint,
-        keys: { p256dh: sub.p256dh, auth: sub.auth },
-      },
-      JSON.stringify({
-        title: "CimcimKids test",
-        body: "Sunucu bildirimi çalışıyor. Yeni siparişte böyle gelecek.",
-        url: "/admin/orders",
-        orderNumber: "test",
-      }),
-      { urgency: "high", TTL: 60 }
-    );
-  } catch (err: unknown) {
-    const statusCode = pushStatusCode(err);
-    if (statusCode === 404 || statusCode === 410) {
-      await prisma.adminPushSubscription
-        .delete({ where: { id: sub.id } })
-        .catch(() => null);
-      throw new Error("Eski abonelik geçersiz. Bildirimleri tekrar açın.");
-    }
-    const body =
-      err && typeof err === "object" && "body" in err
-        ? String((err as { body?: unknown }).body || "")
-        : "";
-    throw new Error(
-      body
-        ? `Test bildirimi gönderilemedi (${statusCode}): ${body.slice(0, 180)}`
-        : `Test bildirimi gönderilemedi (${statusCode || "hata"})`
-    );
-  }
-}
-
 export async function sendAdminOrderPush(order: {
   orderNumber: string;
   customerName: string;

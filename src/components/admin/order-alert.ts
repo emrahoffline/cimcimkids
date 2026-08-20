@@ -355,23 +355,6 @@ async function ensureServiceWorker(): Promise<ServiceWorkerRegistration> {
   return navigator.serviceWorker.ready;
 }
 
-async function showLocalTestNotification(reg: ServiceWorkerRegistration) {
-  try {
-    await reg.showNotification("Bildirimler açıldı", {
-      body: "Test: sipariş gelince kilit ekranında böyle görünecek.",
-      icon: "/icon-192.png",
-      badge: "/icon-192.png",
-      tag: "admin-push-test-local",
-      renotify: true,
-      requireInteraction: true,
-      silent: false,
-      data: { url: "/admin/orders" },
-    } as NotificationOptions);
-  } catch (err) {
-    console.error("[admin-push] local test notification", err);
-  }
-}
-
 export type SubscribeResult = { ok: true } | { ok: false; message: string };
 
 async function subscribePush(): Promise<SubscribeResult> {
@@ -425,19 +408,6 @@ async function subscribePush(): Promise<SubscribeResult> {
   });
   if (!res.ok) {
     return { ok: false, message: await readApiError(res) };
-  }
-
-  await showLocalTestNotification(reg);
-
-  try {
-    await fetch("/api/admin/push/test", {
-      method: "POST",
-      credentials: "include",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ endpoint: sub.endpoint }),
-    });
-  } catch {
-    // local notification already shown
   }
 
   return { ok: true };
@@ -522,7 +492,7 @@ export async function enableAdminAlertsFromUserGesture(
     return {
       ok: true,
       message:
-        "Bildirimler kaydedildi. Az önce bir test bildirimi geldiyse kilit ekranı da çalışır. Gelmediyse bildirim gölgesini kontrol edin.",
+        "Bildirimler kaydedildi. Yeni siparişte kilit ekranı bildirimi gelecek.",
     };
   }
 

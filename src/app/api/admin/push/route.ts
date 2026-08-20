@@ -4,7 +4,6 @@ import {
   deleteAdminPushSubscription,
   getVapidPublicKey,
   saveAdminPushSubscription,
-  sendAdminTestPush,
 } from "@/lib/admin-push";
 
 export const dynamic = "force-dynamic";
@@ -56,16 +55,7 @@ export async function POST(request: Request) {
 
   try {
     await saveAdminPushSubscription({ endpoint, p256dh, auth, userEmail: email });
-    let testSent = false;
-    let testError = "";
-    try {
-      await sendAdminTestPush(endpoint);
-      testSent = true;
-    } catch (err) {
-      testError = err instanceof Error ? err.message : "Test gönderilemedi";
-      console.error("[push] test after subscribe:", err);
-    }
-    return NextResponse.json({ ok: true, testSent, testError });
+    return NextResponse.json({ ok: true });
   } catch (err) {
     return NextResponse.json(
       { error: err instanceof Error ? err.message : "Kayıt başarısız" },
