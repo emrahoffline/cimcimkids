@@ -6,6 +6,7 @@ import { useTranslations, useLocale } from "next-intl";
 import { Minus, Plus, Trash2 } from "lucide-react";
 import { useCartStore, cartTotal } from "@/store/cart";
 import { formatPrice } from "@/lib/products";
+import { isUploadedProductImage } from "@/lib/image-utils";
 
 export default function CartPage() {
   const t = useTranslations("cart");
@@ -42,6 +43,7 @@ export default function CartPage() {
                   alt={item.name}
                   fill
                   className="object-cover"
+                  unoptimized={isUploadedProductImage(item.image)}
                 />
               </div>
               <div className="flex flex-1 flex-col justify-between">

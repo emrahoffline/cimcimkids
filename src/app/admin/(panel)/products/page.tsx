@@ -7,6 +7,7 @@ import { AdminHeader } from "@/components/admin/AdminHeader";
 import { Plus, Pencil, Trash2 } from "lucide-react";
 import type { Product, Category } from "@/lib/types";
 import { formatPrice } from "@/lib/products";
+import { isUploadedProductImage } from "@/lib/image-utils";
 
 export default function AdminProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -76,6 +77,7 @@ export default function AdminProductsPage() {
                               alt={p.nameTr}
                               fill
                               className="object-cover"
+                              unoptimized={isUploadedProductImage(p.image)}
                             />
                           </div>
                           <div className="min-w-0">

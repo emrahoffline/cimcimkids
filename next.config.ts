@@ -17,6 +17,9 @@ const nextConfig: NextConfig = {
   ],
   images: {
     remotePatterns: [],
+    // Uploads live in a Docker volume; the optimizer cannot read them and
+    // returns 400. Serve original files (Caddy handles /products/uploads).
+    unoptimized: true,
   },
   async headers() {
     // Next.js App Router injects many inline <script> tags for RSC/hydration.

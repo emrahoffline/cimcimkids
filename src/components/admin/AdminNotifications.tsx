@@ -10,6 +10,7 @@ import {
   iosNeedsHomeScreenForNotifications,
   prefetchAdminPush,
   requestNotificationPermissionNow,
+  startSubscribeFromGesture,
   listenForServiceWorkerAlerts,
   playOrderAlertSound,
   registerAdminPush,
@@ -25,6 +26,7 @@ export function AdminNotifications() {
   const [pushStatus, setPushStatus] = useState<string | null>(null);
   const [enabling, setEnabling] = useState(false);
   const [permissionGranted, setPermissionGranted] = useState(false);
+  const [permissionState, setPermissionState] = useState<NotificationPermission | "unknown">("unknown");
   const prevCount = useRef(count);
   const initialized = useRef(false);
 
@@ -40,6 +42,10 @@ export function AdminNotifications() {
     };
     window.addEventListener("pointerdown", unlock);
     window.addEventListener("keydown", unlock);
+
+    if (typeof Notification !== "undefined") {
+      setPermissionState(Notification.permission);
+    }
 
     if (
       typeof Notification !== "undefined" &&
@@ -95,16 +101,21 @@ export function AdminNotifications() {
   }, [count, orders]);
 
   const handleEnablePush = () => {
-    // Start the permission prompt in this tap, before React setState.
+    // Start permission + push subscribe in this tap, before any await.
     const permissionPromise = requestNotificationPermissionNow();
+    const subscribePromise = startSubscribeFromGesture();
     setEnabling(true);
     setPushStatus(null);
     void (async () => {
-      const result = await enableAdminAlertsFromUserGesture(permissionPromise);
+      const result = await enableAdminAlertsFromUserGesture(
+        permissionPromise,
+        subscribePromise
+      );
       setEnabling(false);
       setPushStatus(result.message);
-      if (typeof Notification !== "undefined" && Notification.permission === "granted") {
-        setPermissionGranted(true);
+      if (typeof Notification !== "undefined") {
+        setPermissionState(Notification.permission);
+        setPermissionGranted(Notification.permission === "granted");
       }
       if (result.ok) {
         setPushHint(false);
@@ -137,9 +148,11 @@ export function AdminNotifications() {
           <p className="text-gray-700">
             {iosNeedsHomeScreenForNotifications()
               ? "iPhone Safari’de arka plan bildirimi için siteyi Ana Ekrana eklemeniz gerekir."
-              : permissionGranted
-                ? "Telefon izni açık ama kilit ekranı kaydı tamamlanmadı. Chrome ile www.cimcimkids.com/admin açık olsun."
-                : "Arka planda sipariş sesi için bildirim izni verin."}
+              : permissionState === "denied"
+                ? "Chrome bu site için bildirimi engellemiş. Adres çubuğundaki kilit → İzinler → Bildirimler → İzin ver, sonra sayfayı yenileyin."
+                : permissionGranted
+                  ? "Telefon izni açık ama kilit ekranı kaydı tamamlanmadı. Chrome ile www.cimcimkids.com/admin açık olsun."
+                  : "Chrome’da bu site için bildirim izni henüz verilmedi. Aşağıya dokunun; çıkan pencerede İzin ver’e basın. Telefon ayarındaki Chrome bildirimi yetmez."}
           </p>
           <button
             type="button"

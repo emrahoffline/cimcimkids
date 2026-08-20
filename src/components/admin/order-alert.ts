@@ -1,7 +1,7 @@
 "use client";
 
 const SOUND_SRC = "/sounds/cash.mp3";
-const SW_URL = "/admin-sw.js?v=20260819";
+const SW_URL = "/admin-sw.js?v=20260820";
 /** VAPID public key is not a secret — kept as fallback so Android can subscribe
  * even if GET /api/admin/push is blocked (Cloudflare/401). Must match the server private key. */
 const FALLBACK_VAPID_PUBLIC_KEY =
@@ -303,15 +303,15 @@ async function readApiError(res: Response): Promise<string> {
   return `Sunucu kaydı başarısız (HTTP ${res.status}).`;
 }
 
-async function loadVapidPublicKey(): Promise<string> {
+function vapidPublicKeySync() {
   if (cachedVapidKey) return cachedVapidKey;
+  cachedVapidKey =
+    process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY?.trim() || FALLBACK_VAPID_PUBLIC_KEY;
+  return cachedVapidKey;
+}
 
-  const envKey = process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY?.trim();
-  if (envKey) {
-    cachedVapidKey = envKey;
-    return envKey;
-  }
-
+async function loadVapidPublicKey(): Promise<string> {
+  const fallback = vapidPublicKeySync();
   try {
     const keyRes = await fetch("/api/admin/push", { credentials: "include" });
     if (keyRes.ok) {
@@ -322,11 +322,9 @@ async function loadVapidPublicKey(): Promise<string> {
       }
     }
   } catch {
-    // fall through to bundled public key
+    // bundled public key is enough to subscribe
   }
-
-  cachedVapidKey = FALLBACK_VAPID_PUBLIC_KEY;
-  return cachedVapidKey;
+  return fallback;
 }
 
 async function ensureServiceWorker(): Promise<ServiceWorkerRegistration> {
@@ -374,7 +372,7 @@ async function showLocalTestNotification(reg: ServiceWorkerRegistration) {
   }
 }
 
-type SubscribeResult = { ok: true } | { ok: false; message: string };
+export type SubscribeResult = { ok: true } | { ok: false; message: string };
 
 async function subscribePush(): Promise<SubscribeResult> {
   if (!("serviceWorker" in navigator) || !("PushManager" in window)) {
@@ -393,26 +391,30 @@ async function subscribePush(): Promise<SubscribeResult> {
     return { ok: false, message: subscribeErrorMessage(err) };
   }
 
-  const publicKey = await loadVapidPublicKey();
+  const publicKey = vapidPublicKeySync();
   const applicationServerKey = urlBase64ToUint8Array(publicKey);
 
-  const existing = await reg.pushManager.getSubscription();
-  if (existing) {
+  let sub = await reg.pushManager.getSubscription();
+  if (!sub) {
     try {
-      await existing.unsubscribe();
-    } catch {
-      // continue and try a fresh subscribe
+      sub = await reg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey,
+      });
+    } catch (firstErr) {
+      // Stale subscription with a different VAPID key — permission is already
+      // granted at this point, so a second subscribe still works on Android.
+      try {
+        const stale = await reg.pushManager.getSubscription();
+        if (stale) await stale.unsubscribe();
+        sub = await reg.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey,
+        });
+      } catch {
+        return { ok: false, message: subscribeErrorMessage(firstErr) };
+      }
     }
-  }
-
-  let sub: PushSubscription;
-  try {
-    sub = await reg.pushManager.subscribe({
-      userVisibleOnly: true,
-      applicationServerKey,
-    });
-  } catch (err) {
-    return { ok: false, message: subscribeErrorMessage(err) };
   }
 
   const res = await fetch("/api/admin/push", {
@@ -472,11 +474,28 @@ export type EnableAlertsResult = {
 };
 
 /**
- * Call from a button onClick only. Requests permission first (sync gesture),
- * then registers push.
+ * Must be called synchronously from a click/tap. Chrome Android shows the
+ * permission dialog from PushManager.subscribe(userVisibleOnly) more reliably
+ * than from Notification.requestPermission() after an await.
+ */
+export function startSubscribeFromGesture(): Promise<SubscribeResult> {
+  vapidPublicKeySync();
+  if (typeof navigator !== "undefined" && "serviceWorker" in navigator && !swRegisterPromise) {
+    swRegisterPromise = navigator.serviceWorker.register(SW_URL, {
+      scope: "/",
+      updateViaCache: "none",
+    });
+  }
+  return subscribePush();
+}
+
+/**
+ * Call from a button onClick only. Requests permission and starts push
+ * subscribe in the same tap — do not await permission before subscribe.
  */
 export async function enableAdminAlertsFromUserGesture(
-  permissionPromise?: Promise<NotificationPermission>
+  permissionPromise?: Promise<NotificationPermission>,
+  subscribePromise?: Promise<SubscribeResult>
 ): Promise<EnableAlertsResult> {
   const support = getNotificationSupport();
   if (!support.ok) {
@@ -487,11 +506,25 @@ export async function enableAdminAlertsFromUserGesture(
     };
   }
 
-  // Permission must start in the same tap as the button. The caller may pass
-  // a promise already started before React setState.
   const pending = permissionPromise ?? requestNotificationPermissionNow();
+  const subscribeStarted = subscribePromise ?? startSubscribeFromGesture();
   unlockAdminAlertAudio();
-  const permission = await pending;
+
+  const [permission, result] = await Promise.all([
+    pending,
+    subscribeStarted.catch((err): SubscribeResult => ({
+      ok: false,
+      message: subscribeErrorMessage(err),
+    })),
+  ]);
+
+  if (result.ok) {
+    return {
+      ok: true,
+      message:
+        "Bildirimler kaydedildi. Az önce bir test bildirimi geldiyse kilit ekranı da çalışır. Gelmediyse bildirim gölgesini kontrol edin.",
+    };
+  }
 
   if (permission === "denied") {
     return {
@@ -510,33 +543,19 @@ export async function enableAdminAlertsFromUserGesture(
     }
     return {
       ok: false,
-      message: "Bildirim izni verilmedi. Tekrar “Bildirimleri aç”a dokunun.",
+      message:
+        result.message ||
+        "Chrome izin penceresi açılmadı. Adres çubuğundaki kilit → İzinler → Bildirimler → İzin ver, sonra tekrar dokunun.",
     };
   }
 
-  try {
-    const result = await subscribePush();
-    if (result.ok) {
-      return {
-        ok: true,
-        message:
-          "Bildirimler kaydedildi. Az önce bir test bildirimi geldiyse kilit ekranı da çalışır. Gelmediyse bildirim gölgesini kontrol edin.",
-      };
-    }
-    if (isIOSDevice() && !isStandalonePwa()) {
-      return {
-        ok: false,
-        message: `${result.message} iPhone’da arka plan için: Paylaş → Ana Ekrana Ekle.`,
-      };
-    }
-    return { ok: false, message: result.message };
-  } catch (err) {
-    console.error("[admin-push]", err);
+  if (isIOSDevice() && !isStandalonePwa()) {
     return {
       ok: false,
-      message: subscribeErrorMessage(err),
+      message: `${result.message} iPhone’da arka plan için: Paylaş → Ana Ekrana Ekle.`,
     };
   }
+  return { ok: false, message: result.message };
 }
 
 export function listenForServiceWorkerAlerts(onAlert: () => void) {
