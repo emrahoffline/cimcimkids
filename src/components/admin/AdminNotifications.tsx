@@ -2,12 +2,12 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { Bell, ShoppingBag } from "lucide-react";
+import { Bell, ShoppingBag, X } from "lucide-react";
 import { formatPrice } from "@/lib/products";
 import { useAdminNotifications } from "./useAdminNotifications";
 import {
   enableAdminAlertsFromUserGesture,
-  iosNeedsHomeScreenForNotifications,
+  getNotificationHintMessage,
   prefetchAdminPush,
   requestNotificationPermissionNow,
   startSubscribeFromGesture,
@@ -18,6 +18,8 @@ import {
   unlockAdminAlertAudio,
 } from "./order-alert";
 
+const HINT_DISMISS_KEY = "admin-push-hint-dismissed";
+
 export function AdminNotifications() {
   const { count, orders, markAllSeen, refresh } = useAdminNotifications();
   const [open, setOpen] = useState(false);
@@ -27,8 +29,17 @@ export function AdminNotifications() {
   const [enabling, setEnabling] = useState(false);
   const [permissionGranted, setPermissionGranted] = useState(false);
   const [permissionState, setPermissionState] = useState<NotificationPermission | "unknown">("unknown");
+  const [bannerDismissed, setBannerDismissed] = useState(false);
   const prevCount = useRef(count);
   const initialized = useRef(false);
+
+  useEffect(() => {
+    try {
+      setBannerDismissed(localStorage.getItem(HINT_DISMISS_KEY) === "1");
+    } catch {
+      // ignore
+    }
+  }, []);
 
   useEffect(() => {
     prefetchAdminPush();
@@ -119,6 +130,12 @@ export function AdminNotifications() {
       }
       if (result.ok) {
         setPushHint(false);
+        setBannerDismissed(true);
+        try {
+          localStorage.setItem(HINT_DISMISS_KEY, "1");
+        } catch {
+          // ignore
+        }
         setTimeout(() => setPushStatus(null), 12000);
       }
     })();
@@ -134,6 +151,21 @@ export function AdminNotifications() {
     setOpen(false);
   };
 
+  const dismissBanner = () => {
+    setBannerDismissed(true);
+    try {
+      localStorage.setItem(HINT_DISMISS_KEY, "1");
+    } catch {
+      // ignore
+    }
+  };
+
+  const hintMessage = getNotificationHintMessage({
+    permission: permissionState,
+    permissionGranted,
+  });
+  const settingsReady = permissionState === "granted" && !pushHint;
+
   return (
     <>
       {toast && (
@@ -143,17 +175,19 @@ export function AdminNotifications() {
         </div>
       )}
 
-      {pushHint && (
+      {pushHint && !bannerDismissed && (
         <div className="fixed bottom-4 left-3 right-3 z-50 space-y-2 rounded-lg border border-olive/20 bg-white px-4 py-3 text-sm shadow-lg sm:left-auto sm:right-6 sm:max-w-md">
-          <p className="text-gray-700">
-            {iosNeedsHomeScreenForNotifications()
-              ? "iPhone Safari’de arka plan bildirimi için siteyi Ana Ekrana eklemeniz gerekir."
-              : permissionState === "denied"
-                ? "Chrome bu site için bildirimi engellemiş. Adres çubuğundaki kilit → İzinler → Bildirimler → İzin ver, sonra sayfayı yenileyin."
-                : permissionGranted
-                  ? "Telefon izni açık ama kilit ekranı kaydı tamamlanmadı. Chrome ile www.cimcimkids.com/admin açık olsun."
-                  : "Chrome’da bu site için bildirim izni henüz verilmedi. Aşağıya dokunun; çıkan pencerede İzin ver’e basın. Telefon ayarındaki Chrome bildirimi yetmez."}
-          </p>
+          <div className="flex items-start justify-between gap-3">
+            <p className="text-gray-700">{hintMessage}</p>
+            <button
+              type="button"
+              onClick={dismissBanner}
+              className="shrink-0 rounded-md p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+              aria-label="Kapat"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
           <button
             type="button"
             onClick={handleEnablePush}
@@ -169,6 +203,9 @@ export function AdminNotifications() {
           {pushStatus && (
             <p className="text-xs leading-relaxed text-amber-800">{pushStatus}</p>
           )}
+          <p className="text-[11px] text-gray-400">
+            Daha sonra zil menüsündeki Bildirim ayarları’ndan da açabilirsiniz.
+          </p>
         </div>
       )}
 
@@ -201,7 +238,7 @@ export function AdminNotifications() {
               aria-label="Kapat"
               onClick={() => setOpen(false)}
             />
-            <div className="fixed inset-x-3 top-[3.75rem] z-50 max-h-[min(24rem,70vh)] overflow-hidden rounded-xl border border-gray-200 bg-white shadow-xl sm:absolute sm:inset-x-auto sm:right-0 sm:top-auto sm:mt-2 sm:w-80">
+            <div className="fixed inset-x-3 top-[3.75rem] z-50 max-h-[min(32rem,80vh)] overflow-hidden rounded-xl border border-gray-200 bg-white shadow-xl sm:absolute sm:inset-x-auto sm:right-0 sm:top-auto sm:mt-2 sm:w-96">
               <div className="flex items-center justify-between gap-2 border-b border-gray-100 px-4 py-3">
                 <p className="font-semibold text-gray-900">Sipariş Bildirimleri</p>
                 {count > 0 && (
@@ -215,7 +252,7 @@ export function AdminNotifications() {
                 )}
               </div>
 
-              <div className="max-h-80 overflow-y-auto">
+              <div className="max-h-[min(16rem,40vh)] overflow-y-auto">
                 {orders.length === 0 ? (
                   <p className="px-4 py-8 text-center text-sm text-gray-400">
                     Yeni sipariş bildirimi yok
@@ -250,7 +287,38 @@ export function AdminNotifications() {
                 )}
               </div>
 
-              <div className="border-t border-gray-100 px-4 py-3">
+              <div className="space-y-2 border-t border-gray-100 px-4 py-3">
+                <p className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+                  Bildirim ayarları
+                </p>
+                <p className="text-xs leading-relaxed text-gray-600">
+                  {settingsReady
+                    ? "Bu tarayıcıda sipariş bildirimleri açık. Sekme kapalı olsa da yeni sipariş bildirimi gelir."
+                    : hintMessage}
+                </p>
+                {(pushHint || permissionState !== "granted") && (
+                  <button
+                    type="button"
+                    onClick={handleEnablePush}
+                    disabled={enabling}
+                    className="min-h-[40px] w-full rounded-lg bg-olive px-3 py-2 text-sm font-medium text-white hover:bg-olive/90 disabled:opacity-60"
+                  >
+                    {enabling
+                      ? "Kaydediliyor..."
+                      : permissionGranted
+                        ? "Bildirimleri kaydet"
+                        : "Bildirimleri aç"}
+                  </button>
+                )}
+                {pushStatus && (
+                  <p
+                    className={`text-xs leading-relaxed ${
+                      settingsReady ? "text-green-700" : "text-amber-800"
+                    }`}
+                  >
+                    {pushStatus}
+                  </p>
+                )}
                 <Link
                   href="/admin/orders"
                   onClick={() => setOpen(false)}

@@ -1,7 +1,7 @@
 "use client";
 
 const SOUND_SRC = "/sounds/cash.mp3";
-const SW_URL = "/admin-sw.js?v=20260820";
+const SW_URL = "/admin-sw.js?v=20260820-browser";
 /** VAPID public key is not a secret — kept as fallback so Android can subscribe
  * even if GET /api/admin/push is blocked (Cloudflare/401). Must match the server private key. */
 const FALLBACK_VAPID_PUBLIC_KEY =
@@ -113,6 +113,15 @@ export function isAndroidDevice() {
   return /Android/i.test(navigator.userAgent);
 }
 
+export function isDesktopBrowser() {
+  return !isAndroidDevice() && !isIOSDevice();
+}
+
+export function isFirefoxBrowser() {
+  if (typeof window === "undefined") return false;
+  return /Firefox\//i.test(navigator.userAgent) && !/FxiOS/i.test(navigator.userAgent);
+}
+
 export function isInAppBrowser() {
   if (typeof window === "undefined") return false;
   const ua = navigator.userAgent;
@@ -157,7 +166,48 @@ function deniedPermissionMessage() {
   if (isAndroidDevice()) {
     return "Bildirim izni kapalı. Chrome’da adres çubuğundaki kilit → İzinler → Bildirimler → İzin ver. Ayrıca telefon Ayarları → Uygulamalar → Chrome → Bildirimler açık olsun. Sonra sayfayı yenileyin.";
   }
-  return "Bildirim izni kapalı. Tarayıcıda site ayarlarından bildirimlere izin verip sayfayı yenileyin.";
+  if (isFirefoxBrowser()) {
+    return "Bildirim izni kapalı. Firefox adres çubuğundaki kilit → İzinler → Bildirimler → İzin ver, sonra sayfayı yenileyin.";
+  }
+  if (isSafariBrowser()) {
+    return "Bildirim izni kapalı. Safari → Ayarlar → Web Siteleri → Bildirimler bölümünden cimcimkids.com için İzin Ver’i seçip sayfayı yenileyin.";
+  }
+  return "Bildirim izni kapalı. Adres çubuğundaki kilit simgesi → Site ayarları → Bildirimler → İzin ver, sonra sayfayı yenileyin.";
+}
+
+export function getNotificationHintMessage(opts: {
+  permission: NotificationPermission | "unknown";
+  permissionGranted: boolean;
+}): string {
+  if (iosNeedsHomeScreenForNotifications()) {
+    return "iPhone Safari’de arka plan bildirimi için siteyi Ana Ekrana eklemeniz gerekir.";
+  }
+  if (opts.permission === "denied") {
+    return deniedPermissionMessage();
+  }
+  if (opts.permissionGranted) {
+    if (isAndroidDevice()) {
+      return "Telefon izni açık ama kilit ekranı kaydı tamamlanmadı. “Bildirimleri kaydet”e dokunun.";
+    }
+    return "Tarayıcı izni açık ama bildirim kaydı tamamlanmadı. “Bildirimleri kaydet”e tıklayın.";
+  }
+  if (isAndroidDevice()) {
+    return "Chrome’da bu site için bildirim izni henüz verilmedi. Aşağıya dokunun; çıkan pencerede İzin ver’e basın. Telefon ayarındaki Chrome bildirimi yetmez.";
+  }
+  if (isIOSDevice()) {
+    return "Sipariş bildirimi almak için “Bildirimleri aç”a basın; çıkan pencerede İzin Ver’i seçin.";
+  }
+  return "Bilgisayar tarayıcınızda yeni sipariş bildirimi almak için “Bildirimleri aç”a tıklayın. Çıkan pencerede İzin ver’i seçin. Admin sekmesi kapalı olsa da bildirim gelir.";
+}
+
+function enableSuccessMessage() {
+  if (isAndroidDevice()) {
+    return "Bildirimler kaydedildi. Yeni siparişte kilit ekranı bildirimi gelecek.";
+  }
+  if (isIOSDevice()) {
+    return "Bildirimler kaydedildi. Yeni siparişte bildirim gelecek.";
+  }
+  return "Bildirimler kaydedildi. Yeni siparişte tarayıcı bildirimi gelecek; admin sekmesi kapalı olsa da çalışır.";
 }
 
 function supportErrorMessage(
@@ -178,7 +228,7 @@ function supportErrorMessage(
   if (isAndroidDevice()) {
     return "Bu tarayıcı bildirimleri desteklemiyor. Android’de Chrome ile https://www.cimcimkids.com/admin açın.";
   }
-  return "Bu tarayıcı sistem bildirimlerini desteklemiyor. Android’de Chrome, iPhone’da Safari + Ana Ekrana Ekle deneyin.";
+  return "Bu tarayıcı sistem bildirimlerini desteklemiyor. Bilgisayarda Chrome, Edge veya Firefox; Android’de Chrome; iPhone’da Safari + Ana Ekrana Ekle deneyin.";
 }
 
 /**
@@ -275,7 +325,9 @@ function subscribeErrorMessage(err: unknown) {
         : "Bilinmeyen hata";
   const text = raw.toLowerCase();
   if (text.includes("push service error") || text.includes("registration failed")) {
-    return "Chrome push servisi yanıt vermedi. Google Play Hizmetleri’ni güncelleyip Wi-Fi/mobil veriyi açın, sonra tekrar deneyin.";
+    return isAndroidDevice()
+      ? "Chrome push servisi yanıt vermedi. Google Play Hizmetleri’ni güncelleyip Wi-Fi/mobil veriyi açın, sonra tekrar deneyin."
+      : "Tarayıcı push servisi yanıt vermedi. İnternet bağlantınızı kontrol edip tekrar deneyin.";
   }
   if (text.includes("aborted") || text.includes("not allowed")) {
     return "Tarayıcı aboneliği reddetti. Site bildirim izninin “İzin ver” olduğundan emin olup sayfayı tam yenileyin.";
@@ -363,7 +415,7 @@ async function subscribePush(): Promise<SubscribeResult> {
       ok: false,
       message: isAndroidDevice()
         ? "Bu tarayıcı Web Push desteklemiyor. Android Chrome ile https://www.cimcimkids.com/admin açın."
-        : "Bu tarayıcı arka plan push desteklemiyor.",
+        : "Bu tarayıcı arka plan bildirimi desteklemiyor. Chrome, Edge veya Firefox ile https://www.cimcimkids.com/admin açın.",
     };
   }
 
@@ -480,7 +532,7 @@ export async function enableAdminAlertsFromUserGesture(
   const subscribeStarted = subscribePromise ?? startSubscribeFromGesture();
   unlockAdminAlertAudio();
 
-  const [permission, result] = await Promise.all([
+  const [permission, firstResult] = await Promise.all([
     pending,
     subscribeStarted.catch((err): SubscribeResult => ({
       ok: false,
@@ -488,11 +540,22 @@ export async function enableAdminAlertsFromUserGesture(
     })),
   ]);
 
+  let result = firstResult;
+  // Desktop Chrome/Edge/Firefox often grant Notification.permission first while
+  // PushManager.subscribe raced ahead and failed. Retry once permission is on.
+  if (!result.ok && permission === "granted") {
+    result = await subscribePush().catch(
+      (err): SubscribeResult => ({
+        ok: false,
+        message: subscribeErrorMessage(err),
+      })
+    );
+  }
+
   if (result.ok) {
     return {
       ok: true,
-      message:
-        "Bildirimler kaydedildi. Yeni siparişte kilit ekranı bildirimi gelecek.",
+      message: enableSuccessMessage(),
     };
   }
 
@@ -515,7 +578,9 @@ export async function enableAdminAlertsFromUserGesture(
       ok: false,
       message:
         result.message ||
-        "Chrome izin penceresi açılmadı. Adres çubuğundaki kilit → İzinler → Bildirimler → İzin ver, sonra tekrar dokunun.",
+        (isDesktopBrowser()
+          ? "İzin penceresi açılmadı. Adres çubuğundaki kilit → Site ayarları → Bildirimler → İzin ver, sonra tekrar tıklayın."
+          : "Chrome izin penceresi açılmadı. Adres çubuğundaki kilit → İzinler → Bildirimler → İzin ver, sonra tekrar dokunun."),
     };
   }
 
