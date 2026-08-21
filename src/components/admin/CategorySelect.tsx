@@ -93,6 +93,9 @@ export function CategorySelect({ value, onChange }: Props) {
           + Yeni kategori oluştur
         </option>
       </select>
+      <p className="text-xs text-gray-500">
+        Unisex ürünler sitede hem Kız hem Erkek kategorilerinde görünür.
+      </p>
 
       {showNewForm && (
         <div className="rounded-xl border border-olive/20 bg-olive/5 p-4">

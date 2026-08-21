@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useTranslations, useLocale } from "next-intl";
 import type { Product, Category } from "@/lib/types";
 import { ProductCard } from "./ProductCard";
+import { productMatchesCategory } from "@/lib/categories";
 
 export function ProductsGrid({ products }: { products: Product[] }) {
   const t = useTranslations("products");
@@ -20,7 +21,7 @@ export function ProductsGrid({ products }: { products: Product[] }) {
   const filtered =
     category === "all"
       ? products
-      : products.filter((p) => p.category === category);
+      : products.filter((p) => productMatchesCategory(p.category, category));
 
   const filterButtons = [
     { key: "all", label: t("all") },
