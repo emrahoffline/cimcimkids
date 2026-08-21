@@ -12,6 +12,7 @@ import type {
 } from "@prisma/client";
 import type { Product, Category } from "./types";
 import { slugify } from "./product-utils";
+import { UNISEX_CATEGORY, isUnisexCategoryName } from "./categories";
 import { syncAllTimeTotals } from "./analytics-db";
 import { prisma, requireDatabaseUrl, hasDatabaseUrl, isNextBuild } from "./prisma";
 
@@ -137,6 +138,7 @@ function mapSubscriber(s: DbSubscriber): NewsletterSubscriber {
 const DEFAULT_CATEGORIES: Category[] = [
   { slug: "girls", nameTr: "Kız", nameEn: "Girls" },
   { slug: "boys", nameTr: "Erkek", nameEn: "Boys" },
+  { slug: UNISEX_CATEGORY.slug, nameTr: UNISEX_CATEGORY.nameTr, nameEn: UNISEX_CATEGORY.nameEn },
   { slug: "baby", nameTr: "Bebek", nameEn: "Baby" },
 ];
 
@@ -191,6 +193,22 @@ export async function saveProducts(products: Product[]): Promise<void> {
   });
 }
 
+export async function ensureUnisexCategory(): Promise<Category> {
+  requireDatabaseUrl();
+  const existing = await prisma.category.findUnique({
+    where: { slug: UNISEX_CATEGORY.slug },
+  });
+  if (existing) return mapCategory(existing);
+  const created = await prisma.category.create({
+    data: {
+      slug: UNISEX_CATEGORY.slug,
+      nameTr: UNISEX_CATEGORY.nameTr,
+      nameEn: UNISEX_CATEGORY.nameEn,
+    },
+  });
+  return mapCategory(created);
+}
+
 export async function getCategories(): Promise<Category[]> {
   if (!hasDatabaseUrl()) {
     if (isNextBuild()) return DEFAULT_CATEGORIES;
@@ -198,7 +216,11 @@ export async function getCategories(): Promise<Category[]> {
   }
   const rows = await prisma.category.findMany({ orderBy: { slug: "asc" } });
   if (rows.length === 0) return DEFAULT_CATEGORIES;
-  return rows.map(mapCategory);
+  const mapped = rows.map(mapCategory);
+  if (!mapped.some((c) => c.slug === UNISEX_CATEGORY.slug)) {
+    mapped.push(await ensureUnisexCategory());
+  }
+  return mapped.sort((a, b) => a.slug.localeCompare(b.slug));
 }
 
 export async function saveCategories(categories: Category[]): Promise<void> {
@@ -225,6 +247,13 @@ export async function createCategory(data: {
   slug?: string;
 }): Promise<Category> {
   requireDatabaseUrl();
+  if (
+    isUnisexCategoryName(data.nameTr, data.slug) ||
+    isUnisexCategoryName(data.nameEn || "", data.slug)
+  ) {
+    return ensureUnisexCategory();
+  }
+
   const baseSlug = slugify(data.nameTr || data.nameEn);
   let slug = data.slug?.trim() || baseSlug;
   let n = 1;
@@ -239,6 +268,7 @@ export async function createCategory(data: {
       nameEn: data.nameEn.trim() || data.nameTr.trim(),
     },
   });
+  await ensureUnisexCategory();
   return mapCategory(category);
 }
 
