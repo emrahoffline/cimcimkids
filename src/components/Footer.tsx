@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useTranslations, useLocale } from "next-intl";
 import { BrandName } from "./BrandName";
+import { SellerLegalInfo } from "./SellerLegalInfo";
 
 export function Footer() {
   const t = useTranslations("footer");
@@ -100,7 +101,10 @@ export function Footer() {
         </div>
 
         <div className="mt-10 border-t border-bamboo/20 pt-6 text-center text-xs text-slate-400">
-          © {new Date().getFullYear()} CimcimKids. {t("rights")}
+          <SellerLegalInfo className="mx-auto mb-4 max-w-lg space-y-0.5 text-slate-500" />
+          <p>
+            © {new Date().getFullYear()} CimcimKids. {t("rights")}
+          </p>
         </div>
       </div>
     </footer>
