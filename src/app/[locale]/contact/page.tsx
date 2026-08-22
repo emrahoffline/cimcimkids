@@ -2,11 +2,13 @@
 
 import { useState } from "react";
 import { useTranslations } from "next-intl";
-import { Mail, MapPin, Clock } from "lucide-react";
+import { Mail, MapPin, Clock, Phone } from "lucide-react";
+import { STORE_CONFIG, formatTrPhone, telHref } from "@/lib/store-config";
 
 export default function ContactPage() {
   const t = useTranslations("contact");
   const [sent, setSent] = useState(false);
+  const phone = formatTrPhone(STORE_CONFIG.legalPhone);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -52,7 +54,23 @@ export default function ContactPage() {
             <MapPin className="h-6 w-6 shrink-0 text-bamboo" />
             <div>
               <p className="font-medium">{t("address")}</p>
-              <p className="text-olive/70">{t("addressValue")}</p>
+              <p className="text-olive/70">{STORE_CONFIG.legalAddress}</p>
+              <p className="mt-2 text-sm text-olive/60">
+                {STORE_CONFIG.legalName} · {STORE_CONFIG.taxOffice} VD · VN{" "}
+                {STORE_CONFIG.taxNumber}
+              </p>
+            </div>
+          </div>
+          <div className="card flex gap-4">
+            <Phone className="h-6 w-6 shrink-0 text-bamboo" />
+            <div>
+              <p className="font-medium">{t("phone")}</p>
+              <a
+                href={telHref(STORE_CONFIG.legalPhone)}
+                className="text-olive/70 hover:text-olive"
+              >
+                {phone}
+              </a>
             </div>
           </div>
           <div className="card flex gap-4">
@@ -67,10 +85,10 @@ export default function ContactPage() {
             <div>
               <p className="font-medium">E-mail</p>
               <a
-                href="mailto:info@cimcimkids.com"
+                href={`mailto:${STORE_CONFIG.legalEmail}`}
                 className="text-olive/70 hover:text-olive"
               >
-                info@cimcimkids.com
+                {STORE_CONFIG.legalEmail}
               </a>
             </div>
           </div>

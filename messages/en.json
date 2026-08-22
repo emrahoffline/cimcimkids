@@ -107,7 +107,7 @@
     "send": "Send",
     "success": "Message received. We'll get back to you soon.",
     "address": "Address",
-    "addressValue": "Antalya, Turkey",
+    "addressValue": "Akbük Mah. 5932 Cad. Rüyamkent Sitesi No: 7/4 Didim / Aydın",
     "hours": "Business Hours",
     "hoursValue": "Mon–Sat 09:00–18:00"
   },
@@ -168,8 +168,9 @@
   },
   "distanceSales": {
     "title": "Distance Sales Agreement",
-    "updated": "Last updated: May 2026",
-    "s1": "This agreement is governed by applicable consumer protection laws between CimcimKids and the consumer.",
+    "updated": "Last updated: August 2026",
+    "sellerTitle": "Seller",
+    "s1": "This agreement is concluded between seller Nuriye Kostak (CimcimKids, sole proprietorship) and the consumer under applicable consumer protection laws.",
     "s2": "Order confirmation is sent by email. Right of withdrawal can be exercised within 14 days.",
     "s3": "Product prices include VAT. Payment is made via bank transfer; shipping is free."
   },
@@ -178,7 +179,7 @@
     "updated": "Last updated: August 2026",
     "intro": "Under the Turkish Personal Data Protection Law No. 6698 (\"KVKK\"), we inform you about how CimcimKids processes your personal data.",
     "s1title": "1. Data Controller",
-    "s1": "Data controller: CimcimKids. Address: Antalya, Turkey. Contact: info@cimcimkids.com — Phone: +90 533 700 73 18",
+    "s1": "Data controller: Nuriye Kostak (CimcimKids, sole proprietorship). Didim Tax Office, TIN 1630080944. Address: Akbük Mah. 5932 Cad. Rüyamkent Sitesi No: 7/4 Didim / Aydın. Contact: efruzebendes@hotmail.com — Phone: 0541 358 84 57",
     "s2title": "2. Processed Personal Data",
     "s2": "Identity data (name, surname), contact data (email, phone, address), order and transaction data (products, amount, order number), account and session data, customer transaction history; and, if you opt in, newsletter subscription data.",
     "s3title": "3. Purposes of Processing",
@@ -192,7 +193,7 @@
     "s7title": "7. Your Rights",
     "s7": "Under KVKK Art. 11, you have the right to learn whether your data is processed, request information, learn the purpose and whether it is used accordingly, know third parties in Turkey or abroad to whom data is transferred, request correction, request deletion or destruction, and withdraw consent where processing is based on consent.",
     "s8title": "8. How to Apply",
-    "s8": "To exercise your rights, send a written request to info@cimcimkids.com. Your requests will be answered free of charge within 30 days at the latest."
+    "s8": "To exercise your rights, send a written request to efruzebendes@hotmail.com. Your requests will be answered free of charge within 30 days at the latest."
   },
   "favorites": {
     "title": "My Favorites",

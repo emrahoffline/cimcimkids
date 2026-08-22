@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { LegalPage } from "@/components/LegalPage";
+import { SellerLegalInfo } from "@/components/SellerLegalInfo";
 import { buildMetadata } from "@/lib/seo";
 
 type Props = {
@@ -28,6 +29,12 @@ export default async function DistanceSalesPage({ params }: Props) {
     <LegalPage
       title={t("title")}
       updated={t("updated")}
+      lead={
+        <>
+          <p className="font-semibold text-olive">{t("sellerTitle")}</p>
+          <SellerLegalInfo showNationalId className="space-y-1" />
+        </>
+      }
       sections={[
         { text: t("s1") },
         { text: t("s2") },

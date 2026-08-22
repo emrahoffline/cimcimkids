@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import type { Product } from "./types";
 import { getProductDesc, getProductName } from "./product-utils";
+import { STORE_CONFIG } from "./store-config";
 
 /** Production canonical origin — apex (www redirects here). */
 export const SITE_ORIGIN = "https://cimcimkids.com";
@@ -160,8 +161,8 @@ export function organizationJsonLd() {
     name: SITE_NAME,
     url: canonicalUrl("tr"),
     logo: absoluteUrl("/logo.png"),
-    email: SITE_EMAIL,
-    telephone: "+905337007318",
+    email: STORE_CONFIG.legalEmail,
+    telephone: `+90${STORE_CONFIG.legalPhone.replace(/^0/, "")}`,
   };
 }
 
