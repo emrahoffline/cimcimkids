@@ -107,7 +107,7 @@
     "send": "Gönder",
     "success": "Mesajınız alındı. En kısa sürede dönüş yapacağız.",
     "address": "Adres",
-    "addressValue": "Antalya, Türkiye",
+    "addressValue": "Akbük Mah. 5932 Cad. Rüyamkent Sitesi No: 7/4 Didim / Aydın",
     "hours": "Çalışma Saatleri",
     "hoursValue": "Pzt–Cmt 09:00–18:00"
   },
@@ -168,8 +168,9 @@
   },
   "distanceSales": {
     "title": "Mesafeli Satış Sözleşmesi",
-    "updated": "Son güncelleme: Mayıs 2026",
-    "s1": "Bu sözleşme, CimcimKids ile tüketici arasında 6502 sayılı Tüketicinin Korunması Hakkında Kanun kapsamında düzenlenmiştir.",
+    "updated": "Son güncelleme: Ağustos 2026",
+    "sellerTitle": "Satıcı",
+    "s1": "Bu sözleşme, satıcı Nuriye Kostak (CimcimKids, şahıs işletmesi) ile tüketici arasında 6502 sayılı Tüketicinin Korunması Hakkında Kanun kapsamında düzenlenmiştir.",
     "s2": "Sipariş onayı e-posta ile bildirilir. Cayma hakkı 14 gün içinde kullanılabilir.",
     "s3": "Ürün fiyatları KDV dahildir. Ödeme havale/EFT ile yapılır; kargo ücretsizdir."
   },
@@ -178,7 +179,7 @@
     "updated": "Son güncelleme: Ağustos 2026",
     "intro": "6698 sayılı Kişisel Verilerin Korunması Kanunu (\"KVKK\") kapsamında, CimcimKids olarak kişisel verilerinizin işlenmesine ilişkin sizi bilgilendiriyoruz.",
     "s1title": "1. Veri Sorumlusu",
-    "s1": "Veri sorumlusu: CimcimKids. Adres: Antalya, Türkiye. İletişim: info@cimcimkids.com — Telefon: 0533 700 73 18",
+    "s1": "Veri sorumlusu: Nuriye Kostak (CimcimKids, şahıs işletmesi). Didim Vergi Dairesi, VN 1630080944. Adres: Akbük Mah. 5932 Cad. Rüyamkent Sitesi No: 7/4 Didim / Aydın. İletişim: efruzebendes@hotmail.com — Telefon: 0541 358 84 57",
     "s2title": "2. İşlenen Kişisel Veriler",
     "s2": "Kimlik bilgileri (ad, soyad), iletişim bilgileri (e-posta, telefon, adres), sipariş ve işlem bilgileri (ürünler, tutar, sipariş numarası), hesap ve oturum bilgileri, müşteri işlem geçmişi; isteğe bağlı olarak bülten aboneliği bilgileri.",
     "s3title": "3. Kişisel Verilerin İşlenme Amaçları",
@@ -192,7 +193,7 @@
     "s7title": "7. İlgili Kişinin Hakları",
     "s7": "KVKK m.11 kapsamında; verilerinizin işlenip işlenmediğini öğrenme, işlenmişse bilgi talep etme, işlenme amacını ve amacına uygun kullanılıp kullanılmadığını öğrenme, yurt içinde veya yurt dışında aktarıldığı üçüncü kişileri bilme, eksik veya yanlış işlenmişse düzeltilmesini isteme, silinmesini veya yok edilmesini isteme, açık rızaya dayanan işlemlerde rızayı geri çekme haklarına sahipsiniz.",
     "s8title": "8. Başvuru Yöntemi",
-    "s8": "Haklarınızı kullanmak için info@cimcimkids.com adresine yazılı başvuruda bulunabilirsiniz. Başvurularınız en geç 30 gün içinde ücretsiz olarak sonuçlandırılır."
+    "s8": "Haklarınızı kullanmak için efruzebendes@hotmail.com adresine yazılı başvuruda bulunabilirsiniz. Başvurularınız en geç 30 gün içinde ücretsiz olarak sonuçlandırılır."
   },
   "favorites": {
     "title": "Favorilerim",
