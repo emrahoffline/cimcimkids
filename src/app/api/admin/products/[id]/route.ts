@@ -1,7 +1,20 @@
 import { NextResponse } from "next/server";
 import { requireAdminApi } from "@/lib/admin-api";
-import { getProducts, saveProducts } from "@/lib/db";
+import { getProducts, saveProducts, ensureOutfitsCategory } from "@/lib/db";
 import { slugify } from "@/lib/product-utils";
+import {
+  filledOutfitSlots,
+  hydrateOutfitSlots,
+  outfitCoverImage,
+  resolveOutfitPricing,
+} from "@/lib/outfit";
+
+function isSafeImage(value: unknown): value is string {
+  return (
+    typeof value === "string" &&
+    /^\/products\/(?:uploads\/)?[a-zA-Z0-9._-]+$/.test(value)
+  );
+}
 
 export async function GET(
   _request: Request,
@@ -34,33 +47,60 @@ export async function PUT(
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
+  const current = products[index];
+  const isOutfit = body.kind === "outfit" || current.kind === "outfit";
+
   const slug =
     body.slug ||
-    slugify(body.nameTr || products[index].nameTr) ||
-    products[index].slug;
+    slugify(body.nameTr || current.nameTr) ||
+    current.slug;
 
   if (products.some((p) => p.slug === slug && p.id !== id)) {
     return NextResponse.json({ error: "Slug already exists" }, { status: 400 });
   }
 
-  const nextImage =
-    typeof body.image === "string" &&
-    /^\/products\/(?:uploads\/)?[a-zA-Z0-9._-]+$/.test(body.image)
-      ? body.image
-      : products[index].image;
+  const outfitSlots = isOutfit
+    ? hydrateOutfitSlots(body.outfitSlots ?? current.outfitSlots, products)
+    : undefined;
+  if (isOutfit && filledOutfitSlots(outfitSlots ?? {}).length === 0) {
+    return NextResponse.json(
+      { error: "Kombine en az bir parça ekleyin" },
+      { status: 400 }
+    );
+  }
+
+  const pricing = isOutfit
+    ? resolveOutfitPricing(
+        outfitSlots ?? {},
+        body.useCustomPrice ? Number(body.price) : null
+      )
+    : null;
+
+  const nextImage = isSafeImage(body.image)
+    ? body.image
+    : isOutfit
+      ? outfitCoverImage(outfitSlots ?? {}, current.image)
+      : current.image;
 
   products[index] = {
-    ...products[index],
+    ...current,
     slug,
     image: nextImage,
-    price: Number(body.price) ?? products[index].price,
-    category: body.category ?? products[index].category,
-    nameTr: body.nameTr ?? products[index].nameTr,
-    nameEn: body.nameEn ?? products[index].nameEn,
-    descTr: body.descTr ?? products[index].descTr,
-    descEn: body.descEn ?? products[index].descEn,
-    inStock: body.inStock ?? products[index].inStock,
+    price: pricing ? pricing.price : Number(body.price) ?? current.price,
+    category: body.category ?? current.category,
+    nameTr: body.nameTr ?? current.nameTr,
+    nameEn: body.nameEn ?? current.nameEn,
+    descTr: body.descTr ?? current.descTr,
+    descEn: body.descEn ?? current.descEn,
+    inStock: body.inStock ?? current.inStock,
+    kind: isOutfit ? "outfit" : "product",
+    outfitSlots: isOutfit ? outfitSlots : undefined,
+    compareAtPrice: isOutfit ? pricing?.compareAtPrice ?? null : null,
   };
+
+  if (isOutfit) {
+    await ensureOutfitsCategory();
+  }
 
   await saveProducts(products);
   return NextResponse.json(products[index]);

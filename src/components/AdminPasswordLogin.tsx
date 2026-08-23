@@ -29,7 +29,17 @@ export function AdminPasswordLogin() {
     setLoading(false);
 
     if (res?.error) {
+      const status = (res as { status?: number }).status;
+      if (status === 429) {
+        setError("Çok fazla deneme. Lütfen 15 dakika sonra tekrar deneyin.");
+        return;
+      }
       setError("E-posta veya şifre hatalı.");
+      return;
+    }
+
+    if ((res as { status?: number } | undefined)?.status === 429) {
+      setError("Çok fazla deneme. Lütfen 15 dakika sonra tekrar deneyin.");
       return;
     }
 

@@ -1,3 +1,5 @@
+import type { OutfitSlots } from "./outfit";
+
 export type Category = {
   slug: string;
   nameTr: string;
@@ -16,4 +18,13 @@ export type Product = {
   descTr: string;
   descEn: string;
   inStock: boolean;
+  kind?: "product" | "outfit";
+  outfitSlots?: OutfitSlots;
+  compareAtPrice?: number | null;
+  ages?: string[];
+  ageRange?: string;
+  createdAt?: string;
+  updatedAt?: string;
+  soldCount?: number;
+  favoriteCount?: number;
 };

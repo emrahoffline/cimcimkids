@@ -14,6 +14,7 @@ import { ProductDetailActions } from "@/components/ProductDetailActions";
 import { JsonLd } from "@/components/JsonLd";
 import { buildMetadata, productJsonLd, productMetaDescription } from "@/lib/seo";
 import { ArrowLeft } from "lucide-react";
+import { outfitPieceRows } from "@/lib/outfit";
 
 type Props = {
   params: Promise<{ locale: string; slug: string }>;
@@ -78,7 +79,30 @@ export default async function ProductDetailPage({ params }: Props) {
           <h1 className="mt-2 text-2xl font-semibold text-slate-800 sm:text-4xl">{name}</h1>
           <p className="mt-4 text-2xl font-semibold text-bamboo">
             {formatPrice(product.price, locale)}
+            {product.compareAtPrice && product.compareAtPrice > product.price ? (
+              <span className="ml-3 text-lg font-normal text-slate-400 line-through">
+                {formatPrice(product.compareAtPrice, locale)}
+              </span>
+            ) : null}
           </p>
+          {product.kind === "outfit" ? (
+            <ul className="mt-6 space-y-2 rounded-2xl bg-cream-dark/60 p-4 text-sm text-slate-600">
+              <li className="font-medium text-olive">{t("outfitPieces")}</li>
+              {outfitPieceRows(product.outfitSlots).map(({ id, item, meta }) => (
+                <li key={id} className="flex items-center justify-between gap-3">
+                  <span>
+                    <span className="text-slate-400">
+                      {locale === "tr" ? meta.labelTr : meta.labelEn}:
+                    </span>{" "}
+                    {locale === "tr" ? item.nameTr : item.nameEn}
+                  </span>
+                  <span className="tabular-nums text-slate-500">
+                    {formatPrice(item.price, locale)}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          ) : null}
           <p className="mt-2 text-sm font-medium text-olive">
             {product.inStock ? t("inStock") : t("outOfStock")}
           </p>

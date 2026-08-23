@@ -1,9 +1,21 @@
 import "server-only";
-import { getProducts } from "./db";
+import { getOrders, getProducts } from "./db";
+import { getProductPopularity } from "./analytics-db";
 import type { Product } from "./types";
 
 export async function getAllProducts(): Promise<Product[]> {
-  return getProducts();
+  const products = await getProducts();
+  try {
+    const orders = await getOrders();
+    const popularity = await getProductPopularity(orders);
+    return products.map((product) => ({
+      ...product,
+      soldCount: popularity.sold.get(product.id) ?? 0,
+      favoriteCount: popularity.favorites.get(product.id) ?? 0,
+    }));
+  } catch {
+    return products;
+  }
 }
 
 export async function getProductBySlug(
