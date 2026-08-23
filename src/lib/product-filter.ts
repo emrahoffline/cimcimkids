@@ -83,14 +83,33 @@ export function matchesPriceBand(price: number, band: PriceBand): boolean {
   return price >= 1000;
 }
 
+function productTimestamp(product: Product): number {
+  const raw = product.createdAt || product.updatedAt || "";
+  const parsed = Date.parse(raw);
+  if (Number.isFinite(parsed)) return parsed;
+  const digits = String(product.id).replace(/\D/g, "");
+  const fromId = Number(digits.slice(-13));
+  return Number.isFinite(fromId) ? fromId : 0;
+}
+
 export function sortProducts(
   products: Product[],
   sort: ProductSort
 ): Product[] {
-  if (sort === "newest") return products;
   const copy = [...products];
-  if (sort === "price-asc") copy.sort((a, b) => a.price - b.price);
-  if (sort === "price-desc") copy.sort((a, b) => b.price - a.price);
+  if (sort === "price-asc") {
+    copy.sort((a, b) => a.price - b.price);
+  } else if (sort === "price-desc") {
+    copy.sort((a, b) => b.price - a.price);
+  } else {
+    copy.sort((a, b) => {
+      const delta = productTimestamp(b) - productTimestamp(a);
+      if (delta !== 0) return delta;
+      return String(b.id).localeCompare(String(a.id), undefined, {
+        numeric: true,
+      });
+    });
+  }
   return copy;
 }
 

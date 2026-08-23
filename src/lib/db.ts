@@ -83,6 +83,8 @@ function mapProduct(p: DbProduct): Product {
     kind: p.kind === "outfit" ? "outfit" : "product",
     outfitSlots: p.outfitSlots ? parseOutfitSlots(p.outfitSlots) : undefined,
     compareAtPrice: p.compareAtPrice ?? null,
+    createdAt: p.createdAt.toISOString(),
+    updatedAt: p.updatedAt.toISOString(),
   };
 }
 
@@ -151,7 +153,7 @@ export async function getProducts(): Promise<Product[]> {
     if (isNextBuild()) return [];
     requireDatabaseUrl();
   }
-  const rows = await prisma.product.findMany({ orderBy: { id: "asc" } });
+  const rows = await prisma.product.findMany({ orderBy: { createdAt: "desc" } });
   return rows.map(mapProduct);
 }
 

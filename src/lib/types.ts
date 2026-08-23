@@ -23,4 +23,6 @@ export type Product = {
   compareAtPrice?: number | null;
   ages?: string[];
   ageRange?: string;
+  createdAt?: string;
+  updatedAt?: string;
 };

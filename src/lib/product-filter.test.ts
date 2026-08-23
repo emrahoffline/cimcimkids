@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import {
   filterProducts,
   productMatchesQuery,
+  sortProducts,
   uniqueProductAges,
 } from "./product-filter";
 import type { Category, Product } from "./types";
@@ -85,6 +86,17 @@ assert.equal(
     categories,
   }).length,
   3
+);
+
+assert.deepEqual(
+  sortProducts(
+    [
+      product({ id: "old", createdAt: "2024-01-01T00:00:00.000Z" }),
+      product({ id: "new", createdAt: "2026-08-23T00:00:00.000Z" }),
+    ],
+    "newest"
+  ).map((p) => p.id),
+  ["new", "old"]
 );
 
 console.log("product-filter tests passed");
