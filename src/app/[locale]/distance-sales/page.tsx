@@ -8,6 +8,8 @@ type Props = {
   params: Promise<{ locale: string }>;
 };
 
+export const dynamic = "force-dynamic";
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "distanceSales" });
@@ -32,7 +34,7 @@ export default async function DistanceSalesPage({ params }: Props) {
       lead={
         <>
           <p className="font-semibold text-olive">{t("sellerTitle")}</p>
-          <SellerLegalInfo showNationalId className="space-y-1" />
+          <SellerLegalInfo className="space-y-1" />
         </>
       }
       sections={[
