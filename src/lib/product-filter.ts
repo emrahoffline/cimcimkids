@@ -62,12 +62,45 @@ export function productMatchesQuery(
   return tokens.every((token) => haystack.includes(token));
 }
 
+export type ProductSort = "newest" | "price-asc" | "price-desc";
+export type PriceBand = "all" | "0-500" | "500-1000" | "1000+";
+
+export const GENDER_CATEGORY_SLUGS = new Set([
+  "girls",
+  "boys",
+  "baby",
+  "unisex",
+  "kiz",
+  "kız",
+  "erkek",
+  "bebek",
+]);
+
+export function matchesPriceBand(price: number, band: PriceBand): boolean {
+  if (band === "all") return true;
+  if (band === "0-500") return price < 500;
+  if (band === "500-1000") return price >= 500 && price < 1000;
+  return price >= 1000;
+}
+
+export function sortProducts(
+  products: Product[],
+  sort: ProductSort
+): Product[] {
+  if (sort === "newest") return products;
+  const copy = [...products];
+  if (sort === "price-asc") copy.sort((a, b) => a.price - b.price);
+  if (sort === "price-desc") copy.sort((a, b) => b.price - a.price);
+  return copy;
+}
+
 export function filterProducts(
   products: Product[],
   opts: {
     query: string;
     category: string;
     age: string;
+    price?: PriceBand;
     categories?: Category[];
   }
 ): Product[] {
@@ -80,6 +113,9 @@ export function filterProducts(
       return false;
     }
     if (opts.age !== "all" && !productAges(product).includes(opts.age)) {
+      return false;
+    }
+    if (opts.price && !matchesPriceBand(product.price, opts.price)) {
       return false;
     }
     return true;

@@ -76,4 +76,15 @@ assert.equal(
   "1"
 );
 
+assert.equal(
+  filterProducts(products, {
+    query: "",
+    category: "all",
+    age: "all",
+    price: "0-500",
+    categories,
+  }).length,
+  3
+);
+
 console.log("product-filter tests passed");
