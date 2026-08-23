@@ -182,12 +182,12 @@ export function FeaturedProducts({ products, categories }: Props) {
         <button
           type="button"
           onClick={() => setOpen(true)}
-          className="inline-flex min-h-12 items-center gap-2 rounded-full border border-slate-200 bg-white px-5 py-2.5 text-sm font-bold uppercase tracking-wide text-slate-900 shadow-sm"
+          className="btn-secondary"
         >
           <SlidersHorizontal className="h-4 w-4" />
           {t("filterOpen")}
           {hasFilters ? (
-            <span className="rounded-full bg-slate-900 px-2 py-0.5 text-[11px] font-semibold text-white">
+            <span className="rounded-full bg-bamboo px-2 py-0.5 text-[11px] font-semibold text-white">
               {filtered.length}
             </span>
           ) : null}
@@ -198,14 +198,14 @@ export function FeaturedProducts({ products, categories }: Props) {
         <div className="fixed inset-0 z-[70] flex justify-center bg-black/40 p-0 sm:items-start sm:p-6 sm:pt-16">
           <div className="flex h-full w-full max-w-lg flex-col bg-[#f3f3f3] sm:h-auto sm:max-h-[85vh] sm:rounded-2xl sm:shadow-2xl">
             <div className="flex items-center justify-between px-5 py-4">
-              <h3 className="text-lg font-extrabold uppercase tracking-wide text-slate-900">
+              <h3 className="font-serif text-xl font-semibold text-slate-800">
                 {t("filterOpen")}
               </h3>
               <div className="flex items-center gap-3">
                 <button
                   type="button"
                   onClick={clearAll}
-                  className="text-sm text-slate-500"
+                  className="text-sm font-semibold text-bamboo"
                 >
                   {t("filterClear")}
                 </button>
