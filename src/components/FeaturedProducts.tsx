@@ -101,7 +101,7 @@ export function FeaturedProducts({ products, categories }: Props) {
   const [category, setCategory] = useState("all");
   const [age, setAge] = useState("all");
   const [price, setPrice] = useState<PriceBand>("all");
-  const [sort, setSort] = useState<ProductSort>("newest");
+  const [sort, setSort] = useState<ProductSort>("recommended");
 
   const ages = useMemo(() => uniqueProductAges(products), [products]);
   const genderCategories = useMemo(
@@ -127,7 +127,7 @@ export function FeaturedProducts({ products, categories }: Props) {
     category !== "all" ||
     age !== "all" ||
     price !== "all" ||
-    sort !== "newest";
+    sort !== "recommended";
 
   const categoryLabel = (slug: string) => {
     const match = categories.find((c) => c.slug === slug);
@@ -140,7 +140,13 @@ export function FeaturedProducts({ products, categories }: Props) {
       ? t("filterSortPriceAsc")
       : sort === "price-desc"
         ? t("filterSortPriceDesc")
-        : t("filterSortNewest");
+        : sort === "newest"
+          ? t("filterSortNewest")
+          : sort === "best-selling"
+            ? t("filterSortBestSelling")
+            : sort === "most-favorited"
+              ? t("filterSortMostFavorited")
+              : t("filterSortRecommended");
 
   const priceLabel =
     price === "0-500"
@@ -159,7 +165,7 @@ export function FeaturedProducts({ products, categories }: Props) {
     setCategory("all");
     setAge("all");
     setPrice("all");
-    setSort("newest");
+    setSort("recommended");
   };
 
   useEffect(() => {
@@ -259,10 +265,28 @@ export function FeaturedProducts({ products, categories }: Props) {
                 onToggle={() => toggle("sort")}
               >
                 <OptionButton
+                  active={sort === "recommended"}
+                  onClick={() => setSort("recommended")}
+                >
+                  {t("filterSortRecommended")}
+                </OptionButton>
+                <OptionButton
                   active={sort === "newest"}
                   onClick={() => setSort("newest")}
                 >
                   {t("filterSortNewest")}
+                </OptionButton>
+                <OptionButton
+                  active={sort === "best-selling"}
+                  onClick={() => setSort("best-selling")}
+                >
+                  {t("filterSortBestSelling")}
+                </OptionButton>
+                <OptionButton
+                  active={sort === "most-favorited"}
+                  onClick={() => setSort("most-favorited")}
+                >
+                  {t("filterSortMostFavorited")}
                 </OptionButton>
                 <OptionButton
                   active={sort === "price-asc"}

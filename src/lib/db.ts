@@ -153,7 +153,7 @@ export async function getProducts(): Promise<Product[]> {
     if (isNextBuild()) return [];
     requireDatabaseUrl();
   }
-  const rows = await prisma.product.findMany({ orderBy: { createdAt: "desc" } });
+  const rows = await prisma.product.findMany({ orderBy: { id: "asc" } });
   return rows.map(mapProduct);
 }
 

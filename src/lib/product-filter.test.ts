@@ -99,4 +99,47 @@ assert.deepEqual(
   ["new", "old"]
 );
 
+assert.deepEqual(
+  sortProducts(
+    [
+      product({
+        id: "old",
+        createdAt: "2024-01-01T00:00:00.000Z",
+        soldCount: 1,
+        favoriteCount: 9,
+      }),
+      product({
+        id: "new",
+        createdAt: "2026-08-23T00:00:00.000Z",
+        soldCount: 8,
+        favoriteCount: 2,
+      }),
+    ],
+    "recommended"
+  ).map((p) => p.id),
+  ["old", "new"]
+);
+
+assert.deepEqual(
+  sortProducts(
+    [
+      product({ id: "a", soldCount: 1 }),
+      product({ id: "b", soldCount: 8 }),
+    ],
+    "best-selling"
+  ).map((p) => p.id),
+  ["b", "a"]
+);
+
+assert.deepEqual(
+  sortProducts(
+    [
+      product({ id: "a", favoriteCount: 2 }),
+      product({ id: "b", favoriteCount: 9 }),
+    ],
+    "most-favorited"
+  ).map((p) => p.id),
+  ["b", "a"]
+);
+
 console.log("product-filter tests passed");

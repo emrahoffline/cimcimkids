@@ -25,4 +25,6 @@ export type Product = {
   ageRange?: string;
   createdAt?: string;
   updatedAt?: string;
+  soldCount?: number;
+  favoriteCount?: number;
 };

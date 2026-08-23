@@ -62,7 +62,13 @@ export function productMatchesQuery(
   return tokens.every((token) => haystack.includes(token));
 }
 
-export type ProductSort = "newest" | "price-asc" | "price-desc";
+export type ProductSort =
+  | "recommended"
+  | "newest"
+  | "best-selling"
+  | "most-favorited"
+  | "price-asc"
+  | "price-desc";
 export type PriceBand = "all" | "0-500" | "500-1000" | "1000+";
 
 export const GENDER_CATEGORY_SLUGS = new Set([
@@ -96,11 +102,16 @@ export function sortProducts(
   products: Product[],
   sort: ProductSort
 ): Product[] {
+  if (sort === "recommended") return products;
   const copy = [...products];
   if (sort === "price-asc") {
     copy.sort((a, b) => a.price - b.price);
   } else if (sort === "price-desc") {
     copy.sort((a, b) => b.price - a.price);
+  } else if (sort === "best-selling") {
+    copy.sort((a, b) => (b.soldCount ?? 0) - (a.soldCount ?? 0));
+  } else if (sort === "most-favorited") {
+    copy.sort((a, b) => (b.favoriteCount ?? 0) - (a.favoriteCount ?? 0));
   } else {
     copy.sort((a, b) => {
       const delta = productTimestamp(b) - productTimestamp(a);
