@@ -10,8 +10,10 @@ import type {
   UserRole,
   SubscriberSource,
 } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 import type { Product, Category } from "./types";
 import { slugify } from "./product-utils";
+import { parseOutfitSlots } from "./outfit";
 import { syncAllTimeTotals } from "./analytics-db";
 import { prisma, requireDatabaseUrl, hasDatabaseUrl, isNextBuild } from "./prisma";
 
@@ -78,6 +80,9 @@ function mapProduct(p: DbProduct): Product {
     descTr: p.descTr,
     descEn: p.descEn,
     inStock: p.inStock,
+    kind: p.kind === "outfit" ? "outfit" : "product",
+    outfitSlots: p.outfitSlots ? parseOutfitSlots(p.outfitSlots) : undefined,
+    compareAtPrice: p.compareAtPrice ?? null,
   };
 }
 
@@ -138,6 +143,7 @@ const DEFAULT_CATEGORIES: Category[] = [
   { slug: "girls", nameTr: "Kız", nameEn: "Girls" },
   { slug: "boys", nameTr: "Erkek", nameEn: "Boys" },
   { slug: "baby", nameTr: "Bebek", nameEn: "Baby" },
+  { slug: "outfits", nameTr: "Kombin", nameEn: "Outfits" },
 ];
 
 export async function getProducts(): Promise<Product[]> {
@@ -173,6 +179,16 @@ export async function saveProducts(products: Product[]): Promise<void> {
           descTr: p.descTr,
           descEn: p.descEn,
           inStock: p.inStock,
+          kind: p.kind === "outfit" ? "outfit" : "product",
+          outfitSlots:
+            p.kind === "outfit" && p.outfitSlots
+              ? (p.outfitSlots as Prisma.InputJsonValue)
+              : Prisma.JsonNull,
+          compareAtPrice:
+            typeof p.compareAtPrice === "number" &&
+            Number.isFinite(p.compareAtPrice)
+              ? p.compareAtPrice
+              : null,
         },
         update: {
           slug: p.slug,
@@ -185,6 +201,16 @@ export async function saveProducts(products: Product[]): Promise<void> {
           descTr: p.descTr,
           descEn: p.descEn,
           inStock: p.inStock,
+          kind: p.kind === "outfit" ? "outfit" : "product",
+          outfitSlots:
+            p.kind === "outfit" && p.outfitSlots
+              ? (p.outfitSlots as Prisma.InputJsonValue)
+              : Prisma.JsonNull,
+          compareAtPrice:
+            typeof p.compareAtPrice === "number" &&
+            Number.isFinite(p.compareAtPrice)
+              ? p.compareAtPrice
+              : null,
         },
       });
     }
@@ -199,6 +225,15 @@ export async function getCategories(): Promise<Category[]> {
   const rows = await prisma.category.findMany({ orderBy: { slug: "asc" } });
   if (rows.length === 0) return DEFAULT_CATEGORIES;
   return rows.map(mapCategory);
+}
+
+export async function ensureOutfitsCategory(): Promise<void> {
+  const categories = await getCategories();
+  if (categories.some((c) => c.slug === "outfits")) return;
+  await saveCategories([
+    ...categories,
+    { slug: "outfits", nameTr: "Kombin", nameEn: "Outfits" },
+  ]);
 }
 
 export async function saveCategories(categories: Category[]): Promise<void> {
