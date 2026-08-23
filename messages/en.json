@@ -69,7 +69,9 @@
     "all": "All",
     "decor": "Girls",
     "kitchen": "Boys",
-    "storage": "Baby"
+    "storage": "Baby",
+    "outfit": "Outfit",
+    "outfitPieces": "Outfit pieces"
   },
   "productItems": {
     "lantern": {

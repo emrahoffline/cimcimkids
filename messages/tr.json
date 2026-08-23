@@ -69,7 +69,9 @@
     "all": "Tümü",
     "decor": "Kız",
     "kitchen": "Erkek",
-    "storage": "Bebek"
+    "storage": "Bebek",
+    "outfit": "Kombin",
+    "outfitPieces": "Kombin içeriği"
   },
   "productItems": {
     "lantern": {

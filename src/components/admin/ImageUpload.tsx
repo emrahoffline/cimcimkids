@@ -7,9 +7,14 @@ import { Upload, X, ImageIcon } from "lucide-react";
 type Props = {
   value: string;
   onChange: (url: string) => void;
+  label?: string;
 };
 
-export function ImageUpload({ value, onChange }: Props) {
+export function ImageUpload({
+  value,
+  onChange,
+  label = "Ürün Görseli",
+}: Props) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState("");
@@ -56,7 +61,7 @@ export function ImageUpload({ value, onChange }: Props) {
 
   return (
     <div className="space-y-3">
-      <label className="block text-sm font-medium">Ürün Görseli</label>
+      <label className="block text-sm font-medium">{label}</label>
 
       {value && (
         <div className="relative inline-block">

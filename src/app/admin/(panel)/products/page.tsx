@@ -41,7 +41,11 @@ export default function AdminProductsPage() {
     <>
       <AdminHeader title="Ürünler" />
       <main className="admin-main">
-        <div className="mb-4 flex justify-end">
+        <div className="mb-4 flex flex-wrap justify-end gap-2">
+          <Link href="/admin/products/outfit/new" className="admin-btn-secondary">
+            <Plus className="h-4 w-4" />
+            Kombin Ekle
+          </Link>
           <Link href="/admin/products/new" className="admin-btn-primary">
             <Plus className="h-4 w-4" />
             Ürün Ekle
@@ -79,7 +83,14 @@ export default function AdminProductsPage() {
                             />
                           </div>
                           <div className="min-w-0">
-                            <p className="truncate font-medium">{p.nameTr}</p>
+                            <p className="truncate font-medium">
+                              {p.nameTr}
+                              {p.kind === "outfit" ? (
+                                <span className="ml-2 rounded-full bg-olive/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-olive">
+                                  Kombin
+                                </span>
+                              ) : null}
+                            </p>
                             <p className="truncate text-xs text-gray-400">{p.slug}</p>
                           </div>
                         </div>

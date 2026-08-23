@@ -50,7 +50,17 @@ export function ProductCard({ product }: { product: Product }) {
           </p>
           <p className="mt-2 text-base font-bold text-bamboo sm:mt-2.5 sm:text-lg">
             {formatPrice(product.price, locale)}
+            {product.compareAtPrice && product.compareAtPrice > product.price ? (
+              <span className="ml-2 text-sm font-normal text-slate-400 line-through">
+                {formatPrice(product.compareAtPrice, locale)}
+              </span>
+            ) : null}
           </p>
+          {product.kind === "outfit" ? (
+            <p className="mt-1 text-[11px] font-medium uppercase tracking-wide text-olive">
+              {t("outfit")}
+            </p>
+          ) : null}
         </div>
       </Link>
       <div className="px-3.5 pb-3.5 sm:px-4 sm:pb-4">
