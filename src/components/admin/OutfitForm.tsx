@@ -7,6 +7,8 @@ import type { Product } from "@/lib/types";
 import { formatPrice } from "@/lib/products";
 import { CategorySelect } from "./CategorySelect";
 import { ImageUpload } from "./ImageUpload";
+import { AgeOptionsEditor } from "./AgeOptionsEditor";
+import { selectableProductAges } from "@/lib/product-ages";
 import {
   OUTFIT_SLOT_IDS,
   OUTFIT_SLOT_META,
@@ -70,6 +72,9 @@ export function OutfitForm({ product }: Props) {
   const [descTr, setDescTr] = useState(product?.descTr ?? "");
   const [descEn, setDescEn] = useState(product?.descEn ?? "");
   const [category, setCategory] = useState(product?.category || "outfits");
+  const [ages, setAges] = useState<string[]>(() =>
+    selectableProductAges(product?.ages, product?.ageRange)
+  );
   const [cover, setCover] = useState(product?.image ?? "");
   const [inStock, setInStock] = useState(product?.inStock ?? true);
   const [useCustomPrice, setUseCustomPrice] = useState(
@@ -164,6 +169,10 @@ export function OutfitForm({ product }: Props) {
       setError("Kategori seçin");
       return;
     }
+    if (ages.length === 0) {
+      setError("Lütfen en az bir yaş varyantı seçin");
+      return;
+    }
 
     setLoading(true);
     setError("");
@@ -185,8 +194,8 @@ export function OutfitForm({ product }: Props) {
         category,
         image: galleryImages[0] || cover,
         images: galleryImages,
-        ages: ["2-10"],
-        ageRange: "2-10",
+        ages,
+        ageRange: ages[0],
         stockQuantity: inStock ? 20 : 0,
         inStock,
         outfitSlots: builtSlots,
@@ -261,6 +270,8 @@ export function OutfitForm({ product }: Props) {
       </div>
 
       <CategorySelect value={category} onChange={setCategory} />
+
+      <AgeOptionsEditor value={ages} onChange={setAges} />
 
       <ImageUpload
         label="Kombin kapak görseli (opsiyonel)"

@@ -21,4 +21,6 @@ export type Product = {
   kind?: "product" | "outfit";
   outfitSlots?: OutfitSlots;
   compareAtPrice?: number | null;
+  ages?: string[];
+  ageRange?: string;
 };
