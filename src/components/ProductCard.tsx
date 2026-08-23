@@ -9,7 +9,13 @@ import { getProductName, getProductDesc, formatPrice } from "@/lib/products";
 import { useCartStore } from "@/store/cart";
 import { FavoriteButton } from "./FavoriteButton";
 
-export function ProductCard({ product }: { product: Product }) {
+export function ProductCard({
+  product,
+  priority = false,
+}: {
+  product: Product;
+  priority?: boolean;
+}) {
   const t = useTranslations("products");
   const locale = useLocale();
   const addItem = useCartStore((s) => s.addItem);
@@ -39,6 +45,7 @@ export function ProductCard({ product }: { product: Product }) {
             fill
             className="object-cover transition duration-500 group-hover:scale-[1.03]"
             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+            priority={priority}
           />
         </div>
         <div className="p-3.5 sm:p-4">
