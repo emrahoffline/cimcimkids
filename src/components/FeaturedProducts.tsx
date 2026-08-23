@@ -50,10 +50,13 @@ export function FeaturedProducts({ products, categories }: Props) {
 
   return (
     <div>
-      <div className="mb-6 space-y-4 sm:mb-8">
+      <div className="mb-6 rounded-3xl border border-bamboo/25 bg-white p-4 shadow-[0_8px_30px_-18px_rgba(255,138,101,0.55)] sm:mb-8 sm:p-6">
+        <p className="mb-3 text-center text-sm font-semibold text-slate-700">
+          {t("searchLabel")}
+        </p>
         <label className="relative mx-auto block max-w-xl">
           <span className="sr-only">{t("searchAria")}</span>
-          <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+          <Search className="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-bamboo" />
           <input
             type="search"
             value={query}
@@ -61,13 +64,13 @@ export function FeaturedProducts({ products, categories }: Props) {
             placeholder={t("searchPlaceholder")}
             autoComplete="off"
             enterKeyHint="search"
-            className="w-full rounded-full border border-olive/15 bg-white py-3 pl-10 pr-10 text-sm outline-none transition placeholder:text-slate-400 focus:border-bamboo focus:ring-2 focus:ring-bamboo/20"
+            className="min-h-12 w-full appearance-none rounded-full border-2 border-bamboo/40 bg-[#fffaf5] py-3 pl-12 pr-12 text-base text-slate-800 outline-none transition placeholder:text-slate-500 focus:border-bamboo focus:bg-white focus:ring-4 focus:ring-bamboo/20 [&::-webkit-search-cancel-button]:hidden"
           />
           {query ? (
             <button
               type="button"
               onClick={() => setQuery("")}
-              className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
+              className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full p-1.5 text-slate-500 hover:bg-slate-100 hover:text-slate-700"
               aria-label={t("clearSearch")}
             >
               <X className="h-4 w-4" />
@@ -76,11 +79,11 @@ export function FeaturedProducts({ products, categories }: Props) {
         </label>
 
         {categories.length > 0 ? (
-          <div>
+          <div className="mt-5">
             <p className="mb-2 text-center text-xs font-medium uppercase tracking-wide text-slate-400">
               {t("filterCategory")}
             </p>
-            <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:flex-wrap sm:justify-center sm:overflow-visible sm:px-0 sm:pb-0">
+            <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1 sm:flex-wrap sm:justify-center sm:overflow-visible sm:pb-0">
               {categoryButtons.map((c) => (
                 <button
                   key={c.key}
@@ -97,11 +100,11 @@ export function FeaturedProducts({ products, categories }: Props) {
         ) : null}
 
         {ages.length > 0 ? (
-          <div>
+          <div className="mt-4">
             <p className="mb-2 text-center text-xs font-medium uppercase tracking-wide text-slate-400">
               {t("filterAge")}
             </p>
-            <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:flex-wrap sm:justify-center sm:overflow-visible sm:px-0 sm:pb-0">
+            <div className="-mx-1 flex gap-2 overflow-x-auto px-1 pb-1 sm:flex-wrap sm:justify-center sm:overflow-visible sm:pb-0">
               {ageButtons.map((c) => (
                 <button
                   key={c.key}
