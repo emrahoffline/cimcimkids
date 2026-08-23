@@ -6,7 +6,6 @@ export const STORE_CONFIG = {
   legalName: process.env.NEXT_PUBLIC_LEGAL_NAME ?? "Nuriye Kostak",
   taxOffice: process.env.NEXT_PUBLIC_TAX_OFFICE ?? "Didim",
   taxNumber: process.env.NEXT_PUBLIC_TAX_NUMBER ?? "1630080944",
-  nationalId: process.env.NEXT_PUBLIC_NATIONAL_ID ?? "28144999264",
   legalPhone: process.env.NEXT_PUBLIC_LEGAL_PHONE ?? "05413588457",
   legalEmail:
     process.env.NEXT_PUBLIC_LEGAL_EMAIL ?? "efruzebendes@hotmail.com",

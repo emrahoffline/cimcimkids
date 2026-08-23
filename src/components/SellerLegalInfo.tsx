@@ -6,10 +6,9 @@ import {
 
 type Props = {
   className?: string;
-  showNationalId?: boolean;
 };
 
-export function SellerLegalInfo({ className, showNationalId = false }: Props) {
+export function SellerLegalInfo({ className }: Props) {
   const phone = formatTrPhone(STORE_CONFIG.legalPhone);
 
   return (
@@ -21,7 +20,6 @@ export function SellerLegalInfo({ className, showNationalId = false }: Props) {
       <p>
         {STORE_CONFIG.taxOffice} Vergi Dairesi · VN {STORE_CONFIG.taxNumber}
       </p>
-      {showNationalId && <p>TCKN: {STORE_CONFIG.nationalId}</p>}
       <p>{STORE_CONFIG.legalAddress}</p>
       <p>
         Tel:{" "}
