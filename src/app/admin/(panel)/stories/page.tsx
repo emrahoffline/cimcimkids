@@ -5,7 +5,18 @@ import { AdminHeader } from "@/components/admin/AdminHeader";
 import { StoryMediaUpload } from "@/components/admin/StoryMediaUpload";
 import { StoryThumb } from "@/components/StoryThumb";
 import type { Story } from "@/lib/types";
+import { storyGroupKey } from "@/lib/story-groups";
 import { ArrowDown, ArrowUp, Eye, Plus, Trash2 } from "lucide-react";
+
+function groupPosition(stories: Story[], story: Story) {
+  const peers = stories.filter(
+    (item) => storyGroupKey(item) === storyGroupKey(story)
+  );
+  return {
+    index: peers.findIndex((item) => item.id === story.id) + 1,
+    total: peers.length,
+  };
+}
 
 export default function AdminStoriesPage() {
   const [stories, setStories] = useState<Story[]>([]);
@@ -96,8 +107,8 @@ export default function AdminStoriesPage() {
           <div>
             <h2 className="text-base font-semibold">Yeni hikaye ekle</h2>
             <p className="mt-1 text-sm text-gray-500">
-              Birden fazla fotoğraf veya videoyu aynı anda seçebilirsiniz.
-              Sitede üstte yuvarlak olarak görünür, tıklanınca arka arkaya izlenir.
+              Birden fazla fotoğraf veya videoyu aynı anda seçin; sitede tek
+              yuvarlakta arka arkaya izlenir.
             </p>
           </div>
           {error ? (
@@ -139,7 +150,7 @@ export default function AdminStoriesPage() {
             {saving
               ? "Ekleniyor..."
               : mediaUrls.length > 1
-                ? `${mediaUrls.length} hikaye ekle`
+                ? `${mediaUrls.length} kareyi aynı halkaya ekle`
                 : "Hikaye Ekle"}
           </button>
         </form>
@@ -163,7 +174,9 @@ export default function AdminStoriesPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {stories.map((story, index) => (
+                {stories.map((story, index) => {
+                  const position = groupPosition(stories, story);
+                  return (
                     <tr key={story.id}>
                       <td>
                         <div className="flex items-center gap-3">
@@ -172,9 +185,16 @@ export default function AdminStoriesPage() {
                               <StoryThumb story={story} className="h-11 w-11" />
                             </span>
                           </span>
-                          <span className="font-medium">
-                            {story.title || "Başlıksız hikaye"}
-                          </span>
+                          <div>
+                            <span className="font-medium">
+                              {story.title || "Başlıksız hikaye"}
+                            </span>
+                            {position.total > 1 ? (
+                              <span className="mt-0.5 block text-xs text-gray-400">
+                                Aynı halka · {position.index}/{position.total}
+                              </span>
+                            ) : null}
+                          </div>
                         </div>
                       </td>
                       <td>{story.mediaKind === "video" ? "Video" : "Görsel"}</td>
@@ -230,7 +250,8 @@ export default function AdminStoriesPage() {
                         </button>
                       </td>
                     </tr>
-                  ))}
+                  );
+                })}
                 </tbody>
               </table>
             </div>

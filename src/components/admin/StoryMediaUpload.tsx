@@ -177,7 +177,7 @@ export function StoryMediaUpload({ values, onChange }: Props) {
       ) : values.length > 0 ? (
         <p className="flex items-center gap-1 text-xs text-gray-500">
           <Film className="h-3 w-3" />
-          {values.length} dosya hazır — kaydedince her biri ayrı hikaye olur
+          {values.length} dosya hazır — kaydedince aynı yuvarlakta sırayla izlenir
         </p>
       ) : null}
     </div>

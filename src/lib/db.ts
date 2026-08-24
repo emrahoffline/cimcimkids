@@ -582,6 +582,7 @@ function mapStory(row: DbStory): Story {
     durationSec: row.durationSec,
     sortOrder: row.sortOrder,
     viewCount: row.viewCount,
+    groupId: row.groupId || row.id,
     active: row.active,
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),
@@ -626,23 +627,25 @@ export async function createStories(
   if (items.length === 0) return [];
 
   const existing = await prisma.story.aggregate({ _max: { sortOrder: true } });
-  let sortOrder = (existing._max.sortOrder ?? -1) + 1;
-  const created: Story[] = [];
+  const startOrder = (existing._max.sortOrder ?? -1) + 1;
+  const groupId = `grp_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
 
-  for (const data of items) {
-    const row = await prisma.story.create({
-      data: {
-        id: `story_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
-        title: data.title,
-        mediaUrl: data.mediaUrl,
-        durationSec: data.durationSec,
-        sortOrder: sortOrder++,
-        active: data.active ?? true,
-      },
-    });
-    created.push(mapStory(row));
-  }
-  return created;
+  const rows = await prisma.$transaction(
+    items.map((data, index) =>
+      prisma.story.create({
+        data: {
+          id: `story_${Date.now()}_${index}_${Math.random().toString(36).slice(2, 8)}`,
+          title: data.title,
+          mediaUrl: data.mediaUrl,
+          durationSec: data.durationSec,
+          sortOrder: startOrder + index,
+          groupId,
+          active: data.active ?? true,
+        },
+      })
+    )
+  );
+  return rows.map(mapStory);
 }
 
 export async function updateStory(

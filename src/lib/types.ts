@@ -38,6 +38,7 @@ export type Story = {
   durationSec: number;
   sortOrder: number;
   viewCount: number;
+  groupId: string;
   active: boolean;
   createdAt: string;
   updatedAt: string;
