@@ -610,19 +610,39 @@ export async function createStory(data: {
   durationSec: number;
   active?: boolean;
 }): Promise<Story> {
+  const [story] = await createStories([data]);
+  return story;
+}
+
+export async function createStories(
+  items: Array<{
+    title: string;
+    mediaUrl: string;
+    durationSec: number;
+    active?: boolean;
+  }>
+): Promise<Story[]> {
   requireDatabaseUrl();
+  if (items.length === 0) return [];
+
   const existing = await prisma.story.aggregate({ _max: { sortOrder: true } });
-  const created = await prisma.story.create({
-    data: {
-      id: `story_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
-      title: data.title,
-      mediaUrl: data.mediaUrl,
-      durationSec: data.durationSec,
-      sortOrder: (existing._max.sortOrder ?? -1) + 1,
-      active: data.active ?? true,
-    },
-  });
-  return mapStory(created);
+  let sortOrder = (existing._max.sortOrder ?? -1) + 1;
+  const created: Story[] = [];
+
+  for (const data of items) {
+    const row = await prisma.story.create({
+      data: {
+        id: `story_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+        title: data.title,
+        mediaUrl: data.mediaUrl,
+        durationSec: data.durationSec,
+        sortOrder: sortOrder++,
+        active: data.active ?? true,
+      },
+    });
+    created.push(mapStory(row));
+  }
+  return created;
 }
 
 export async function updateStory(

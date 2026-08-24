@@ -13,7 +13,7 @@ export default function AdminStoriesPage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [title, setTitle] = useState("");
-  const [mediaUrl, setMediaUrl] = useState("");
+  const [mediaUrls, setMediaUrls] = useState<string[]>([]);
   const [durationSec, setDurationSec] = useState(5);
 
   const load = () => {
@@ -32,8 +32,8 @@ export default function AdminStoriesPage() {
 
   const handleCreate = async (event: React.FormEvent) => {
     event.preventDefault();
-    if (!mediaUrl) {
-      setError("Lütfen bir görsel veya video yükleyin");
+    if (mediaUrls.length === 0) {
+      setError("Lütfen en az bir görsel veya video yükleyin");
       return;
     }
     setSaving(true);
@@ -41,7 +41,14 @@ export default function AdminStoriesPage() {
     const res = await fetch("/api/admin/stories", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ title, mediaUrl, durationSec, active: true }),
+      body: JSON.stringify({
+        stories: mediaUrls.map((mediaUrl) => ({
+          title,
+          mediaUrl,
+          durationSec,
+          active: true,
+        })),
+      }),
     });
     const data = await res.json();
     setSaving(false);
@@ -50,7 +57,7 @@ export default function AdminStoriesPage() {
       return;
     }
     setTitle("");
-    setMediaUrl("");
+    setMediaUrls([]);
     setDurationSec(5);
     load();
   };
@@ -89,9 +96,8 @@ export default function AdminStoriesPage() {
           <div>
             <h2 className="text-base font-semibold">Yeni hikaye ekle</h2>
             <p className="mt-1 text-sm text-gray-500">
-              Instagram ve WhatsApp’taki gibi sitede üstte yuvarlak olarak görünür.
-              Tıklanınca hikayeler arka arkaya izlenir. Her izleme görüntülenme
-              sayısına eklenir.
+              Birden fazla fotoğraf veya videoyu aynı anda seçebilirsiniz.
+              Sitede üstte yuvarlak olarak görünür, tıklanınca arka arkaya izlenir.
             </p>
           </div>
           {error ? (
@@ -103,11 +109,11 @@ export default function AdminStoriesPage() {
               className="admin-input"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="Örn. Yeni sezon"
+              placeholder="Örn. Yeni sezon (hepsine uygulanır)"
               maxLength={60}
             />
           </div>
-          <StoryMediaUpload value={mediaUrl} onChange={setMediaUrl} />
+          <StoryMediaUpload values={mediaUrls} onChange={setMediaUrls} />
           <div>
             <label className="mb-1 block text-sm font-medium">
               Görsel süresi (saniye)
@@ -124,9 +130,17 @@ export default function AdminStoriesPage() {
               Videolarda bu süre kullanılmaz; video bitince sonraki hikayeye geçilir.
             </p>
           </div>
-          <button type="submit" disabled={saving} className="admin-btn-primary">
+          <button
+            type="submit"
+            disabled={saving || mediaUrls.length === 0}
+            className="admin-btn-primary"
+          >
             <Plus className="h-4 w-4" />
-            {saving ? "Ekleniyor..." : "Hikaye Ekle"}
+            {saving
+              ? "Ekleniyor..."
+              : mediaUrls.length > 1
+                ? `${mediaUrls.length} hikaye ekle`
+                : "Hikaye Ekle"}
           </button>
         </form>
 
