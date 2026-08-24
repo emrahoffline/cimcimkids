@@ -12,6 +12,8 @@ type Props = {
   closeLabel: string;
 };
 
+const HOLD_MS = 800;
+
 export function StoryViewer({
   stories,
   startIndex,
@@ -24,17 +26,49 @@ export function StoryViewer({
   const [paused, setPaused] = useState(false);
   const [muted, setMuted] = useState(true);
   const videoRef = useRef<HTMLVideoElement>(null);
-  const holding = useRef(false);
+  const downAt = useRef(0);
+  const holdTimer = useRef<number>(0);
   const pausedRef = useRef(false);
   const progressRef = useRef(0);
   const story = stories[index];
 
-  const goTo = useCallback(
-    (next: number) => {
-      if (next < 0 || next >= stories.length) {
+  const indexRef = useRef(startIndex);
+  const advancing = useRef(false);
+  const timerFrameRef = useRef<number>(0);
+  const tapsReady = useRef(false);
+
+  useEffect(() => {
+    tapsReady.current = false;
+    const timer = window.setTimeout(() => {
+      tapsReady.current = true;
+    }, 400);
+    return () => window.clearTimeout(timer);
+  }, []);
+
+  const goBy = useCallback(
+    (delta: number) => {
+      if (advancing.current) return;
+      // Set flag IMMEDIATELY to block concurrent calls
+      advancing.current = true;
+      // Cancel any running auto-advance timer
+      if (timerFrameRef.current) {
+        cancelAnimationFrame(timerFrameRef.current);
+        timerFrameRef.current = 0;
+      }
+      const next = indexRef.current + delta;
+      if (next < 0) {
+        // Reset flag if we're not actually navigating
+        advancing.current = false;
+        return;
+      }
+      window.setTimeout(() => {
+        advancing.current = false;
+      }, 450);
+      if (next >= stories.length) {
         onClose();
         return;
       }
+      indexRef.current = next;
       progressRef.current = 0;
       pausedRef.current = false;
       setProgress(0);
@@ -53,19 +87,15 @@ export function StoryViewer({
     document.body.style.overflow = "hidden";
     const onKey = (event: KeyboardEvent) => {
       if (event.key === "Escape") onClose();
-      if (event.key === "ArrowRight") goTo(index + 1);
-      if (event.key === "ArrowLeft") goTo(index - 1);
+      if (event.key === "ArrowRight") goBy(1);
+      if (event.key === "ArrowLeft") goBy(-1);
     };
     window.addEventListener("keydown", onKey);
     return () => {
       document.body.style.overflow = previous;
       window.removeEventListener("keydown", onKey);
     };
-  }, [goTo, index, onClose]);
-
-  useEffect(() => {
-    pausedRef.current = paused;
-  }, [paused]);
+  }, [goBy, onClose]);
 
   useEffect(() => {
     if (!story || paused) return;
@@ -73,20 +103,24 @@ export function StoryViewer({
 
     const durationMs = Math.max(story.durationSec, 3) * 1000;
     const started = performance.now() - progressRef.current * durationMs;
-    let frame = 0;
     const tick = (now: number) => {
       const next = Math.min(1, (now - started) / durationMs);
       progressRef.current = next;
       setProgress(next);
       if (next >= 1) {
-        goTo(index + 1);
+        goBy(1);
         return;
       }
-      frame = requestAnimationFrame(tick);
+      timerFrameRef.current = requestAnimationFrame(tick);
     };
-    frame = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(frame);
-  }, [goTo, index, paused, story]);
+    timerFrameRef.current = requestAnimationFrame(tick);
+    return () => {
+      if (timerFrameRef.current) {
+        cancelAnimationFrame(timerFrameRef.current);
+        timerFrameRef.current = 0;
+      }
+    };
+  }, [goBy, paused, story]);
 
   useEffect(() => {
     const video = videoRef.current;
@@ -97,19 +131,32 @@ export function StoryViewer({
 
   if (!story) return null;
 
-  const endHold = (event: React.PointerEvent<HTMLDivElement>) => {
-    const wasPaused = pausedRef.current;
-    holding.current = false;
+  const startHold = (event: React.PointerEvent<HTMLButtonElement>) => {
+    if (event.button !== undefined && event.button !== 0) return;
+    downAt.current = performance.now();
+    event.currentTarget.setPointerCapture(event.pointerId);
+    window.clearTimeout(holdTimer.current);
+    holdTimer.current = window.setTimeout(() => {
+      pausedRef.current = true;
+      setPaused(true);
+    }, HOLD_MS);
+  };
+
+  const endHold = (event: React.PointerEvent<HTMLButtonElement>) => {
+    window.clearTimeout(holdTimer.current);
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    }
     setPaused(false);
-    if (wasPaused) return;
-    const rect = event.currentTarget.getBoundingClientRect();
-    const x = event.clientX - rect.left;
-    if (x < rect.width * 0.3) goTo(index - 1);
-    else goTo(index + 1);
   };
 
   return (
-    <div className="fixed inset-0 z-[90] flex items-center justify-center bg-black/95">
+    <div
+      className="fixed inset-0 z-[90] flex items-center justify-center bg-black/95"
+      role="dialog"
+      aria-modal="true"
+      aria-label={story.title || "Hikaye"}
+    >
       <div className="relative flex h-full w-full max-w-md flex-col sm:h-[min(92vh,820px)] sm:overflow-hidden sm:rounded-3xl">
         <div className="absolute inset-x-0 top-0 z-20 flex gap-1 px-3 pt-[max(0.75rem,env(safe-area-inset-top))]">
           {stories.map((item, i) => (
@@ -131,11 +178,15 @@ export function StoryViewer({
         <div className="absolute inset-x-0 top-5 z-20 flex items-center justify-between px-3 pt-[max(0.5rem,env(safe-area-inset-top))]">
           <p className="truncate pl-1 text-sm font-semibold text-white drop-shadow">
             {story.title || "CimcimKids"}
+            <span className="ml-2 text-xs font-normal text-white/70">
+              {index + 1}/{stories.length}
+            </span>
           </p>
           <div className="flex items-center gap-1">
             {story.mediaKind === "video" ? (
               <button
                 type="button"
+                onPointerDown={(event) => event.stopPropagation()}
                 onClick={() => setMuted((value) => !value)}
                 className="rounded-full p-2 text-white/90 hover:bg-white/10"
                 aria-label={muted ? "Sesi aç" : "Sesi kapat"}
@@ -145,6 +196,7 @@ export function StoryViewer({
             ) : null}
             <button
               type="button"
+              onPointerDown={(event) => event.stopPropagation()}
               onClick={onClose}
               className="rounded-full p-2 text-white/90 hover:bg-white/10"
               aria-label={closeLabel}
@@ -154,23 +206,7 @@ export function StoryViewer({
           </div>
         </div>
 
-        <div
-          className="relative flex-1 touch-none"
-          onPointerDown={() => {
-            holding.current = true;
-            window.setTimeout(() => {
-              if (holding.current) {
-                pausedRef.current = true;
-                setPaused(true);
-              }
-            }, 180);
-          }}
-          onPointerUp={endHold}
-          onPointerCancel={() => {
-            holding.current = false;
-            setPaused(false);
-          }}
-        >
+        <div className="relative flex-1 touch-none">
           {story.mediaKind === "video" ? (
             <video
               key={story.id}
@@ -179,20 +215,20 @@ export function StoryViewer({
               autoPlay
               playsInline
               muted={muted}
-              className="h-full w-full bg-black object-contain"
+              className="pointer-events-none h-full w-full bg-black object-contain"
               onTimeUpdate={(event) => {
                 const el = event.currentTarget;
                 if (!el.duration) return;
                 setProgress(el.currentTime / el.duration);
               }}
-              onEnded={() => goTo(index + 1)}
+              onEnded={() => goBy(1)}
             />
           ) : (
             // eslint-disable-next-line @next/next/no-img-element
             <img
               src={story.mediaUrl}
               alt={story.title || "Hikaye"}
-              className="h-full w-full bg-black object-contain"
+              className="pointer-events-none h-full w-full bg-black object-contain"
               draggable={false}
             />
           )}
@@ -204,6 +240,49 @@ export function StoryViewer({
               </span>
             </div>
           ) : null}
+
+          <button
+            type="button"
+            className="absolute bottom-0 left-0 top-16 z-10 w-[32%]"
+            aria-label="Önceki hikaye"
+            onPointerDown={startHold}
+            onPointerUp={(event) => {
+              endHold(event);
+              if (!tapsReady.current) return;
+              if (pausedRef.current) {
+                pausedRef.current = false;
+                return;
+              }
+              if (performance.now() - downAt.current > HOLD_MS) return;
+              goBy(-1);
+            }}
+            onPointerCancel={() => {
+              window.clearTimeout(holdTimer.current);
+              pausedRef.current = false;
+              setPaused(false);
+            }}
+          />
+          <button
+            type="button"
+            className="absolute bottom-0 right-0 top-16 z-10 w-[68%]"
+            aria-label="Sonraki hikaye"
+            onPointerDown={startHold}
+            onPointerUp={(event) => {
+              endHold(event);
+              if (!tapsReady.current) return;
+              if (pausedRef.current) {
+                pausedRef.current = false;
+                return;
+              }
+              if (performance.now() - downAt.current > HOLD_MS) return;
+              goBy(1);
+            }}
+            onPointerCancel={() => {
+              window.clearTimeout(holdTimer.current);
+              pausedRef.current = false;
+              setPaused(false);
+            }}
+          />
         </div>
       </div>
     </div>

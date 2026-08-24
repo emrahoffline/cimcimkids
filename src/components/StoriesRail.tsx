@@ -41,6 +41,18 @@ export function StoriesRail({ stories }: Props) {
     });
   }, []);
 
+  const closeViewer = useCallback(() => {
+    setOpenIndex(null);
+    const stop = (event: Event) => {
+      event.preventDefault();
+      event.stopPropagation();
+    };
+    document.addEventListener("click", stop, true);
+    window.setTimeout(() => {
+      document.removeEventListener("click", stop, true);
+    }, 400);
+  }, []);
+
   const items = useMemo(
     () => stories.filter((story) => story.active && story.mediaUrl),
     [stories]
@@ -101,9 +113,10 @@ export function StoriesRail({ stories }: Props) {
 
       {openIndex !== null ? (
         <StoryViewer
+          key={openIndex}
           stories={items}
           startIndex={openIndex}
-          onClose={() => setOpenIndex(null)}
+          onClose={closeViewer}
           onViewed={markSeen}
           closeLabel={t("storiesClose")}
         />
