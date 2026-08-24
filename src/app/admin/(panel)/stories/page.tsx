@@ -3,8 +3,9 @@
 import { useEffect, useState } from "react";
 import { AdminHeader } from "@/components/admin/AdminHeader";
 import { StoryMediaUpload } from "@/components/admin/StoryMediaUpload";
+import { StoryThumb } from "@/components/StoryThumb";
 import type { Story } from "@/lib/types";
-import { ArrowDown, ArrowUp, Plus, Trash2 } from "lucide-react";
+import { ArrowDown, ArrowUp, Eye, Plus, Trash2 } from "lucide-react";
 
 export default function AdminStoriesPage() {
   const [stories, setStories] = useState<Story[]>([]);
@@ -89,7 +90,8 @@ export default function AdminStoriesPage() {
             <h2 className="text-base font-semibold">Yeni hikaye ekle</h2>
             <p className="mt-1 text-sm text-gray-500">
               Instagram ve WhatsApp’taki gibi sitede üstte yuvarlak olarak görünür.
-              Tıklanınca hikayeler arka arkaya izlenir.
+              Tıklanınca hikayeler arka arkaya izlenir. Her izleme görüntülenme
+              sayısına eklenir.
             </p>
           </div>
           {error ? (
@@ -140,6 +142,7 @@ export default function AdminStoriesPage() {
                   <tr>
                     <th>Hikaye</th>
                     <th>Tür</th>
+                    <th>Görüntülenme</th>
                     <th>Durum</th>
                     <th>Sıra</th>
                     <th>İşlemler</th>
@@ -150,27 +153,23 @@ export default function AdminStoriesPage() {
                     <tr key={story.id}>
                       <td>
                         <div className="flex items-center gap-3">
-                          {story.mediaKind === "video" ? (
-                            <video
-                              src={story.mediaUrl}
-                              className="h-10 w-10 rounded-full object-cover"
-                              muted
-                              playsInline
-                            />
-                          ) : (
-                            // eslint-disable-next-line @next/next/no-img-element
-                            <img
-                              src={story.mediaUrl}
-                              alt=""
-                              className="h-10 w-10 rounded-full object-cover"
-                            />
-                          )}
+                          <span className="rounded-full bg-gradient-to-br from-bamboo to-olive p-[2px]">
+                            <span className="block rounded-full bg-white p-[1px]">
+                              <StoryThumb story={story} className="h-11 w-11" />
+                            </span>
+                          </span>
                           <span className="font-medium">
                             {story.title || "Başlıksız hikaye"}
                           </span>
                         </div>
                       </td>
                       <td>{story.mediaKind === "video" ? "Video" : "Görsel"}</td>
+                      <td>
+                        <span className="inline-flex items-center gap-1.5 text-sm text-gray-700">
+                          <Eye className="h-4 w-4 text-gray-400" />
+                          {(story.viewCount ?? 0).toLocaleString("tr-TR")}
+                        </span>
+                      </td>
                       <td>
                         <button
                           type="button"

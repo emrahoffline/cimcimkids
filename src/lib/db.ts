@@ -581,6 +581,7 @@ function mapStory(row: DbStory): Story {
     mediaKind: storyMediaKind(row.mediaUrl),
     durationSec: row.durationSec,
     sortOrder: row.sortOrder,
+    viewCount: row.viewCount,
     active: row.active,
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),
@@ -658,6 +659,19 @@ export async function deleteStory(id: string): Promise<boolean> {
   requireDatabaseUrl();
   try {
     await prisma.story.delete({ where: { id } });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export async function recordStoryView(id: string): Promise<boolean> {
+  requireDatabaseUrl();
+  try {
+    await prisma.story.update({
+      where: { id },
+      data: { viewCount: { increment: 1 } },
+    });
     return true;
   } catch {
     return false;

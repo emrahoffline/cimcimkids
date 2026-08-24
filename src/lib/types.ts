@@ -37,6 +37,7 @@ export type Story = {
   mediaKind: "image" | "video";
   durationSec: number;
   sortOrder: number;
+  viewCount: number;
   active: boolean;
   createdAt: string;
   updatedAt: string;

@@ -62,6 +62,7 @@ model Story {
   mediaUrl    String
   durationSec Int      @default(5)
   sortOrder   Int      @default(0)
+  viewCount   Int      @default(0)
   active      Boolean  @default(true)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt

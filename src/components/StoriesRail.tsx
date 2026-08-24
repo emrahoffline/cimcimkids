@@ -1,9 +1,10 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import type { Story } from "@/lib/types";
 import { StoryViewer } from "./StoryViewer";
+import { StoryThumb } from "./StoryThumb";
 
 const SEEN_KEY = "cimcim-stories-seen-v1";
 
@@ -40,6 +41,26 @@ export function StoriesRail({ stories }: Props) {
       return next;
     });
   }, []);
+
+  const countedAt = useRef(new Map<string, number>());
+
+  const recordView = useCallback((id: string) => {
+    const now = Date.now();
+    const last = countedAt.current.get(id) ?? 0;
+    if (now - last < 2000) return;
+    countedAt.current.set(id, now);
+    void fetch(`/api/stories/${encodeURIComponent(id)}/view`, {
+      method: "POST",
+    }).catch(() => undefined);
+  }, []);
+
+  const handleViewed = useCallback(
+    (id: string) => {
+      markSeen(id);
+      recordView(id);
+    },
+    [markSeen, recordView]
+  );
 
   const closeViewer = useCallback(() => {
     setOpenIndex(null);
@@ -83,22 +104,7 @@ export function StoriesRail({ stories }: Props) {
                     }`}
                   >
                     <span className="block rounded-full bg-white p-[2px]">
-                      {story.mediaKind === "video" ? (
-                        <video
-                          src={story.mediaUrl}
-                          muted
-                          playsInline
-                          preload="metadata"
-                          className="pointer-events-none h-[64px] w-[64px] rounded-full object-cover"
-                        />
-                      ) : (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
-                          src={story.mediaUrl}
-                          alt=""
-                          className="pointer-events-none h-[64px] w-[64px] rounded-full object-cover"
-                        />
-                      )}
+                      <StoryThumb story={story} className="h-16 w-16" />
                     </span>
                   </span>
                   <span className="w-full truncate text-center text-[11px] font-medium text-slate-600">
@@ -117,7 +123,7 @@ export function StoriesRail({ stories }: Props) {
           stories={items}
           startIndex={openIndex}
           onClose={closeViewer}
-          onViewed={markSeen}
+          onViewed={handleViewed}
           closeLabel={t("storiesClose")}
         />
       ) : null}
