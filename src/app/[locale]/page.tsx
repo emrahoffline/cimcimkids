@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { getAllProducts } from "@/lib/products-server";
-import { ProductCard } from "@/components/ProductCard";
+import { getAllCategories } from "@/lib/categories-server";
+import { FeaturedProducts } from "@/components/FeaturedProducts";
 import { BrandName } from "@/components/BrandName";
 import { NewsletterForm } from "@/components/NewsletterForm";
 import { JsonLd } from "@/components/JsonLd";
@@ -34,7 +35,10 @@ export default async function HomePage({ params }: Props) {
   setRequestLocale(locale);
   const t = await getTranslations("home");
   const base = `/${locale}`;
-  const products = await getAllProducts();
+  const [products, categories] = await Promise.all([
+    getAllProducts(),
+    getAllCategories(),
+  ]);
 
   return (
     <>
@@ -69,11 +73,7 @@ export default async function HomePage({ params }: Props) {
             {t("featuredDesc")}
           </p>
         </div>
-        <div className="mobile-product-grid">
-          {products.map((p) => (
-            <ProductCard key={p.id} product={p} />
-          ))}
-        </div>
+        <FeaturedProducts products={products} categories={categories} />
         <div className="mt-10 text-center">
           <Link href={`${base}/products`} className="btn-secondary">
             {t("shopNow")}

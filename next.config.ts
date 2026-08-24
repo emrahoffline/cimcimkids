@@ -18,6 +18,12 @@ const nextConfig: NextConfig = {
   images: {
     remotePatterns: [],
   },
+  experimental: {
+    serverActions: {
+      bodySizeLimit: "50mb",
+    },
+    middlewareClientMaxBodySize: "50mb",
+  },
   async headers() {
     // Next.js App Router injects many inline <script> tags for RSC/hydration.
     // Blocking 'unsafe-inline' leaves a blank page in the browser.
@@ -32,6 +38,7 @@ const nextConfig: NextConfig = {
           "style-src 'self' 'unsafe-inline'",
           "script-src 'self' 'unsafe-inline'",
           "connect-src 'self' https:",
+          "media-src 'self'",
           "form-action 'self'",
           "upgrade-insecure-requests",
         ].join("; ")
@@ -45,6 +52,7 @@ const nextConfig: NextConfig = {
           "style-src 'self' 'unsafe-inline'",
           "script-src 'self' 'unsafe-eval' 'unsafe-inline'",
           "connect-src 'self' https: wss: http://localhost:* http://127.0.0.1:* ws://localhost:* ws://127.0.0.1:*",
+          "media-src 'self' blob:",
           "form-action 'self'",
         ].join("; ");
 

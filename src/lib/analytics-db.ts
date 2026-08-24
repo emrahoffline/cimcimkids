@@ -69,6 +69,47 @@ async function getEvents(): Promise<AnalyticsEvent[]> {
   return rows.map(mapEvent);
 }
 
+export async function getProductPopularity(orders: Order[]): Promise<{
+  sold: Map<string, number>;
+  favorites: Map<string, number>;
+}> {
+  const sold = new Map<string, number>();
+  for (const order of orders) {
+    if (order.status === "cancelled") continue;
+    for (const item of order.items) {
+      sold.set(item.productId, (sold.get(item.productId) ?? 0) + item.quantity);
+    }
+  }
+
+  const favorites = new Map<string, number>();
+  try {
+    requireDatabaseUrl();
+    const events = await prisma.analyticsEvent.findMany({
+      where: { type: { in: ["favorite_add", "favorite_remove"] } },
+      select: { type: true, productId: true },
+      orderBy: { createdAt: "asc" },
+    });
+    for (const event of events) {
+      if (!event.productId) continue;
+      const delta =
+        event.type === "favorite_add"
+          ? 1
+          : event.type === "favorite_remove"
+            ? -1
+            : 0;
+      if (!delta) continue;
+      favorites.set(
+        event.productId,
+        Math.max(0, (favorites.get(event.productId) ?? 0) + delta)
+      );
+    }
+  } catch {
+    // Analytics table may be empty during local/dev setup.
+  }
+
+  return { sold, favorites };
+}
+
 export function buildAllTimeStats(orders: Order[]): AllTimeTotals {
   const valid = orders.filter((o) => o.status !== "cancelled");
 

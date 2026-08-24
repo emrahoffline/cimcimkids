@@ -1,11 +1,14 @@
 import type { Metadata } from "next";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { LegalPage } from "@/components/LegalPage";
+import { SellerLegalInfo } from "@/components/SellerLegalInfo";
 import { buildMetadata } from "@/lib/seo";
 
 type Props = {
   params: Promise<{ locale: string }>;
 };
+
+export const dynamic = "force-dynamic";
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale } = await params;
@@ -29,8 +32,13 @@ export default async function KVKKPage({ params }: Props) {
       title={t("title")}
       updated={t("updated")}
       intro={t("intro")}
+      lead={
+        <>
+          <p className="font-semibold text-olive">{t("s1title")}</p>
+          <SellerLegalInfo className="space-y-1" />
+        </>
+      }
       sections={[
-        { title: t("s1title"), text: t("s1") },
         { title: t("s2title"), text: t("s2") },
         { title: t("s3title"), text: t("s3") },
         { title: t("s4title"), text: t("s4") },

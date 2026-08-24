@@ -127,7 +127,15 @@ export function CustomerAuthForms({
         redirect: false,
       });
       if (res?.error) {
-        setError(t("loginFailed"));
+        setError(
+          (res as { status?: number }).status === 429
+            ? t("tooManyRequests")
+            : t("loginFailed")
+        );
+        return;
+      }
+      if ((res as { status?: number } | undefined)?.status === 429) {
+        setError(t("tooManyRequests"));
         return;
       }
       window.location.href = callbackUrl;

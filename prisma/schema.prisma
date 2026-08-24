@@ -38,6 +38,7 @@ model Product {
   id             String   @id
   slug           String   @unique
   image          String
+  video          String?
   price          Float
   category       String
   translationKey String?
@@ -46,6 +47,9 @@ model Product {
   descTr         String
   descEn         String
   inStock        Boolean  @default(true)
+  kind           String   @default("product")
+  outfitSlots    Json?
+  compareAtPrice Float?
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 

@@ -9,7 +9,13 @@ import { getProductName, getProductDesc, formatPrice } from "@/lib/products";
 import { useCartStore } from "@/store/cart";
 import { FavoriteButton } from "./FavoriteButton";
 
-export function ProductCard({ product }: { product: Product }) {
+export function ProductCard({
+  product,
+  priority = false,
+}: {
+  product: Product;
+  priority?: boolean;
+}) {
   const t = useTranslations("products");
   const locale = useLocale();
   const addItem = useCartStore((s) => s.addItem);
@@ -39,6 +45,7 @@ export function ProductCard({ product }: { product: Product }) {
             fill
             className="object-cover transition duration-500 group-hover:scale-[1.03]"
             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+            priority={priority}
           />
         </div>
         <div className="p-3.5 sm:p-4">
@@ -50,7 +57,17 @@ export function ProductCard({ product }: { product: Product }) {
           </p>
           <p className="mt-2 text-base font-bold text-bamboo sm:mt-2.5 sm:text-lg">
             {formatPrice(product.price, locale)}
+            {product.compareAtPrice && product.compareAtPrice > product.price ? (
+              <span className="ml-2 text-sm font-normal text-slate-400 line-through">
+                {formatPrice(product.compareAtPrice, locale)}
+              </span>
+            ) : null}
           </p>
+          {product.kind === "outfit" ? (
+            <p className="mt-1 text-[11px] font-medium uppercase tracking-wide text-olive">
+              {t("outfit")}
+            </p>
+          ) : null}
         </div>
       </Link>
       <div className="px-3.5 pb-3.5 sm:px-4 sm:pb-4">
