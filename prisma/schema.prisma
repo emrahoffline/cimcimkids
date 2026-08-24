@@ -38,6 +38,7 @@ model Product {
   id             String   @id
   slug           String   @unique
   image          String
+  video          String?
   price          Float
   category       String
   translationKey String?

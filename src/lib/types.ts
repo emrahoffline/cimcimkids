@@ -10,6 +10,7 @@ export type Product = {
   id: string;
   slug: string;
   image: string;
+  video?: string | null;
   price: number;
   category: string;
   translationKey?: string;

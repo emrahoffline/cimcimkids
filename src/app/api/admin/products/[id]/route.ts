@@ -8,13 +8,7 @@ import {
   outfitCoverImage,
   resolveOutfitPricing,
 } from "@/lib/outfit";
-
-function isSafeImage(value: unknown): value is string {
-  return (
-    typeof value === "string" &&
-    /^\/products\/(?:uploads\/)?[a-zA-Z0-9._-]+$/.test(value)
-  );
-}
+import { isSafeProductImage, resolveProductVideo } from "@/lib/media";
 
 export async function GET(
   _request: Request,
@@ -76,7 +70,7 @@ export async function PUT(
       )
     : null;
 
-  const nextImage = isSafeImage(body.image)
+  const nextImage = isSafeProductImage(body.image)
     ? body.image
     : isOutfit
       ? outfitCoverImage(outfitSlots ?? {}, current.image)
@@ -86,6 +80,7 @@ export async function PUT(
     ...current,
     slug,
     image: nextImage,
+    video: resolveProductVideo(body.video, current.video),
     price: pricing ? pricing.price : Number(body.price) ?? current.price,
     category: body.category ?? current.category,
     nameTr: body.nameTr ?? current.nameTr,

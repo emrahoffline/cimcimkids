@@ -9,13 +9,7 @@ import {
   outfitCoverImage,
   resolveOutfitPricing,
 } from "@/lib/outfit";
-
-function isSafeImage(value: unknown): value is string {
-  return (
-    typeof value === "string" &&
-    /^\/products\/(?:uploads\/)?[a-zA-Z0-9._-]+$/.test(value)
-  );
-}
+import { isSafeProductImage, resolveProductVideo } from "@/lib/media";
 
 export async function GET() {
   const { error } = await requireAdminApi();
@@ -57,11 +51,12 @@ export async function POST(request: Request) {
       )
     : null;
 
-  const image = isSafeImage(body.image)
+  const image = isSafeProductImage(body.image)
     ? body.image
     : isOutfit
       ? outfitCoverImage(outfitSlots ?? {})
       : "/products/product-1.png";
+  const video = resolveProductVideo(body.video);
 
   if (isOutfit && !image) {
     return NextResponse.json(
@@ -74,6 +69,7 @@ export async function POST(request: Request) {
     id: `prod_${Date.now()}`,
     slug,
     image: image || "/products/product-1.png",
+    video,
     price: pricing ? pricing.price : Number(body.price) || 0,
     category: body.category || (isOutfit ? "outfits" : ""),
     nameTr: String(body.nameTr || "").trim(),

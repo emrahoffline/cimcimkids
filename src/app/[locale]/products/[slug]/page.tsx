@@ -62,15 +62,30 @@ export default async function ProductDetailPage({ params }: Props) {
         {t("title")}
       </Link>
       <div className="grid gap-10 lg:grid-cols-2">
-        <div className="relative aspect-square overflow-hidden rounded-3xl bg-cream-dark">
-          <Image
-            src={product.image}
-            alt={name}
-            fill
-            className="object-cover"
-            priority
-            sizes="(max-width: 1024px) 100vw, 50vw"
-          />
+        <div className="space-y-3">
+          <div className="relative aspect-square overflow-hidden rounded-3xl bg-cream-dark">
+            <Image
+              src={product.image}
+              alt={name}
+              fill
+              className="object-cover"
+              priority
+              sizes="(max-width: 1024px) 100vw, 50vw"
+            />
+          </div>
+          {product.video ? (
+            <video
+              src={product.video}
+              poster={product.image}
+              controls
+              playsInline
+              preload="metadata"
+              className="w-full rounded-3xl bg-black"
+              aria-label={t("video")}
+            >
+              {t("video")}
+            </video>
+          ) : null}
         </div>
         <div>
           <p className="text-sm font-medium uppercase tracking-wider text-bamboo">

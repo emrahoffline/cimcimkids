@@ -72,6 +72,7 @@ function mapProduct(p: DbProduct): Product {
     id: p.id,
     slug: p.slug,
     image: p.image,
+    video: p.video ?? undefined,
     price: p.price,
     category: p.category,
     translationKey: p.translationKey ?? undefined,
@@ -173,6 +174,7 @@ export async function saveProducts(products: Product[]): Promise<void> {
           id: p.id,
           slug: p.slug,
           image: p.image,
+          video: p.video?.trim() || null,
           price: p.price,
           category: p.category,
           translationKey: p.translationKey ?? null,
@@ -195,6 +197,7 @@ export async function saveProducts(products: Product[]): Promise<void> {
         update: {
           slug: p.slug,
           image: p.image,
+          video: p.video?.trim() || null,
           price: p.price,
           category: p.category,
           translationKey: p.translationKey ?? null,
