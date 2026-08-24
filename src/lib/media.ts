@@ -81,3 +81,17 @@ export function resolveProductVideo(
   if (isSafeProductVideo(input)) return input;
   return fallback ?? null;
 }
+
+export function isSafeStoryMedia(value: unknown): value is string {
+  return isSafeProductImage(value) || isSafeProductVideo(value);
+}
+
+export function storyMediaKind(url: string): "image" | "video" {
+  return /\.(mp4|webm)$/i.test(url) ? "video" : "image";
+}
+
+export function clampStoryDuration(value: unknown, fallback = 5): number {
+  const n = Number(value);
+  if (!Number.isFinite(n)) return fallback;
+  return Math.min(15, Math.max(3, Math.round(n)));
+}

@@ -24,6 +24,8 @@
     "signIn": "Sign In"
   },
   "home": {
+    "stories": "Stories",
+    "storiesClose": "Close story",
     "heroTitle": "Big Comfort for Little Ones",
     "heroSubtitle": "Kids clothing made for all-day comfort, play, and every age.",
     "shopNow": "Shop Now",

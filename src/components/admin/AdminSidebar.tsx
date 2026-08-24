@@ -11,6 +11,7 @@ import {
   LogOut,
   BarChart3,
   Mail,
+  CircleDot,
   X,
 } from "lucide-react";
 import { signOut } from "next-auth/react";
@@ -22,6 +23,7 @@ const nav = [
   { href: "/admin/analytics", label: "İstatistikler", icon: BarChart3 },
   { href: "/admin/orders", label: "Siparişler", icon: ShoppingCart, badge: true },
   { href: "/admin/products", label: "Ürünler", icon: Package },
+  { href: "/admin/stories", label: "Hikayeler", icon: CircleDot },
   { href: "/admin/customers", label: "Müşteriler", icon: Users },
   { href: "/admin/subscribers", label: "E-posta Aboneleri", icon: Mail },
 ];

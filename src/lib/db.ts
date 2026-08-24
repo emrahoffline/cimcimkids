@@ -6,14 +6,16 @@ import type {
   Product as DbProduct,
   Category as DbCategory,
   Subscriber as DbSubscriber,
+  Story as DbStory,
   OrderStatus,
   UserRole,
   SubscriberSource,
 } from "@prisma/client";
 import { Prisma } from "@prisma/client";
-import type { Product, Category } from "./types";
+import type { Product, Category, Story } from "./types";
 import { slugify } from "./product-utils";
 import { parseOutfitSlots } from "./outfit";
+import { storyMediaKind } from "./media";
 import { syncAllTimeTotals } from "./analytics-db";
 import { prisma, requireDatabaseUrl, hasDatabaseUrl, isNextBuild } from "./prisma";
 
@@ -565,6 +567,97 @@ export async function removeNewsletterSubscriber(id: string): Promise<boolean> {
   requireDatabaseUrl();
   try {
     await prisma.subscriber.delete({ where: { id } });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function mapStory(row: DbStory): Story {
+  return {
+    id: row.id,
+    title: row.title,
+    mediaUrl: row.mediaUrl,
+    mediaKind: storyMediaKind(row.mediaUrl),
+    durationSec: row.durationSec,
+    sortOrder: row.sortOrder,
+    active: row.active,
+    createdAt: row.createdAt.toISOString(),
+    updatedAt: row.updatedAt.toISOString(),
+  };
+}
+
+export async function getStories(): Promise<Story[]> {
+  if (!hasDatabaseUrl()) {
+    if (isNextBuild()) return [];
+    requireDatabaseUrl();
+  }
+  const rows = await prisma.story.findMany({
+    orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
+  });
+  return rows.map(mapStory);
+}
+
+export async function getActiveStories(): Promise<Story[]> {
+  const stories = await getStories();
+  return stories.filter((story) => story.active);
+}
+
+export async function createStory(data: {
+  title: string;
+  mediaUrl: string;
+  durationSec: number;
+  active?: boolean;
+}): Promise<Story> {
+  requireDatabaseUrl();
+  const existing = await prisma.story.aggregate({ _max: { sortOrder: true } });
+  const created = await prisma.story.create({
+    data: {
+      id: `story_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+      title: data.title,
+      mediaUrl: data.mediaUrl,
+      durationSec: data.durationSec,
+      sortOrder: (existing._max.sortOrder ?? -1) + 1,
+      active: data.active ?? true,
+    },
+  });
+  return mapStory(created);
+}
+
+export async function updateStory(
+  id: string,
+  data: Partial<{
+    title: string;
+    mediaUrl: string;
+    durationSec: number;
+    sortOrder: number;
+    active: boolean;
+  }>
+): Promise<Story | null> {
+  requireDatabaseUrl();
+  try {
+    const updated = await prisma.story.update({
+      where: { id },
+      data: {
+        ...(data.title !== undefined ? { title: data.title } : {}),
+        ...(data.mediaUrl !== undefined ? { mediaUrl: data.mediaUrl } : {}),
+        ...(data.durationSec !== undefined
+          ? { durationSec: data.durationSec }
+          : {}),
+        ...(data.sortOrder !== undefined ? { sortOrder: data.sortOrder } : {}),
+        ...(data.active !== undefined ? { active: data.active } : {}),
+      },
+    });
+    return mapStory(updated);
+  } catch {
+    return null;
+  }
+}
+
+export async function deleteStory(id: string): Promise<boolean> {
+  requireDatabaseUrl();
+  try {
+    await prisma.story.delete({ where: { id } });
     return true;
   } catch {
     return false;

@@ -29,3 +29,15 @@ export type Product = {
   soldCount?: number;
   favoriteCount?: number;
 };
+
+export type Story = {
+  id: string;
+  title: string;
+  mediaUrl: string;
+  mediaKind: "image" | "video";
+  durationSec: number;
+  sortOrder: number;
+  active: boolean;
+  createdAt: string;
+  updatedAt: string;
+};

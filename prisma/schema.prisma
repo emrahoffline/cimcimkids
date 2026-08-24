@@ -56,6 +56,19 @@ model Product {
   @@index([category])
 }
 
+model Story {
+  id          String   @id
+  title       String   @default("")
+  mediaUrl    String
+  durationSec Int      @default(5)
+  sortOrder   Int      @default(0)
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([active, sortOrder])
+}
+
 model Category {
   slug   String @id
   nameTr String
