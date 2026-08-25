@@ -95,3 +95,22 @@ export function clampStoryDuration(value: unknown, fallback = 5): number {
   if (!Number.isFinite(n)) return fallback;
   return Math.min(15, Math.max(3, Math.round(n)));
 }
+
+const STORY_LINK_MAX = 500;
+
+export function normalizeStoryLink(value: unknown): string {
+  if (typeof value !== "string") return "";
+  const trimmed = value.trim();
+  if (!trimmed || trimmed.length > STORY_LINK_MAX) return "";
+  if (trimmed.startsWith("/") && !trimmed.startsWith("//") && !trimmed.includes("\\")) {
+    return trimmed;
+  }
+  try {
+    const url = new URL(trimmed);
+    if (url.protocol !== "http:" && url.protocol !== "https:") return "";
+    if (url.username || url.password) return "";
+    return url.toString();
+  } catch {
+    return "";
+  }
+}

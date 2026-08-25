@@ -10,6 +10,7 @@ function story(partial: Partial<Story> & Pick<Story, "id" | "groupId">): Story {
     durationSec: 5,
     sortOrder: 0,
     viewCount: 0,
+    linkUrl: "",
     active: true,
     createdAt: "",
     updatedAt: "",

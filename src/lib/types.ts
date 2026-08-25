@@ -39,6 +39,7 @@ export type Story = {
   sortOrder: number;
   viewCount: number;
   groupId: string;
+  linkUrl: string;
   active: boolean;
   createdAt: string;
   updatedAt: string;

@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Pause, Volume2, VolumeX, X } from "lucide-react";
+import { ExternalLink, Pause, Volume2, VolumeX, X } from "lucide-react";
 import type { Story } from "@/lib/types";
 
 type Props = {
@@ -10,6 +10,7 @@ type Props = {
   onClose: () => void;
   onViewed: (id: string) => void;
   closeLabel: string;
+  linkLabel: string;
 };
 
 const HOLD_MS = 800;
@@ -20,6 +21,7 @@ export function StoryViewer({
   onClose,
   onViewed,
   closeLabel,
+  linkLabel,
 }: Props) {
   const [index, setIndex] = useState(startIndex);
   const [progress, setProgress] = useState(0);
@@ -243,7 +245,9 @@ export function StoryViewer({
 
           <button
             type="button"
-            className="absolute bottom-0 left-0 top-16 z-10 w-[32%]"
+            className={`absolute left-0 top-16 z-10 w-[32%] ${
+              story.linkUrl ? "bottom-24" : "bottom-0"
+            }`}
             aria-label="Önceki hikaye"
             onPointerDown={startHold}
             onPointerUp={(event) => {
@@ -264,7 +268,9 @@ export function StoryViewer({
           />
           <button
             type="button"
-            className="absolute bottom-0 right-0 top-16 z-10 w-[68%]"
+            className={`absolute right-0 top-16 z-10 w-[68%] ${
+              story.linkUrl ? "bottom-24" : "bottom-0"
+            }`}
             aria-label="Sonraki hikaye"
             onPointerDown={startHold}
             onPointerUp={(event) => {
@@ -283,6 +289,20 @@ export function StoryViewer({
               setPaused(false);
             }}
           />
+
+          {story.linkUrl ? (
+            <a
+              href={story.linkUrl}
+              target={story.linkUrl.startsWith("/") ? undefined : "_blank"}
+              rel={story.linkUrl.startsWith("/") ? undefined : "noopener noreferrer"}
+              className="absolute inset-x-8 bottom-6 z-30 flex items-center justify-center gap-2 rounded-full bg-white px-4 py-2.5 text-sm font-semibold text-slate-900 shadow-lg"
+              onPointerDown={(event) => event.stopPropagation()}
+              onClick={(event) => event.stopPropagation()}
+            >
+              <ExternalLink className="h-4 w-4" />
+              {linkLabel}
+            </a>
+          ) : null}
         </div>
       </div>
     </div>

@@ -140,6 +140,7 @@ export function StoriesRail({ stories }: Props) {
           onClose={closeViewer}
           onViewed={handleViewed}
           closeLabel={t("storiesClose")}
+          linkLabel={t("storiesOpenLink")}
         />
       ) : null}
     </>

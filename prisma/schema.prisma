@@ -64,6 +64,7 @@ model Story {
   sortOrder   Int      @default(0)
   viewCount   Int      @default(0)
   groupId     String
+  linkUrl     String   @default("")
   active      Boolean  @default(true)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt

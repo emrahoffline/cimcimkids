@@ -583,6 +583,7 @@ function mapStory(row: DbStory): Story {
     sortOrder: row.sortOrder,
     viewCount: row.viewCount,
     groupId: row.groupId || row.id,
+    linkUrl: row.linkUrl || "",
     active: row.active,
     createdAt: row.createdAt.toISOString(),
     updatedAt: row.updatedAt.toISOString(),
@@ -609,6 +610,7 @@ export async function createStory(data: {
   title: string;
   mediaUrl: string;
   durationSec: number;
+  linkUrl?: string;
   active?: boolean;
 }): Promise<Story> {
   const [story] = await createStories([data]);
@@ -620,6 +622,7 @@ export async function createStories(
     title: string;
     mediaUrl: string;
     durationSec: number;
+    linkUrl?: string;
     active?: boolean;
   }>
 ): Promise<Story[]> {
@@ -640,6 +643,7 @@ export async function createStories(
           durationSec: data.durationSec,
           sortOrder: startOrder + index,
           groupId,
+          linkUrl: data.linkUrl || "",
           active: data.active ?? true,
         },
       })
@@ -656,6 +660,7 @@ export async function updateStory(
     durationSec: number;
     sortOrder: number;
     active: boolean;
+    linkUrl: string;
   }>
 ): Promise<Story | null> {
   requireDatabaseUrl();
@@ -670,6 +675,7 @@ export async function updateStory(
           : {}),
         ...(data.sortOrder !== undefined ? { sortOrder: data.sortOrder } : {}),
         ...(data.active !== undefined ? { active: data.active } : {}),
+        ...(data.linkUrl !== undefined ? { linkUrl: data.linkUrl } : {}),
       },
     });
     return mapStory(updated);

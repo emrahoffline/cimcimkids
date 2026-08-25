@@ -4,6 +4,7 @@ import { deleteStory, updateStory } from "@/lib/db";
 import {
   clampStoryDuration,
   isSafeStoryMedia,
+  normalizeStoryLink,
 } from "@/lib/media";
 
 export async function PUT(
@@ -21,6 +22,7 @@ export async function PUT(
     durationSec?: number;
     sortOrder?: number;
     active?: boolean;
+    linkUrl?: string;
   } = {};
 
   if (body.title !== undefined) {
@@ -43,6 +45,9 @@ export async function PUT(
   }
   if (typeof body.active === "boolean") {
     data.active = body.active;
+  }
+  if (body.linkUrl !== undefined) {
+    data.linkUrl = normalizeStoryLink(body.linkUrl);
   }
 
   const story = await updateStory(id, data);

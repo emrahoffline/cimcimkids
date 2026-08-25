@@ -4,6 +4,7 @@ import { createStories, getStories } from "@/lib/db";
 import {
   clampStoryDuration,
   isSafeStoryMedia,
+  normalizeStoryLink,
 } from "@/lib/media";
 
 const MAX_STORIES_PER_REQUEST = 20;
@@ -44,6 +45,7 @@ export async function POST(request: Request) {
     mediaUrl: string;
     durationSec: number;
     active: boolean;
+    linkUrl: string;
   }> = [];
 
   for (const raw of rawItems) {
@@ -57,6 +59,7 @@ export async function POST(request: Request) {
       title: String(raw.title || "").trim().slice(0, 60),
       mediaUrl: raw.mediaUrl,
       durationSec: clampStoryDuration(raw.durationSec ?? body.durationSec),
+      linkUrl: normalizeStoryLink(raw.linkUrl),
       active: raw.active !== false && body.active !== false,
     });
   }
