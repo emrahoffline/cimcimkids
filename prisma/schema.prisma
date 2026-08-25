@@ -38,6 +38,7 @@ model Product {
   id             String   @id
   slug           String   @unique
   image          String
+  video          String?
   price          Float
   category       String
   translationKey String?
@@ -46,10 +47,30 @@ model Product {
   descTr         String
   descEn         String
   inStock        Boolean  @default(true)
+  kind           String   @default("product")
+  outfitSlots    Json?
+  compareAtPrice Float?
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
   @@index([category])
+}
+
+model Story {
+  id          String   @id
+  title       String   @default("")
+  mediaUrl    String
+  durationSec Int      @default(5)
+  sortOrder   Int      @default(0)
+  viewCount   Int      @default(0)
+  groupId     String
+  linkUrl     String   @default("")
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([active, sortOrder])
+  @@index([groupId])
 }
 
 model Category {

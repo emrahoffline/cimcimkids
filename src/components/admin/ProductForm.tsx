@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import type { Product } from "@/lib/products";
 import { ImageUpload } from "./ImageUpload";
+import { VideoUpload } from "./VideoUpload";
 import { CategorySelect } from "./CategorySelect";
 
 type Props = {
@@ -23,6 +24,7 @@ export function ProductForm({ product }: Props) {
     price: product?.price ?? 0,
     category: product?.category ?? "",
     image: product?.image ?? "",
+    video: product?.video ?? "",
     inStock: product?.inStock ?? true,
     slug: product?.slug ?? "",
   });
@@ -152,6 +154,11 @@ export function ProductForm({ product }: Props) {
       <ImageUpload
         value={form.image}
         onChange={(image) => setForm({ ...form, image })}
+      />
+
+      <VideoUpload
+        value={form.video}
+        onChange={(video) => setForm({ ...form, video })}
       />
 
       <div className="flex flex-col-reverse gap-3 pt-2 sm:flex-row">

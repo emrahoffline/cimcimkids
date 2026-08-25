@@ -6,12 +6,16 @@ import type {
   Product as DbProduct,
   Category as DbCategory,
   Subscriber as DbSubscriber,
+  Story as DbStory,
   OrderStatus,
   UserRole,
   SubscriberSource,
 } from "@prisma/client";
-import type { Product, Category } from "./types";
+import { Prisma } from "@prisma/client";
+import type { Product, Category, Story } from "./types";
 import { slugify } from "./product-utils";
+import { parseOutfitSlots } from "./outfit";
+import { storyMediaKind } from "./media";
 import { syncAllTimeTotals } from "./analytics-db";
 import { prisma, requireDatabaseUrl, hasDatabaseUrl, isNextBuild } from "./prisma";
 
@@ -70,6 +74,7 @@ function mapProduct(p: DbProduct): Product {
     id: p.id,
     slug: p.slug,
     image: p.image,
+    video: p.video ?? undefined,
     price: p.price,
     category: p.category,
     translationKey: p.translationKey ?? undefined,
@@ -78,6 +83,11 @@ function mapProduct(p: DbProduct): Product {
     descTr: p.descTr,
     descEn: p.descEn,
     inStock: p.inStock,
+    kind: p.kind === "outfit" ? "outfit" : "product",
+    outfitSlots: p.outfitSlots ? parseOutfitSlots(p.outfitSlots) : undefined,
+    compareAtPrice: p.compareAtPrice ?? null,
+    createdAt: p.createdAt.toISOString(),
+    updatedAt: p.updatedAt.toISOString(),
   };
 }
 
@@ -138,6 +148,7 @@ const DEFAULT_CATEGORIES: Category[] = [
   { slug: "girls", nameTr: "Kız", nameEn: "Girls" },
   { slug: "boys", nameTr: "Erkek", nameEn: "Boys" },
   { slug: "baby", nameTr: "Bebek", nameEn: "Baby" },
+  { slug: "outfits", nameTr: "Kombin", nameEn: "Outfits" },
 ];
 
 export async function getProducts(): Promise<Product[]> {
@@ -165,6 +176,7 @@ export async function saveProducts(products: Product[]): Promise<void> {
           id: p.id,
           slug: p.slug,
           image: p.image,
+          video: p.video?.trim() || null,
           price: p.price,
           category: p.category,
           translationKey: p.translationKey ?? null,
@@ -173,10 +185,21 @@ export async function saveProducts(products: Product[]): Promise<void> {
           descTr: p.descTr,
           descEn: p.descEn,
           inStock: p.inStock,
+          kind: p.kind === "outfit" ? "outfit" : "product",
+          outfitSlots:
+            p.kind === "outfit" && p.outfitSlots
+              ? (p.outfitSlots as Prisma.InputJsonValue)
+              : Prisma.JsonNull,
+          compareAtPrice:
+            typeof p.compareAtPrice === "number" &&
+            Number.isFinite(p.compareAtPrice)
+              ? p.compareAtPrice
+              : null,
         },
         update: {
           slug: p.slug,
           image: p.image,
+          video: p.video?.trim() || null,
           price: p.price,
           category: p.category,
           translationKey: p.translationKey ?? null,
@@ -185,6 +208,16 @@ export async function saveProducts(products: Product[]): Promise<void> {
           descTr: p.descTr,
           descEn: p.descEn,
           inStock: p.inStock,
+          kind: p.kind === "outfit" ? "outfit" : "product",
+          outfitSlots:
+            p.kind === "outfit" && p.outfitSlots
+              ? (p.outfitSlots as Prisma.InputJsonValue)
+              : Prisma.JsonNull,
+          compareAtPrice:
+            typeof p.compareAtPrice === "number" &&
+            Number.isFinite(p.compareAtPrice)
+              ? p.compareAtPrice
+              : null,
         },
       });
     }
@@ -199,6 +232,15 @@ export async function getCategories(): Promise<Category[]> {
   const rows = await prisma.category.findMany({ orderBy: { slug: "asc" } });
   if (rows.length === 0) return DEFAULT_CATEGORIES;
   return rows.map(mapCategory);
+}
+
+export async function ensureOutfitsCategory(): Promise<void> {
+  const categories = await getCategories();
+  if (categories.some((c) => c.slug === "outfits")) return;
+  await saveCategories([
+    ...categories,
+    { slug: "outfits", nameTr: "Kombin", nameEn: "Outfits" },
+  ]);
 }
 
 export async function saveCategories(categories: Category[]): Promise<void> {
@@ -525,6 +567,140 @@ export async function removeNewsletterSubscriber(id: string): Promise<boolean> {
   requireDatabaseUrl();
   try {
     await prisma.subscriber.delete({ where: { id } });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function mapStory(row: DbStory): Story {
+  return {
+    id: row.id,
+    title: row.title,
+    mediaUrl: row.mediaUrl,
+    mediaKind: storyMediaKind(row.mediaUrl),
+    durationSec: row.durationSec,
+    sortOrder: row.sortOrder,
+    viewCount: row.viewCount,
+    groupId: row.groupId || row.id,
+    linkUrl: row.linkUrl || "",
+    active: row.active,
+    createdAt: row.createdAt.toISOString(),
+    updatedAt: row.updatedAt.toISOString(),
+  };
+}
+
+export async function getStories(): Promise<Story[]> {
+  if (!hasDatabaseUrl()) {
+    if (isNextBuild()) return [];
+    requireDatabaseUrl();
+  }
+  const rows = await prisma.story.findMany({
+    orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
+  });
+  return rows.map(mapStory);
+}
+
+export async function getActiveStories(): Promise<Story[]> {
+  const stories = await getStories();
+  return stories.filter((story) => story.active);
+}
+
+export async function createStory(data: {
+  title: string;
+  mediaUrl: string;
+  durationSec: number;
+  linkUrl?: string;
+  active?: boolean;
+}): Promise<Story> {
+  const [story] = await createStories([data]);
+  return story;
+}
+
+export async function createStories(
+  items: Array<{
+    title: string;
+    mediaUrl: string;
+    durationSec: number;
+    linkUrl?: string;
+    active?: boolean;
+  }>
+): Promise<Story[]> {
+  requireDatabaseUrl();
+  if (items.length === 0) return [];
+
+  const existing = await prisma.story.aggregate({ _max: { sortOrder: true } });
+  const startOrder = (existing._max.sortOrder ?? -1) + 1;
+  const groupId = `grp_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+
+  const rows = await prisma.$transaction(
+    items.map((data, index) =>
+      prisma.story.create({
+        data: {
+          id: `story_${Date.now()}_${index}_${Math.random().toString(36).slice(2, 8)}`,
+          title: data.title,
+          mediaUrl: data.mediaUrl,
+          durationSec: data.durationSec,
+          sortOrder: startOrder + index,
+          groupId,
+          linkUrl: data.linkUrl || "",
+          active: data.active ?? true,
+        },
+      })
+    )
+  );
+  return rows.map(mapStory);
+}
+
+export async function updateStory(
+  id: string,
+  data: Partial<{
+    title: string;
+    mediaUrl: string;
+    durationSec: number;
+    sortOrder: number;
+    active: boolean;
+    linkUrl: string;
+  }>
+): Promise<Story | null> {
+  requireDatabaseUrl();
+  try {
+    const updated = await prisma.story.update({
+      where: { id },
+      data: {
+        ...(data.title !== undefined ? { title: data.title } : {}),
+        ...(data.mediaUrl !== undefined ? { mediaUrl: data.mediaUrl } : {}),
+        ...(data.durationSec !== undefined
+          ? { durationSec: data.durationSec }
+          : {}),
+        ...(data.sortOrder !== undefined ? { sortOrder: data.sortOrder } : {}),
+        ...(data.active !== undefined ? { active: data.active } : {}),
+        ...(data.linkUrl !== undefined ? { linkUrl: data.linkUrl } : {}),
+      },
+    });
+    return mapStory(updated);
+  } catch {
+    return null;
+  }
+}
+
+export async function deleteStory(id: string): Promise<boolean> {
+  requireDatabaseUrl();
+  try {
+    await prisma.story.delete({ where: { id } });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export async function recordStoryView(id: string): Promise<boolean> {
+  requireDatabaseUrl();
+  try {
+    await prisma.story.update({
+      where: { id },
+      data: { viewCount: { increment: 1 } },
+    });
     return true;
   } catch {
     return false;

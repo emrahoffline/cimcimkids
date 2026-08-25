@@ -2,7 +2,10 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { getAllProducts } from "@/lib/products-server";
-import { ProductCard } from "@/components/ProductCard";
+import { getAllCategories } from "@/lib/categories-server";
+import { getActiveStories } from "@/lib/db";
+import { FeaturedProducts } from "@/components/FeaturedProducts";
+import { StoriesRail } from "@/components/StoriesRail";
 import { BrandName } from "@/components/BrandName";
 import { NewsletterForm } from "@/components/NewsletterForm";
 import { JsonLd } from "@/components/JsonLd";
@@ -34,12 +37,17 @@ export default async function HomePage({ params }: Props) {
   setRequestLocale(locale);
   const t = await getTranslations("home");
   const base = `/${locale}`;
-  const products = await getAllProducts();
+  const [products, categories, stories] = await Promise.all([
+    getAllProducts(),
+    getAllCategories(),
+    getActiveStories(),
+  ]);
 
   return (
     <>
       <JsonLd data={organizationJsonLd()} />
       <JsonLd data={websiteJsonLd()} />
+      <StoriesRail stories={stories} />
       <section className="relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-b from-leaf/15 via-transparent to-transparent" />
         <div className="relative mx-auto flex max-w-3xl flex-col items-center px-4 py-16 text-center sm:px-6 sm:py-24 lg:py-28">
@@ -69,11 +77,7 @@ export default async function HomePage({ params }: Props) {
             {t("featuredDesc")}
           </p>
         </div>
-        <div className="mobile-product-grid">
-          {products.map((p) => (
-            <ProductCard key={p.id} product={p} />
-          ))}
-        </div>
+        <FeaturedProducts products={products} categories={categories} />
         <div className="mt-10 text-center">
           <Link href={`${base}/products`} className="btn-secondary">
             {t("shopNow")}

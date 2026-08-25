@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "Story" ADD COLUMN IF NOT EXISTS "linkUrl" TEXT NOT NULL DEFAULT '';
