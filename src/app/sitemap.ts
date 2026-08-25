@@ -32,7 +32,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     }
   };
 
-  add("", { changeFrequency: "daily", priority: 1 });
+  add("", { changeFrequency: "daily", priority: 1, lastModified: new Date() });
   for (const path of PUBLIC_STATIC_PATHS) {
     add(path, {
       changeFrequency: path === "/products" ? "daily" : "monthly",

@@ -1,15 +1,31 @@
 import createMiddleware from "next-intl/middleware";
 import { NextRequest, NextResponse } from "next/server";
 import { routing } from "./i18n/routing";
+import { isNoIndexPath } from "./lib/robots-policy";
 
 const intlMiddleware = createMiddleware(routing);
 
+function applyRobotsTag(response: NextResponse, pathname: string) {
+  if (isNoIndexPath(pathname)) {
+    response.headers.set("X-Robots-Tag", "noindex, nofollow");
+  }
+  return response;
+}
+
 export default function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+
+  if (pathname.length > 1 && pathname.endsWith("/")) {
+    const url = request.nextUrl.clone();
+    url.pathname = pathname.replace(/\/+$/, "") || "/";
+    return applyRobotsTag(NextResponse.redirect(url, 308), url.pathname);
+  }
+
   if (
-    request.nextUrl.pathname.startsWith("/admin") ||
-    request.nextUrl.pathname.startsWith("/auth")
+    pathname.startsWith("/admin") ||
+    pathname.startsWith("/auth")
   ) {
-    return NextResponse.next();
+    return applyRobotsTag(NextResponse.next(), pathname);
   }
 
   const response = intlMiddleware(request);
@@ -24,11 +40,11 @@ export default function middleware(request: NextRequest) {
       );
       const cookie = response.headers.get("set-cookie");
       if (cookie) redirect.headers.set("set-cookie", cookie);
-      return redirect;
+      return applyRobotsTag(redirect, pathname);
     }
   }
 
-  return response;
+  return applyRobotsTag(response, pathname);
 }
 
 export const config = {

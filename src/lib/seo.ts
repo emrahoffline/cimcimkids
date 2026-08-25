@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import type { Product } from "./types";
 import { getProductDesc, getProductName } from "./product-utils";
 
-/** Production canonical origin — apex (www redirects here). */
-export const SITE_ORIGIN = "https://cimcimkids.com";
+/** Production canonical origin — www (apex redirects here). */
+export const SITE_ORIGIN = "https://www.cimcimkids.com";
 export const SITE_NAME = "Cimcim Kids";
 export const SITE_EMAIL = "info@cimcimkids.com";
 export const DEFAULT_OG_IMAGE = "/products/product-1.png";
@@ -136,6 +136,13 @@ export function noIndexMetadata(
     absoluteTitle: true,
   });
 }
+
+/** Static fallback so client-only pages still emit noindex in HTML. */
+export const NOINDEX_ROBOTS = {
+  index: false,
+  follow: false,
+  googleBot: { index: false, follow: false },
+} as const;
 
 export function productMetaDescription(product: Product, locale: string): string {
   const name = getProductName(product, locale);

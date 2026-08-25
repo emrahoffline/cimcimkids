@@ -3,6 +3,7 @@ import { getMessages, setRequestLocale } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { Nunito, Outfit } from "next/font/google";
 import { routing } from "@/i18n/routing";
+import { SITE_ORIGIN } from "@/lib/seo";
 import { Providers } from "@/components/Providers";
 import { MobileShell } from "@/components/MobileShell";
 import type { Viewport } from "next";
@@ -50,6 +51,14 @@ export default async function LocaleLayout({
 
   return (
     <html lang={locale} className={`${nunito.variable} ${outfit.variable}`}>
+      <head>
+        <link
+          rel="sitemap"
+          type="application/xml"
+          title="Sitemap"
+          href={`${SITE_ORIGIN}/sitemap.xml`}
+        />
+      </head>
       <body className="flex min-h-screen flex-col antialiased">
         <NextIntlClientProvider messages={messages}>
           <Providers>
