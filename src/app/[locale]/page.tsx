@@ -43,7 +43,10 @@ export default async function HomePage({ params }: Props) {
       <section className="relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-b from-leaf/15 via-transparent to-transparent" />
         <div className="relative mx-auto flex max-w-3xl flex-col items-center px-4 py-16 text-center sm:px-6 sm:py-24 lg:py-28">
-          <BrandName className="animate-fade-up font-serif text-4xl font-extrabold tracking-tight sm:text-5xl" />
+          <BrandName
+            textOnly
+            className="animate-fade-up font-serif text-4xl font-extrabold tracking-tight sm:text-5xl"
+          />
           <h1 className="animate-fade-up-delay mt-5 max-w-xl font-serif text-xl font-semibold text-slate-700 sm:text-2xl">
             {t("heroTitle")}
           </h1>
