@@ -90,8 +90,8 @@ export function StoriesRail({ stories }: Props) {
   return (
     <>
       <section className="border-b border-olive/10 bg-white/70" aria-label={t("stories")}>
-        <div className="mx-auto max-w-7xl overflow-x-auto px-4 py-4 [-ms-overflow-style:none] [scrollbar-width:none] sm:px-6 lg:px-8 [&::-webkit-scrollbar]:hidden">
-          <div className="flex min-w-max items-start gap-4">
+        <div className="w-full overflow-x-auto px-4 py-4 [-ms-overflow-style:none] [scrollbar-width:none] sm:px-6 lg:px-8 [&::-webkit-scrollbar]:hidden">
+          <div className="flex min-w-max items-start justify-start gap-4">
             {groups.map((group, index) => {
               const cover = group[0];
               const viewed = group.every((story) => seen.has(story.id));
