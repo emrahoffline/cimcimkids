@@ -5,6 +5,7 @@ import "./admin.css";
 
 export const metadata = {
   title: "CimcimKids Admin",
+  robots: { index: false, follow: false },
 };
 
 export const viewport: Viewport = {
