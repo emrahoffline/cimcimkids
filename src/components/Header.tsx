@@ -18,13 +18,16 @@ export function Header() {
 
   return (
     <header className="sticky top-0 z-40 border-b border-olive/10 bg-cream/85 backdrop-blur-xl safe-top">
-      <div className="mx-auto flex max-w-7xl items-center justify-between gap-2 px-4 py-3 sm:px-6 lg:px-8">
-        <Link href={base} className="flex min-w-0 shrink items-center">
-          <BrandName className="truncate font-serif text-lg font-extrabold tracking-tight sm:text-xl" />
+      <div className="flex w-full items-center justify-between gap-2 px-4 py-3 sm:px-6 lg:px-8">
+        <Link
+          href={base}
+          className="flex min-w-0 shrink-0 items-center justify-start gap-2"
+        >
+          <BrandName className="font-serif text-lg font-extrabold tracking-tight sm:text-xl" />
         </Link>
 
         {/* Desktop actions */}
-        <div className="hidden items-center gap-1 md:flex md:gap-2">
+        <div className="ml-auto hidden items-center gap-1 md:flex md:gap-2">
           <nav className="mr-3 flex items-center gap-1">
             {(
               [
