@@ -3,6 +3,7 @@ import { requireAdminApi } from "@/lib/admin-api";
 import { getProducts, saveProducts } from "@/lib/db";
 import type { Product } from "@/lib/types";
 import { slugify } from "@/lib/products";
+import { roundLira } from "@/lib/product-utils";
 
 export async function GET() {
   const { error } = await requireAdminApi();
@@ -33,7 +34,7 @@ export async function POST(request: Request) {
     id: `prod_${Date.now()}`,
     slug,
     image,
-    price: Number(body.price) || 0,
+    price: roundLira(body.price),
     category: body.category || "",
     nameTr: body.nameTr || "",
     nameEn: body.nameEn || "",
