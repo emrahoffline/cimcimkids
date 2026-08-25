@@ -13,7 +13,15 @@ export function formatPrice(price: number, locale: string) {
     style: "currency",
     currency: "TRY",
     minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
   }).format(price);
+}
+
+/** Storefront and admin prices are whole lira (no kuruş). */
+export function roundLira(value: unknown, fallback = 0): number {
+  const n = Number(value);
+  if (!Number.isFinite(n)) return fallback;
+  return Math.max(0, Math.round(n));
 }
 
 export function slugify(text: string): string {

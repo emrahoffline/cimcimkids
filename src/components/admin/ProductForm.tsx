@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import type { Product } from "@/lib/products";
+import { roundLira } from "@/lib/product-utils";
 import { ImageUpload } from "./ImageUpload";
 import { CategorySelect } from "./CategorySelect";
 
@@ -20,7 +21,7 @@ export function ProductForm({ product }: Props) {
     nameEn: product?.nameEn ?? "",
     descTr: product?.descTr ?? "",
     descEn: product?.descEn ?? "",
-    price: product?.price ?? 0,
+    price: roundLira(product?.price ?? 0),
     category: product?.category ?? "",
     image: product?.image ?? "",
     inStock: product?.inStock ?? true,
@@ -50,7 +51,7 @@ export function ProductForm({ product }: Props) {
     const res = await fetch(url, {
       method,
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(form),
+      body: JSON.stringify({ ...form, price: roundLira(form.price) }),
     });
 
     if (!res.ok) {
@@ -122,10 +123,11 @@ export function ProductForm({ product }: Props) {
             type="number"
             required
             min={0}
+            step={1}
             className="admin-input"
             value={form.price}
             onChange={(e) =>
-              setForm({ ...form, price: Number(e.target.value) })
+              setForm({ ...form, price: roundLira(e.target.value) })
             }
           />
         </div>

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { requireAdminApi } from "@/lib/admin-api";
 import { getProducts, saveProducts } from "@/lib/db";
-import { slugify } from "@/lib/product-utils";
+import { slugify, roundLira } from "@/lib/product-utils";
 
 export async function GET(
   _request: Request,
@@ -53,7 +53,7 @@ export async function PUT(
     ...products[index],
     slug,
     image: nextImage,
-    price: Number(body.price) ?? products[index].price,
+    price: roundLira(body.price, products[index].price),
     category: body.category ?? products[index].category,
     nameTr: body.nameTr ?? products[index].nameTr,
     nameEn: body.nameEn ?? products[index].nameEn,
