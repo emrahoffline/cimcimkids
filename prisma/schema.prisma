@@ -22,6 +22,11 @@ enum OrderStatus {
   cancelled
 }
 
+enum PaymentMethod {
+  bank_transfer
+  card
+}
+
 enum SubscriberSource {
   newsletter
   checkout
@@ -75,23 +80,31 @@ model Customer {
 }
 
 model Order {
-  id               String      @id
-  orderNumber      String      @unique
-  customerEmail    String
-  customerName     String
-  customerPhone    String?
-  total            Float
-  status           OrderStatus @default(pending_payment)
-  shippingAddress  String?
-  adminSeen        Boolean     @default(false)
-  createdAt        DateTime    @default(now())
-  updatedAt        DateTime    @updatedAt
-  items            OrderItem[]
+  id                String        @id
+  orderNumber       String        @unique
+  customerEmail     String
+  customerName      String
+  customerPhone     String?
+  total             Float
+  status            OrderStatus   @default(pending_payment)
+  paymentMethod     PaymentMethod @default(bank_transfer)
+  paymentProvider   String?
+  paymentId         String?
+  paymentToken      String?       @unique
+  paidAt            DateTime?
+  paymentLastFour   String?
+  paymentCardFamily String?
+  shippingAddress   String?
+  adminSeen         Boolean       @default(false)
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+  items             OrderItem[]
 
   @@index([customerEmail])
   @@index([status])
   @@index([createdAt])
   @@index([adminSeen])
+  @@index([paymentId])
 }
 
 model OrderItem {

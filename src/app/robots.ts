@@ -16,6 +16,8 @@ export default function robots(): MetadataRoute.Robots {
           "/en/cart",
           "/tr/checkout",
           "/en/checkout",
+          "/tr/checkout/result",
+          "/en/checkout/result",
           "/tr/favorites",
           "/en/favorites",
           "/tr/account",

@@ -1,14 +1,22 @@
 import { NextResponse } from "next/server";
 import {
   addNewsletterSubscriber,
+  cancelUnpaidOrder,
   createOrder,
   getProducts,
+  saveOrderPaymentToken,
 } from "@/lib/db";
 import {
-  sendNewsletterWelcomeEmail,
   sendOrderNotificationEmail,
 } from "@/lib/email";
 import { getClientIp, rateLimit } from "@/lib/rate-limit";
+import {
+  IyzicoError,
+  getPublicOrigin,
+  initializeCheckoutForm,
+  isCardPaymentEnabled,
+  normalizeGsm,
+} from "@/lib/iyzico";
 import { randomBytes } from "crypto";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -142,6 +150,31 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Tutar limiti aşıldı." }, { status: 400 });
   }
 
+  const phone = isNonEmptyString((body as { phone?: unknown }).phone)
+    ? String((body as { phone: string }).phone).trim().slice(0, 50)
+    : "";
+  if (!phone || !normalizeGsm(phone)) {
+    return NextResponse.json(
+      { error: "Geçerli bir telefon numarası gereklidir." },
+      { status: 400 }
+    );
+  }
+
+  const city = isNonEmptyString((body as { city?: unknown }).city)
+    ? String((body as { city: string }).city).trim().slice(0, 100)
+    : "";
+
+  const paymentMethod =
+    (body as { paymentMethod?: unknown }).paymentMethod === "card"
+      ? "card"
+      : "bank_transfer";
+  if (paymentMethod === "card" && !isCardPaymentEnabled()) {
+    return NextResponse.json(
+      { error: "Kart ile ödeme şu an kullanılamıyor." },
+      { status: 400 }
+    );
+  }
+
   const locale =
     (body as { locale?: unknown }).locale === "en" ? "en" : "tr";
 
@@ -149,17 +182,14 @@ export async function POST(request: Request) {
     orderNumber: makeOrderNumber(),
     customerEmail: emailRaw,
     customerName: name,
-    customerPhone: isNonEmptyString((body as { phone?: unknown }).phone)
-      ? String((body as { phone: string }).phone).slice(0, 50)
-      : undefined,
+    customerPhone: phone,
     items: validatedItems,
     total: serverTotal,
     status: "pending_payment",
+    paymentMethod,
     shippingAddress: address,
   });
 
-  // Marketing: kayıt et ama hoş geldin mailini hemen gönderme (spam / mail bomb riski).
-  // Abone listesine eklenir; kampanya gönderimi admin onaylı süreçle yapılmalı.
   if ((body as { marketingConsent?: unknown }).marketingConsent === true) {
     try {
       await addNewsletterSubscriber({
@@ -169,6 +199,40 @@ export async function POST(request: Request) {
       });
     } catch (err) {
       console.error("[newsletter] checkout abone kaydı başarısız:", err);
+    }
+  }
+
+  if (paymentMethod === "card") {
+    try {
+      const origin = getPublicOrigin();
+      const checkout = await initializeCheckoutForm({
+        order,
+        locale,
+        ip,
+        city: city || "Turkiye",
+        callbackUrl: `${origin}/api/payments/iyzico/callback?locale=${locale}`,
+      });
+      await saveOrderPaymentToken(order.id, checkout.token);
+      return NextResponse.json(
+        {
+          id: order.id,
+          orderNumber: order.orderNumber,
+          total: order.total,
+          status: order.status,
+          paymentMethod,
+          paymentPageUrl: checkout.paymentPageUrl,
+          createdAt: order.createdAt,
+        },
+        { status: 201 }
+      );
+    } catch (err) {
+      await cancelUnpaidOrder(order.id).catch(() => undefined);
+      console.error("[iyzico] Checkout formu başlatılamadı:", err);
+      const message =
+        err instanceof IyzicoError
+          ? err.message
+          : "Kart ödemesi başlatılamadı. Lütfen tekrar deneyin.";
+      return NextResponse.json({ error: message }, { status: 502 });
     }
   }
 
@@ -184,6 +248,7 @@ export async function POST(request: Request) {
       orderNumber: order.orderNumber,
       total: order.total,
       status: order.status,
+      paymentMethod,
       createdAt: order.createdAt,
     },
     { status: 201 }

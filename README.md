@@ -87,4 +87,4 @@ npm run build
 npm start
 ```
 
-Gerçek ödeme için Stripe veya iyzico entegrasyonu eklenebilir.
+Gerçek kart ödemesi için iyzico Checkout Form kullanılır (3D Secure). `IYZICO_API_KEY` ve `IYZICO_SECRET_KEY` tanımlı değilse sitede yalnızca havale/EFT görünür.

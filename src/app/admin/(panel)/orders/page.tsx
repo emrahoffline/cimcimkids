@@ -66,6 +66,7 @@ export default function AdminOrdersPage() {
                   <th>Müşteri</th>
                   <th>Ürünler</th>
                   <th>Tutar</th>
+                  <th>Ödeme</th>
                   <th>Durum</th>
                   <th>Tarih</th>
                 </tr>
@@ -73,7 +74,7 @@ export default function AdminOrdersPage() {
               <tbody>
                 {orders.length === 0 && (
                   <tr>
-                    <td colSpan={6} className="py-8 text-center text-gray-400">
+                    <td colSpan={7} className="py-8 text-center text-gray-400">
                       Henüz sipariş yok
                     </td>
                   </tr>
@@ -108,6 +109,25 @@ export default function AdminOrdersPage() {
                       ))}
                     </td>
                     <td>{formatPrice(order.total, "tr")}</td>
+                    <td className="text-xs text-gray-600">
+                      {order.paymentMethod === "card" ? (
+                        <>
+                          <p>Kart</p>
+                          {order.paymentLastFour ? (
+                            <p className="text-gray-400">
+                              **** {order.paymentLastFour}
+                              {order.paidAt ? " · ödendi" : ""}
+                            </p>
+                          ) : (
+                            <p className="text-gray-400">
+                              {order.paidAt ? "ödendi" : "bekleniyor"}
+                            </p>
+                          )}
+                        </>
+                      ) : (
+                        "Havale/EFT"
+                      )}
+                    </td>
                     <td>
                       <select
                         className="min-h-[40px] rounded-lg border border-gray-200 px-2 py-1.5 text-xs"

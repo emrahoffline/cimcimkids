@@ -7,6 +7,7 @@ import type {
   Category as DbCategory,
   Subscriber as DbSubscriber,
   OrderStatus,
+  PaymentMethod,
   UserRole,
   SubscriberSource,
 } from "@prisma/client";
@@ -52,6 +53,12 @@ export type Order = {
     | "shipped"
     | "delivered"
     | "cancelled";
+  paymentMethod?: "bank_transfer" | "card";
+  paymentProvider?: string;
+  paymentId?: string;
+  paidAt?: string;
+  paymentLastFour?: string;
+  paymentCardFamily?: string;
   createdAt: string;
   shippingAddress?: string;
   adminSeen?: boolean;
@@ -118,6 +125,12 @@ function mapOrder(
     })),
     total: o.total,
     status: o.status,
+    paymentMethod: o.paymentMethod,
+    paymentProvider: o.paymentProvider ?? undefined,
+    paymentId: o.paymentId ?? undefined,
+    paidAt: o.paidAt?.toISOString(),
+    paymentLastFour: o.paymentLastFour ?? undefined,
+    paymentCardFamily: o.paymentCardFamily ?? undefined,
     createdAt: o.createdAt.toISOString(),
     shippingAddress: o.shippingAddress ?? undefined,
     adminSeen: o.adminSeen,
@@ -435,6 +448,7 @@ export async function createOrder(
         customerPhone: order.customerPhone ?? null,
         total: order.total,
         status: order.status as OrderStatus,
+        paymentMethod: (order.paymentMethod ?? "bank_transfer") as PaymentMethod,
         shippingAddress: order.shippingAddress ?? null,
         adminSeen: false,
         items: {
@@ -452,6 +466,116 @@ export async function createOrder(
   });
 
   const mapped = mapOrder(created);
+  const allOrders = await getOrders();
+  await syncAllTimeTotals(allOrders).catch((err) =>
+    console.error("[analytics] Tüm zamanlar toplamı kaydedilemedi:", err)
+  );
+  return mapped;
+}
+
+export async function getOrderByNumber(
+  orderNumber: string
+): Promise<Order | null> {
+  requireDatabaseUrl();
+  const row = await prisma.order.findUnique({
+    where: { orderNumber },
+    include: { items: true },
+  });
+  return row ? mapOrder(row) : null;
+}
+
+export async function getOrderByPaymentToken(
+  token: string
+): Promise<Order | null> {
+  requireDatabaseUrl();
+  const row = await prisma.order.findUnique({
+    where: { paymentToken: token },
+    include: { items: true },
+  });
+  return row ? mapOrder(row) : null;
+}
+
+export async function saveOrderPaymentToken(
+  orderId: string,
+  token: string
+): Promise<void> {
+  requireDatabaseUrl();
+  await prisma.order.update({
+    where: { id: orderId },
+    data: {
+      paymentProvider: "iyzico",
+      paymentToken: token,
+    },
+  });
+}
+
+export async function cancelUnpaidOrder(orderId: string): Promise<void> {
+  requireDatabaseUrl();
+  await prisma.order.updateMany({
+    where: {
+      id: orderId,
+      status: "pending_payment",
+      paidAt: null,
+    },
+    data: { status: "cancelled" },
+  });
+}
+
+export async function markOrderPaid(input: {
+  orderId: string;
+  paymentId: string;
+  lastFour?: string;
+  cardFamily?: string;
+  nextStatus: "confirmed" | "pending";
+}): Promise<Order | null> {
+  requireDatabaseUrl();
+
+  const updated = await prisma.$transaction(async (tx) => {
+    const current = await tx.order.findUnique({
+      where: { id: input.orderId },
+      include: { items: true },
+    });
+    if (!current) return null;
+
+    if (
+      current.status === "confirmed" &&
+      current.paymentId === input.paymentId
+    ) {
+      return current;
+    }
+
+    const unpaid =
+      current.status === "pending_payment" || current.status === "pending";
+    if (!unpaid) return current;
+
+    const next = await tx.order.update({
+      where: { id: input.orderId },
+      data: {
+        status: input.nextStatus,
+        paymentId: input.paymentId,
+        paymentProvider: "iyzico",
+        paidAt: new Date(),
+        paymentLastFour: input.lastFour ?? current.paymentLastFour,
+        paymentCardFamily: input.cardFamily ?? current.paymentCardFamily,
+      },
+      include: { items: true },
+    });
+
+    if (input.nextStatus === "confirmed" && current.status !== "confirmed") {
+      await tx.customer.updateMany({
+        where: { email: current.customerEmail.toLowerCase() },
+        data: {
+          orderCount: { increment: 1 },
+          totalSpent: { increment: current.total },
+        },
+      });
+    }
+
+    return next;
+  });
+
+  if (!updated) return null;
+  const mapped = mapOrder(updated);
   const allOrders = await getOrders();
   await syncAllTimeTotals(allOrders).catch((err) =>
     console.error("[analytics] Tüm zamanlar toplamı kaydedilemedi:", err)
