@@ -147,29 +147,31 @@
     }
   },
   "returns": {
-    "title": "Cancellation & Return Policy",
-    "subtitle": "Customer satisfaction is our priority",
-    "s1title": "Return Period",
-    "s1": "You may exercise your right of withdrawal within 14 days of receiving the product.",
-    "s2title": "Return Conditions",
-    "s2": "The product must be unused, in original packaging, and undamaged.",
-    "s3title": "Cancellation",
-    "s3": "You can cancel your order free of charge before it is shipped.",
-    "s4title": "Refund",
-    "s4": "Refunds are processed within 10 business days after return approval."
+    "title": "Delivery and Return Conditions",
+    "subtitle": "How we ship, deliver, and handle returns",
+    "s1title": "Delivery",
+    "s1": "Orders in Turkey are dispatched and delivered within 2–5 business days after payment confirmation. Shipping is free. Tracking details are emailed and can also be checked on our tracking page.",
+    "s2title": "Return Period",
+    "s2": "You may exercise your right of withdrawal within 14 days of receiving the product.",
+    "s3title": "Return Conditions",
+    "s3": "The product must be unused, in original packaging, and undamaged. Return shipping is paid by the customer for withdrawals; we cover shipping for defective items.",
+    "s4title": "Cancellation",
+    "s4": "You can cancel your order free of charge before it is shipped. Email info@cimcimkids.com to cancel.",
+    "s5title": "Refund",
+    "s5": "Refunds are processed within 10 business days after return approval: card payments via iyzico to the same card, bank transfers to the IBAN you provide."
   },
   "privacy": {
-    "title": "Privacy & Security Policy",
+    "title": "Privacy Agreement",
     "updated": "Last updated: August 2026",
     "intro": "At CimcimKids, we take the security of your personal data seriously.",
     "s1": "Collected data is used only for order processing, account management, customer service, and legal obligations. Details are set out in the KVKK Privacy Notice.",
-    "s2": "Card payments are processed by iyzico with 3D Secure; we never store card numbers. Bank-transfer payments use our IBAN only. Our website and database run on Hetzner infrastructure in Germany / the EU (and, where needed, cloud database providers in the EU/EEA), so your data may be processed abroad for hosting purposes.",
+    "s2": "Card payments are processed by iyzico with 3D Secure; we never store card numbers. Bank-transfer payments use our IBAN only. The site is served over HTTPS (SSL). Our website and database run on Hetzner infrastructure in Germany / the EU (and, where needed, cloud database providers in the EU/EEA), so your data may be processed abroad for hosting purposes.",
     "s3": "Cookies and similar technologies are used to improve site experience and manage sessions; you can control them in browser settings. If you sign in with Google, Google’s own privacy policy also applies."
   },
   "distanceSales": {
     "title": "Distance Sales Agreement",
     "updated": "Last updated: May 2026",
-    "s1": "This agreement is governed by applicable consumer protection laws between CimcimKids and the consumer.",
+    "s1": "This agreement is concluded between the seller CimcimKids and the consumer under applicable consumer protection laws. Seller address: Antalya, Turkey. Contact: info@cimcimkids.com — +90 533 700 73 18.",
     "s2": "Order confirmation is sent by email. Right of withdrawal can be exercised within 14 days.",
     "s3": "Product prices include VAT. Payment is by credit/debit card (iyzico) or bank transfer; shipping is free."
   },
@@ -250,6 +252,11 @@
     "kvkkLink": "KVKK Privacy Notice",
     "kvkkRequired": "You must accept the KVKK notice to continue.",
     "marketingConsent": "I agree to receive campaigns, new product news, and offers by email. (Optional)",
+    "legalNotice": "By placing an order you also accept:",
+    "distanceSalesLink": "Distance Sales Agreement",
+    "returnsLink": "Delivery and Return Conditions",
+    "iyzicoLogoAlt": "Pay with iyzico",
+    "paymentLogosAlt": "Visa, Mastercard and Pay with iyzico",
     "error": "Could not place order. Please try again."
   },
   "auth": {
@@ -296,11 +303,13 @@
     "shop": "Shop",
     "support": "Support",
     "legal": "Legal",
-    "privacy": "Privacy Policy",
+    "privacy": "Privacy Agreement",
     "distanceSales": "Distance Sales Agreement",
     "kvkk": "KVKK",
-    "returns": "Returns & Cancellation",
+    "returns": "Delivery & Returns",
     "rights": "All rights reserved.",
-    "tagline": "Comfortable, stylish kidswear"
+    "tagline": "Comfortable, stylish kidswear",
+    "securePayment": "Secure payment",
+    "paymentLogosAlt": "Visa, Mastercard and Pay with iyzico"
   }
 }

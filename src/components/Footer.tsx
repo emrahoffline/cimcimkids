@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useTranslations, useLocale } from "next-intl";
 import { BrandName } from "./BrandName";
+import { PaymentLogos } from "./PaymentLogos";
 
 export function Footer() {
   const t = useTranslations("footer");
@@ -99,8 +100,16 @@ export function Footer() {
           </div>
         </div>
 
-        <div className="mt-10 border-t border-bamboo/20 pt-6 text-center text-xs text-slate-400">
-          © {new Date().getFullYear()} CimcimKids. {t("rights")}
+        <div className="mt-10 border-t border-bamboo/20 pt-6">
+          <div className="flex flex-col items-center gap-3">
+            <p className="text-xs font-semibold uppercase tracking-wider text-slate-400">
+              {t("securePayment")}
+            </p>
+            <PaymentLogos variant="band" alt={t("paymentLogosAlt")} />
+          </div>
+          <p className="mt-6 text-center text-xs text-slate-400">
+            © {new Date().getFullYear()} CimcimKids. {t("rights")}
+          </p>
         </div>
       </div>
     </footer>

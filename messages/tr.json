@@ -147,29 +147,31 @@
     }
   },
   "returns": {
-    "title": "İptal ve İade Koşulları",
-    "subtitle": "Müşteri memnuniyeti önceliğimizdir",
-    "s1title": "İade Süresi",
-    "s1": "Ürünü teslim aldığınız tarihten itibaren 14 gün içinde cayma hakkınızı kullanabilirsiniz.",
-    "s2title": "İade Koşulları",
-    "s2": "Ürün kullanılmamış, orijinal ambalajında ve hasarsız olmalıdır.",
-    "s3title": "İptal",
-    "s3": "Kargoya verilmeden önce siparişinizi ücretsiz iptal edebilirsiniz.",
-    "s4title": "Geri Ödeme",
-    "s4": "İade onaylandıktan sonra 10 iş günü içinde ödemeniz iade edilir."
+    "title": "Teslimat ve İade Şartları",
+    "subtitle": "Siparişlerinizin kargolanması, teslimatı ve iade koşulları",
+    "s1title": "Teslimat",
+    "s1": "Türkiye içi siparişler ödeme onayından sonra 2–5 iş günü içinde kargoya verilir ve teslim edilir. Kargo ücretsizdir. Takip bilgisi e-posta ile paylaşılır; kargo takip sayfamızdan da sorgulayabilirsiniz.",
+    "s2title": "İade Süresi",
+    "s2": "Ürünü teslim aldığınız tarihten itibaren 14 gün içinde cayma hakkınızı kullanabilirsiniz.",
+    "s3title": "İade Koşulları",
+    "s3": "Ürün kullanılmamış, orijinal ambalajında ve hasarsız olmalıdır. İade kargo ücreti, cayma hakkı kapsamında tüketiciye aittir; ayıplı üründe kargo tarafımıza aittir.",
+    "s4title": "İptal",
+    "s4": "Kargoya verilmeden önce siparişinizi ücretsiz iptal edebilirsiniz. İptal için info@cimcimkids.com adresine yazmanız yeterlidir.",
+    "s5title": "Geri Ödeme",
+    "s5": "İade onaylandıktan sonra 10 iş günü içinde ödemeniz, kart ödemelerinde iyzico üzerinden aynı karta, havale/EFT ödemelerinde bildirdiğiniz IBAN’a iade edilir."
   },
   "privacy": {
-    "title": "Gizlilik ve Güvenlik Politikası",
+    "title": "Gizlilik Sözleşmesi",
     "updated": "Son güncelleme: Ağustos 2026",
     "intro": "CimcimKids olarak kişisel verilerinizin güvenliğine önem veriyoruz.",
     "s1": "Toplanan veriler yalnızca sipariş işleme, hesap yönetimi, müşteri hizmetleri ve yasal yükümlülükler için kullanılır. Ayrıntılar KVKK Aydınlatma Metni’nde yer alır.",
-    "s2": "Kart ile ödemede kart numarası sitemizde saklanmaz; işlem iyzico altyapısı ve 3D Secure ile yürütülür. Havale/EFT için yalnızca IBAN bilgimiz paylaşılır. Web sitesi ve veritabanı altyapımız Almanya / Avrupa Birliği’nde yerleşik Hetzner (ve gerektiğinde AB/AEA’daki bulut veritabanı sağlayıcıları) üzerinde barındırılır; bu nedenle verileriniz teknik olarak yurt dışında işlenebilir.",
+    "s2": "Kart ile ödemede kart numarası sitemizde saklanmaz; işlem iyzico altyapısı ve 3D Secure ile yürütülür. Havale/EFT için yalnızca IBAN bilgimiz paylaşılır. Site HTTPS (SSL) ile sunulur. Web sitesi ve veritabanı altyapımız Almanya / Avrupa Birliği’nde yerleşik Hetzner (ve gerektiğinde AB/AEA’daki bulut veritabanı sağlayıcıları) üzerinde barındırılır; bu nedenle verileriniz teknik olarak yurt dışında işlenebilir.",
     "s3": "Çerezler ve benzeri teknolojiler site deneyimini iyileştirmek ve oturum yönetimi için kullanılır; tarayıcı ayarlarından yönetebilirsiniz. Google ile giriş kullanıldığında Google’ın kendi gizlilik politikası da geçerlidir."
   },
   "distanceSales": {
     "title": "Mesafeli Satış Sözleşmesi",
     "updated": "Son güncelleme: Mayıs 2026",
-    "s1": "Bu sözleşme, CimcimKids ile tüketici arasında 6502 sayılı Tüketicinin Korunması Hakkında Kanun kapsamında düzenlenmiştir.",
+    "s1": "Bu sözleşme, satıcı CimcimKids ile tüketici arasında 6502 sayılı Tüketicinin Korunması Hakkında Kanun kapsamında düzenlenmiştir. Satıcı adresi: Antalya, Türkiye. İletişim: info@cimcimkids.com — 0533 700 73 18.",
     "s2": "Sipariş onayı e-posta ile bildirilir. Cayma hakkı 14 gün içinde kullanılabilir.",
     "s3": "Ürün fiyatları KDV dahildir. Ödeme kredi/banka kartı (iyzico) veya havale/EFT ile yapılır; kargo ücretsizdir."
   },
@@ -250,6 +252,11 @@
     "kvkkLink": "KVKK Aydınlatma Metni",
     "kvkkRequired": "Devam etmek için KVKK metnini onaylamanız gerekmektedir.",
     "marketingConsent": "Kampanya, yeni ürün ve fırsat bilgilendirmelerinin e-posta adresime gönderilmesini kabul ediyorum. (İsteğe bağlı)",
+    "legalNotice": "Siparişi tamamlayarak şu metinleri de kabul etmiş olursunuz:",
+    "distanceSalesLink": "Mesafeli Satış Sözleşmesi",
+    "returnsLink": "Teslimat ve İade Şartları",
+    "iyzicoLogoAlt": "iyzico ile Öde",
+    "paymentLogosAlt": "Visa, Mastercard ve iyzico ile Öde",
     "error": "Sipariş oluşturulamadı. Lütfen tekrar deneyin."
   },
   "auth": {
@@ -296,11 +303,13 @@
     "shop": "Mağaza",
     "support": "Destek",
     "legal": "Yasal",
-    "privacy": "Gizlilik Politikası",
+    "privacy": "Gizlilik Sözleşmesi",
     "distanceSales": "Mesafeli Satış Sözleşmesi",
     "kvkk": "KVKK",
-    "returns": "İptal ve İade",
+    "returns": "Teslimat ve İade",
     "rights": "Tüm hakları saklıdır.",
-    "tagline": "Rahat ve şık çocuk giyim"
+    "tagline": "Rahat ve şık çocuk giyim",
+    "securePayment": "Güvenli ödeme",
+    "paymentLogosAlt": "Visa, Mastercard ve iyzico ile Öde"
   }
 }

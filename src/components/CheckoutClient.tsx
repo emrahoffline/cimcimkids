@@ -8,6 +8,7 @@ import { CreditCard, Landmark } from "lucide-react";
 import { useCartStore, cartTotal } from "@/store/cart";
 import { formatPrice } from "@/lib/products";
 import { STORE_CONFIG, formatIban } from "@/lib/store-config";
+import { PaymentLogos } from "./PaymentLogos";
 
 type PaymentMethod = "card" | "bank_transfer";
 
@@ -241,6 +242,12 @@ export function CheckoutClient({ cardEnabled }: Props) {
                     <span className="mt-1 block text-sm text-olive/70">
                       {t("payCardHelp")}
                     </span>
+                    <span className="mt-2 block">
+                      <PaymentLogos
+                        variant="iyzico"
+                        alt={t("iyzicoLogoAlt")}
+                      />
+                    </span>
                   </span>
                 </label>
                 <label
@@ -271,6 +278,14 @@ export function CheckoutClient({ cardEnabled }: Props) {
             ) : (
               <p className="text-sm text-olive/70">{t("bankTransferInfo")}</p>
             )}
+
+            <div className="pt-1">
+              <PaymentLogos
+                variant="band"
+                alt={t("paymentLogosAlt")}
+                className="h-7 w-auto max-w-full"
+              />
+            </div>
 
             {paymentMethod === "bank_transfer" ? (
               <div className="rounded-lg bg-bamboo/10 p-3 text-sm">
@@ -323,6 +338,25 @@ export function CheckoutClient({ cardEnabled }: Props) {
             />
             <span>{t("marketingConsent")}</span>
           </label>
+
+          <p className="text-xs leading-relaxed text-olive/60">
+            {t("legalNotice")}{" "}
+            <Link
+              href={`${base}/distance-sales`}
+              target="_blank"
+              className="text-bamboo underline"
+            >
+              {t("distanceSalesLink")}
+            </Link>
+            {" · "}
+            <Link
+              href={`${base}/returns`}
+              target="_blank"
+              className="text-bamboo underline"
+            >
+              {t("returnsLink")}
+            </Link>
+          </p>
         </div>
 
         <div className="card hidden h-fit lg:block">
