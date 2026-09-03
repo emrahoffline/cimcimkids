@@ -12,6 +12,14 @@ function escapeHtml(input: string): string {
     .replaceAll("'", "&#39;");
 }
 
+export function isSmtpConfigured() {
+  return Boolean(
+    process.env.SMTP_HOST?.trim() &&
+      process.env.SMTP_USER?.trim() &&
+      process.env.SMTP_PASS?.trim()
+  );
+}
+
 function getTransporter() {
   const host = process.env.SMTP_HOST?.trim();
   const port = Number(process.env.SMTP_PORT ?? "587");
@@ -24,6 +32,11 @@ function getTransporter() {
       user: Boolean(user),
       pass: Boolean(pass),
     });
+    if (host && user && !pass) {
+      console.warn(
+        "[email] SMTP_PASS boş. Gmail/Workspace için uygulama şifresi gerekli."
+      );
+    }
     return null;
   }
 

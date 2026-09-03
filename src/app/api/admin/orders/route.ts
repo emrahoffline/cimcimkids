@@ -45,7 +45,10 @@ export async function PATCH(request: Request) {
       const sent = await sendCustomerPaymentConfirmationEmail(order);
       if (!sent) {
         return NextResponse.json(
-          { error: "E-posta gönderilemedi. SMTP ayarlarını kontrol edin." },
+          {
+            error:
+              "E-posta gönderilemedi. Gmail SMTP uygulama şifresi (SMTP_PASS) tanımlı değil.",
+          },
           { status: 503 }
         );
       }

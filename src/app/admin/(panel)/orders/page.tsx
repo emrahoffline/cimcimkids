@@ -18,6 +18,7 @@ const statuses = [
 
 export default function AdminOrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
+  const [smtpConfigured, setSmtpConfigured] = useState<boolean | null>(null);
   const { markAllSeen, refresh: refreshNotifications } = useAdminNotifications();
 
   const load = async () => {
@@ -30,6 +31,15 @@ export default function AdminOrdersPage() {
 
     async function init() {
       await load();
+      try {
+        const statusRes = await fetch("/api/admin/email-status");
+        if (statusRes.ok) {
+          const data = (await statusRes.json()) as { configured?: boolean };
+          if (active) setSmtpConfigured(Boolean(data.configured));
+        }
+      } catch {
+        /* banner optional */
+      }
       if (!active) return;
       await markAllSeen();
       refreshNotifications();
@@ -71,6 +81,13 @@ export default function AdminOrdersPage() {
     <>
       <AdminHeader title="Siparişler" />
       <main className="admin-main">
+        {smtpConfigured === false && (
+          <div className="mb-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+            Sipariş mailleri gönderilemiyor: sunucuda Gmail SMTP şifresi
+            (uygulama şifresi) tanımlı değil. Müşteriye ürün özeti ancak bu
+            ayar eklendikten sonra gider.
+          </div>
+        )}
         <div className="admin-card overflow-hidden">
           <div className="admin-table-wrap">
             <table className="admin-table w-full min-w-[960px]">
