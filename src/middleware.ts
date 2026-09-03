@@ -2,9 +2,31 @@ import createMiddleware from "next-intl/middleware";
 import { NextRequest, NextResponse } from "next/server";
 import { routing } from "./i18n/routing";
 
+const LEGAL_ALIASES: Record<string, string> = {
+  "/hakkimizda": "/tr/about",
+  "/iletisim": "/tr/contact",
+  "/gizlilik": "/tr/privacy",
+  "/gizlilik-sozlesmesi": "/tr/privacy",
+  "/gizlilik-politikasi": "/tr/privacy",
+  "/mesafeli-satis": "/tr/distance-sales",
+  "/mesafeli-satis-sozlesmesi": "/tr/distance-sales",
+  "/teslimat": "/tr/returns",
+  "/teslimat-ve-iade": "/tr/returns",
+  "/teslimat-ve-iade-sartlari": "/tr/returns",
+  "/iade": "/tr/returns",
+  "/iptal-ve-iade": "/tr/returns",
+};
+
 const intlMiddleware = createMiddleware(routing);
 
 export default function middleware(request: NextRequest) {
+  const alias = LEGAL_ALIASES[request.nextUrl.pathname.toLowerCase()];
+  if (alias) {
+    const url = request.nextUrl.clone();
+    url.pathname = alias;
+    return NextResponse.redirect(url, 308);
+  }
+
   if (
     request.nextUrl.pathname.startsWith("/admin") ||
     request.nextUrl.pathname.startsWith("/auth")

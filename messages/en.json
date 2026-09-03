@@ -107,7 +107,7 @@
     "send": "Send",
     "success": "Message received. We'll get back to you soon.",
     "address": "Address",
-    "addressValue": "Antalya, Turkey",
+    "addressValue": "Akbük Mah. 5932 Cad. Rüyamkent Sitesi No: 7/4 Didim / Aydın",
     "hours": "Business Hours",
     "hoursValue": "Mon–Sat 09:00–18:00"
   },
@@ -171,7 +171,7 @@
   "distanceSales": {
     "title": "Distance Sales Agreement",
     "updated": "Last updated: May 2026",
-    "s1": "This agreement is concluded between the seller CimcimKids and the consumer under applicable consumer protection laws. Seller address: Antalya, Turkey. Contact: info@cimcimkids.com — +90 533 700 73 18.",
+    "s1": "This agreement is concluded between seller Nuriye Kostak (CimcimKids, sole proprietorship) and the consumer under Law No. 6502. Seller address: Akbük Mah. 5932 Cad. Rüyamkent Sitesi No: 7/4 Didim / Aydın. Didim Tax Office, tax ID 1630080944. Contact: efruzebendes@hotmail.com — +90 533 700 73 18.",
     "s2": "Order confirmation is sent by email. Right of withdrawal can be exercised within 14 days.",
     "s3": "Product prices include VAT. Payment is by credit/debit card (iyzico) or bank transfer; shipping is free."
   },
@@ -180,7 +180,7 @@
     "updated": "Last updated: August 2026",
     "intro": "Under the Turkish Personal Data Protection Law No. 6698 (\"KVKK\"), we inform you about how CimcimKids processes your personal data.",
     "s1title": "1. Data Controller",
-    "s1": "Data controller: CimcimKids. Address: Antalya, Turkey. Contact: info@cimcimkids.com — Phone: +90 533 700 73 18",
+    "s1": "Data controller: Nuriye Kostak (CimcimKids, sole proprietorship). Didim Tax Office, TIN 1630080944. Address: Akbük Mah. 5932 Cad. Rüyamkent Sitesi No: 7/4 Didim / Aydın. Contact: efruzebendes@hotmail.com — Phone: +90 533 700 73 18",
     "s2title": "2. Processed Personal Data",
     "s2": "Identity data (name, surname), contact data (email, phone, address), order and transaction data (products, amount, order number), account and session data, customer transaction history; and, if you opt in, newsletter subscription data.",
     "s3title": "3. Purposes of Processing",

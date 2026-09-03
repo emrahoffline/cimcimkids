@@ -31,7 +31,7 @@ export function Header() {
                 { href: "", key: "home" },
                 { href: "/about", key: "about" },
                 { href: "/products", key: "products" },
-                { href: "/contact", key: "contact" },
+                { href: "#iletisim", key: "contact" },
               ] as const
             ).map(({ href, key }) => (
               <Link
