@@ -8,6 +8,7 @@ import {
 } from "@/lib/db";
 import {
   sendOrderNotificationEmail,
+  sendCustomerPaymentConfirmationEmail,
 } from "@/lib/email";
 import { getClientIp, rateLimit } from "@/lib/rate-limit";
 import {
@@ -278,6 +279,14 @@ export async function POST(request: Request) {
     await sendOrderNotificationEmail(order);
   } catch (err) {
     console.error("[email] Sipariş bildirimi gönderilemedi:", err);
+  }
+
+  if (paymentMethod === "bank_transfer") {
+    try {
+      await sendCustomerPaymentConfirmationEmail(order);
+    } catch (err) {
+      console.error("[email] Müşteri sipariş maili gönderilemedi:", err);
+    }
   }
 
   return NextResponse.json(

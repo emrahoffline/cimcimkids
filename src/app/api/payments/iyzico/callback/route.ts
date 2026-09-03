@@ -9,7 +9,7 @@ import {
   markOrderPaid,
   type Order,
 } from "@/lib/db";
-import { sendOrderNotificationEmail } from "@/lib/email";
+import { sendOrderNotificationEmail, sendCustomerPaymentConfirmationEmail } from "@/lib/email";
 import { getClientIp, rateLimit } from "@/lib/rate-limit";
 import { SITE_ORIGIN } from "@/lib/seo";
 
@@ -29,6 +29,14 @@ function resultUrl(
 
 function parseLocale(value: string | null): "tr" | "en" {
   return value === "en" ? "en" : "tr";
+}
+
+async function notifyCustomerPaid(order: Order) {
+  try {
+    await sendCustomerPaymentConfirmationEmail(order);
+  } catch (err) {
+    console.error("[email] Müşteri sipariş maili gönderilemedi:", err);
+  }
 }
 
 async function notifyPaid(order: Order) {
@@ -127,6 +135,7 @@ export async function POST(request: Request) {
   }
 
   const nextStatus = fraud === 0 ? "pending" : "confirmed";
+  const firstPayment = order.status === "pending_payment";
   const updated = await markOrderPaid({
     orderId: order.id,
     paymentId: String(retrieved.paymentId),
@@ -135,8 +144,11 @@ export async function POST(request: Request) {
     nextStatus,
   });
 
-  if (updated && nextStatus === "confirmed") {
-    await notifyPaid(updated);
+  if (updated && firstPayment) {
+    await notifyCustomerPaid(updated);
+    if (nextStatus === "confirmed") {
+      await notifyPaid(updated);
+    }
   }
 
   return NextResponse.redirect(

@@ -53,6 +53,20 @@ export default function AdminOrdersPage() {
     refreshNotifications();
   };
 
+  const resendEmail = async (id: string) => {
+    const res = await fetch("/api/admin/orders", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id, resendEmail: true }),
+    });
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      window.alert(data.error || "E-posta gönderilemedi.");
+      return;
+    }
+    window.alert("Sipariş maili müşteriye gönderildi.");
+  };
+
   return (
     <>
       <AdminHeader title="Siparişler" />
@@ -144,6 +158,13 @@ export default function AdminOrdersPage() {
                           </option>
                         ))}
                       </select>
+                      <button
+                        type="button"
+                        className="mt-1 block text-xs text-olive underline"
+                        onClick={() => resendEmail(order.id)}
+                      >
+                        Mail gönder
+                      </button>
                     </td>
                     <td className="whitespace-nowrap text-gray-400">
                       {new Date(order.createdAt).toLocaleString("tr-TR")}
