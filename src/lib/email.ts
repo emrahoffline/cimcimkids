@@ -107,6 +107,128 @@ export async function sendOrderNotificationEmail(order: Order) {
   return true;
 }
 
+function formatTry(amount: number) {
+  return new Intl.NumberFormat("tr-TR", {
+    style: "currency",
+    currency: "TRY",
+    minimumFractionDigits: 0,
+  }).format(amount);
+}
+
+function paymentLabel(order: Order) {
+  const extra = order as Order & {
+    paymentMethod?: string;
+    giftCardAmount?: number;
+  };
+  if ((extra.giftCardAmount ?? 0) > 0 && extra.paymentMethod !== "card") {
+    if (order.total <= 0) return "Hediye kartı";
+  }
+  if (extra.paymentMethod === "card") return "Kredi / banka kartı";
+  if (order.total <= 0) return "Hediye kartı";
+  return "Havale / EFT";
+}
+
+export async function sendCustomerPaymentConfirmationEmail(order: Order) {
+  const transporter = getTransporter();
+  const to = order.customerEmail?.trim();
+  if (!transporter || !to) {
+    console.warn(
+      "[email] SMTP yok veya müşteri e-postası boş — ödeme onay maili gönderilmedi."
+    );
+    return false;
+  }
+
+  const from = process.env.SMTP_FROM ?? `CimcimKids <${process.env.SMTP_USER}>`;
+  const origin = (
+    process.env.NEXTAUTH_URL?.trim() || "https://www.cimcimkids.com"
+  ).replace(/\/$/, "");
+  const extra = order as Order & {
+    giftCardAmount?: number;
+    giftCardCode?: string;
+    subtotal?: number;
+  };
+  const paidAmount = extra.subtotal ?? order.total;
+  const itemsHtml = order.items
+    .map(
+      (item) =>
+        `<tr>
+          <td style="padding:8px;border-bottom:1px solid #eee">${escapeHtml(item.name)}</td>
+          <td style="padding:8px;border-bottom:1px solid #eee;text-align:center">${item.quantity}</td>
+          <td style="padding:8px;border-bottom:1px solid #eee;text-align:right">${escapeHtml(formatTry(item.price * item.quantity))}</td>
+        </tr>`
+    )
+    .join("");
+
+  const subject =
+    `Ödemeniz alındı — ${order.orderNumber} (${formatTry(order.total)})`.replaceAll(
+      /[\r\n]+/g,
+      " "
+    );
+
+  await transporter.sendMail({
+    from,
+    to,
+    subject,
+    html: `
+      <div style="font-family:sans-serif;max-width:600px;margin:0 auto;color:#334155">
+        <h2 style="color:#ff8a65;margin-bottom:8px">CimcimKids</h2>
+        <p>Merhaba ${escapeHtml(order.customerName)},</p>
+        <p>Siparişinizin ödemesi alındı. Siparişiniz hazırlanmaya başlanacak.</p>
+        <p>
+          <strong>Sipariş no:</strong> ${escapeHtml(order.orderNumber)}<br/>
+          <strong>Ödeme yöntemi:</strong> ${escapeHtml(paymentLabel(order))}<br/>
+          <strong>Ödenen tutar:</strong> ${escapeHtml(formatTry(order.total))}
+        </p>
+        ${
+          extra.giftCardAmount
+            ? `<p>Ara toplam: ${escapeHtml(formatTry(paidAmount))}<br/>Hediye kartı${extra.giftCardCode ? ` (${escapeHtml(extra.giftCardCode)})` : ""}: −${escapeHtml(formatTry(extra.giftCardAmount))}</p>`
+            : ""
+        }
+        <table style="width:100%;border-collapse:collapse;margin:16px 0">
+          <thead>
+            <tr style="background:#fff3eb">
+              <th style="padding:8px;text-align:left">Ürün</th>
+              <th style="padding:8px;text-align:center">Adet</th>
+              <th style="padding:8px;text-align:right">Tutar</th>
+            </tr>
+          </thead>
+          <tbody>${itemsHtml}</tbody>
+        </table>
+        <p><strong>Teslimat adresi:</strong><br/>${escapeHtml(order.shippingAddress ?? "—")}</p>
+        <p>
+          Siparişinizi takip etmek için:
+          <a href="${origin}/tr/tracking" style="color:#4a6741">${origin}/tr/tracking</a>
+        </p>
+        <p style="margin-top:24px">Sevgilerle,<br/><strong>CimcimKids</strong></p>
+      </div>
+    `,
+    text: [
+      `Merhaba ${order.customerName},`,
+      "",
+      "Siparişinizin ödemesi alındı.",
+      `Sipariş no: ${order.orderNumber}`,
+      `Ödeme yöntemi: ${paymentLabel(order)}`,
+      `Ödenen tutar: ${formatTry(order.total)}`,
+      extra.giftCardAmount
+        ? `Hediye kartı: −${formatTry(extra.giftCardAmount)}`
+        : "",
+      "",
+      ...order.items.map(
+        (i) => `${i.name} x${i.quantity} = ${formatTry(i.price * i.quantity)}`
+      ),
+      "",
+      `Teslimat adresi: ${order.shippingAddress ?? "—"}`,
+      `Takip: ${origin}/tr/tracking`,
+      "",
+      "Sevgilerle, CimcimKids",
+    ]
+      .filter((line) => line !== "")
+      .join("\n"),
+  });
+
+  return true;
+}
+
 export async function sendNewsletterWelcomeEmail(
   email: string,
   locale: string = "tr"

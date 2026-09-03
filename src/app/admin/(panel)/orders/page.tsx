@@ -1,10 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { AdminHeader } from "@/components/admin/AdminHeader";
 import type { Order } from "@/lib/db";
 import { formatPrice } from "@/lib/products";
 import { useAdminNotifications } from "@/components/admin/useAdminNotifications";
+import { adminCustomerPath } from "@/lib/contact-links";
 
 const statuses = [
   { value: "pending_payment", label: "Ödeme Bekleniyor" },
@@ -59,11 +61,12 @@ export default function AdminOrdersPage() {
       <main className="admin-main">
         <div className="admin-card overflow-hidden">
           <div className="admin-table-wrap">
-            <table className="admin-table w-full min-w-[720px]">
+            <table className="admin-table w-full min-w-[860px]">
               <thead>
                 <tr>
                   <th>Sipariş No</th>
                   <th>Müşteri</th>
+                  <th>Adres</th>
                   <th>Ürünler</th>
                   <th>Tutar</th>
                   <th>Durum</th>
@@ -73,7 +76,7 @@ export default function AdminOrdersPage() {
               <tbody>
                 {orders.length === 0 && (
                   <tr>
-                    <td colSpan={6} className="py-8 text-center text-gray-400">
+                    <td colSpan={7} className="py-8 text-center text-gray-400">
                       Henüz sipariş yok
                     </td>
                   </tr>
@@ -94,11 +97,21 @@ export default function AdminOrdersPage() {
                       )}
                     </td>
                     <td>
-                      <p>{order.customerName}</p>
+                      <p>
+                        <Link
+                          href={adminCustomerPath(order.customerEmail)}
+                          className="font-medium text-olive hover:underline"
+                        >
+                          {order.customerName}
+                        </Link>
+                      </p>
                       <p className="text-xs text-gray-400">{order.customerEmail}</p>
                       {order.customerPhone && (
                         <p className="text-xs text-gray-400">{order.customerPhone}</p>
                       )}
+                    </td>
+                    <td className="max-w-[18rem] whitespace-pre-wrap text-xs text-gray-700">
+                      {order.shippingAddress || "—"}
                     </td>
                     <td className="text-xs">
                       {order.items.map((i) => (

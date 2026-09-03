@@ -8,6 +8,7 @@ export type AdminNotificationOrder = {
   customerName: string;
   customerEmail: string;
   customerPhone?: string;
+  shippingAddress?: string;
   total: number;
   status: string;
   createdAt: string;

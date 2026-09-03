@@ -4,9 +4,11 @@ import {
   createOrder,
   getProducts,
 } from "@/lib/db";
+import { upsertShopperState } from "@/lib/shopper-state";
 import {
   sendNewsletterWelcomeEmail,
   sendOrderNotificationEmail,
+  sendCustomerPaymentConfirmationEmail,
 } from "@/lib/email";
 import { getClientIp, rateLimit } from "@/lib/rate-limit";
 import { randomBytes } from "crypto";
@@ -158,6 +160,16 @@ export async function POST(request: Request) {
     shippingAddress: address,
   });
 
+  try {
+    await upsertShopperState({
+      email: emailRaw,
+      cart: [],
+      favorites: (body as { favorites?: unknown }).favorites,
+    });
+  } catch (err) {
+    console.error("[shopper] sipariş anı favori kaydı başarısız:", err);
+  }
+
   // Marketing: kayıt et ama hoş geldin mailini hemen gönderme (spam / mail bomb riski).
   // Abone listesine eklenir; kampanya gönderimi admin onaylı süreçle yapılmalı.
   if ((body as { marketingConsent?: unknown }).marketingConsent === true) {
@@ -176,6 +188,14 @@ export async function POST(request: Request) {
     await sendOrderNotificationEmail(order);
   } catch (err) {
     console.error("[email] Sipariş bildirimi gönderilemedi:", err);
+  }
+
+  if (order.status === "confirmed" || order.total <= 0) {
+    try {
+      await sendCustomerPaymentConfirmationEmail(order);
+    } catch (err) {
+      console.error("[email] Müşteri ödeme onay maili gönderilemedi:", err);
+    }
   }
 
   return NextResponse.json(
