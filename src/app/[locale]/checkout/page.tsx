@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useTranslations, useLocale } from "next-intl";
 import { useSession } from "next-auth/react";
 import { useCartStore, cartTotal } from "@/store/cart";
+import { useFavoritesStore } from "@/store/favorites";
 import { formatPrice } from "@/lib/products";
 import { STORE_CONFIG, formatIban } from "@/lib/store-config";
 
@@ -14,6 +15,7 @@ export default function CheckoutPage() {
   const locale = useLocale();
   const { data: session } = useSession();
   const { items, clearCart } = useCartStore();
+  const favorites = useFavoritesStore((s) => s.items);
   const [done, setDone] = useState(false);
   const [orderNumber, setOrderNumber] = useState("");
   const [loading, setLoading] = useState(false);
@@ -73,6 +75,7 @@ export default function CheckoutPage() {
         marketingConsent: form.marketingConsent,
         locale,
         items: orderItems,
+        favorites,
       }),
     });
 

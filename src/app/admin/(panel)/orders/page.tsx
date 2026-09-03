@@ -1,10 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { AdminHeader } from "@/components/admin/AdminHeader";
 import type { Order } from "@/lib/db";
 import { formatPrice } from "@/lib/products";
 import { useAdminNotifications } from "@/components/admin/useAdminNotifications";
+import { adminCustomerPath } from "@/lib/contact-links";
 
 const statuses = [
   { value: "pending_payment", label: "Ödeme Bekleniyor" },
@@ -95,7 +97,14 @@ export default function AdminOrdersPage() {
                       )}
                     </td>
                     <td>
-                      <p>{order.customerName}</p>
+                      <p>
+                        <Link
+                          href={adminCustomerPath(order.customerEmail)}
+                          className="font-medium text-olive hover:underline"
+                        >
+                          {order.customerName}
+                        </Link>
+                      </p>
                       <p className="text-xs text-gray-400">{order.customerEmail}</p>
                       {order.customerPhone && (
                         <p className="text-xs text-gray-400">{order.customerPhone}</p>

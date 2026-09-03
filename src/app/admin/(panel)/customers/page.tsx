@@ -1,9 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { AdminHeader } from "@/components/admin/AdminHeader";
 import type { Customer } from "@/lib/db";
 import { formatPrice } from "@/lib/products";
+import { adminCustomerPath } from "@/lib/contact-links";
 
 export default function AdminCustomersPage() {
   const [customers, setCustomers] = useState<Customer[]>([]);
@@ -41,8 +43,22 @@ export default function AdminCustomersPage() {
                 )}
                 {customers.map((c) => (
                   <tr key={c.id}>
-                    <td className="font-medium">{c.name ?? "—"}</td>
-                    <td>{c.email}</td>
+                    <td className="font-medium">
+                      <Link
+                        href={adminCustomerPath(c.email)}
+                        className="text-olive hover:underline"
+                      >
+                        {c.name ?? "—"}
+                      </Link>
+                    </td>
+                    <td>
+                      <a
+                        href={`mailto:${c.email}`}
+                        className="text-olive hover:underline"
+                      >
+                        {c.email}
+                      </a>
+                    </td>
                     <td>{c.orderCount}</td>
                     <td className="whitespace-nowrap">
                       {formatPrice(c.totalSpent, "tr")}

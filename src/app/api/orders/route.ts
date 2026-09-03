@@ -4,6 +4,7 @@ import {
   createOrder,
   getProducts,
 } from "@/lib/db";
+import { upsertShopperState } from "@/lib/shopper-state";
 import {
   sendNewsletterWelcomeEmail,
   sendOrderNotificationEmail,
@@ -157,6 +158,16 @@ export async function POST(request: Request) {
     status: "pending_payment",
     shippingAddress: address,
   });
+
+  try {
+    await upsertShopperState({
+      email: emailRaw,
+      cart: [],
+      favorites: (body as { favorites?: unknown }).favorites,
+    });
+  } catch (err) {
+    console.error("[shopper] sipariş anı favori kaydı başarısız:", err);
+  }
 
   // Marketing: kayıt et ama hoş geldin mailini hemen gönderme (spam / mail bomb riski).
   // Abone listesine eklenir; kampanya gönderimi admin onaylı süreçle yapılmalı.

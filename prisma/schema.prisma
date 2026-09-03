@@ -144,3 +144,10 @@ model AnalyticsAllTime {
   itemsSold Int      @default(0)
   updatedAt DateTime @updatedAt
 }
+
+model ShopperState {
+  email     String   @id
+  cart      Json     @default("[]")
+  favorites Json     @default("[]")
+  updatedAt DateTime @updatedAt
+}
