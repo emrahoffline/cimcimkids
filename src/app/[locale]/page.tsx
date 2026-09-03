@@ -11,8 +11,6 @@ import {
   organizationJsonLd,
   websiteJsonLd,
 } from "@/lib/seo";
-import { SellerLegalInfo } from "@/components/SellerLegalInfo";
-import { PaymentLogos } from "@/components/PaymentLogos";
 import { ArrowRight, Shirt, Sparkles } from "lucide-react";
 
 type Props = {
@@ -35,8 +33,6 @@ export default async function HomePage({ params }: Props) {
   const { locale } = await params;
   setRequestLocale(locale);
   const t = await getTranslations("home");
-  const tNav = await getTranslations("nav");
-  const tFooter = await getTranslations("footer");
   const base = `/${locale}`;
   const products = await getAllProducts();
 
@@ -66,49 +62,7 @@ export default async function HomePage({ params }: Props) {
         </div>
       </section>
 
-      <section
-        id="iletisim"
-        className="scroll-mt-24 border-y border-olive/10 bg-[#fff8f3] py-10 sm:py-12"
-      >
-        <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
-          <h2 className="text-center text-2xl font-semibold sm:text-3xl">
-            İletişim
-          </h2>
-          <SellerLegalInfo className="prose-page mt-6 space-y-1.5 text-sm leading-relaxed text-slate-600 sm:text-base" />
-          <p className="mt-4 text-center text-sm">
-            <Link href={`${base}/contact`} className="text-bamboo underline">
-              {tNav("contact")}
-            </Link>
-            {" · "}
-            <Link href={`${base}/about`} className="text-bamboo underline">
-              {tNav("about")}
-            </Link>
-            {" · "}
-            <Link href={`${base}/returns`} className="text-bamboo underline">
-              {tFooter("returns")}
-            </Link>
-            {" · "}
-            <Link href={`${base}/privacy`} className="text-bamboo underline">
-              {tFooter("privacy")}
-            </Link>
-            {" · "}
-            <Link
-              href={`${base}/distance-sales`}
-              className="text-bamboo underline"
-            >
-              {tFooter("distanceSales")}
-            </Link>
-          </p>
-          <div className="mt-8 text-center">
-            <h3 className="mb-4 text-xs font-semibold uppercase tracking-wider text-slate-400">
-              {tFooter("securePayment")}
-            </h3>
-            <PaymentLogos variant="band" alt={tFooter("paymentLogosAlt")} />
-          </div>
-        </div>
-      </section>
-
-      <section className="mx-auto max-w-7xl px-4 pb-12 pt-10 sm:px-6 sm:pb-16 sm:pt-12 lg:px-8">
+      <section className="mx-auto max-w-7xl px-4 pb-12 sm:px-6 sm:pb-16 lg:px-8">
         <div className="mb-8 text-center sm:mb-10">
           <h2 className="text-2xl font-semibold sm:text-3xl">{t("featured")}</h2>
           <p className="mt-2 text-sm text-slate-500 sm:text-base">
