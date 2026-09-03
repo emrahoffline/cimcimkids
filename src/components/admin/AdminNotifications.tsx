@@ -111,7 +111,7 @@ export function AdminNotifications() {
                             {order.customerName}
                           </p>
                           {order.shippingAddress && (
-                            <p className="mt-0.5 text-xs text-gray-600">
+                            <p className="mt-0.5 whitespace-pre-line text-xs text-gray-600">
                               {order.shippingAddress}
                             </p>
                           )}

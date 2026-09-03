@@ -9,6 +9,12 @@ import { useCartStore, cartTotal } from "@/store/cart";
 import { formatPrice } from "@/lib/products";
 import { STORE_CONFIG, formatIban } from "@/lib/store-config";
 import { PaymentLogos } from "./PaymentLogos";
+import { CheckoutAddressFields } from "./CheckoutAddressFields";
+import {
+  formatShippingAddress,
+  parseShippingAddress,
+  type InvoiceType,
+} from "@/lib/shipping-address";
 
 type PaymentMethod = "card" | "bank_transfer";
 
@@ -33,14 +39,32 @@ export function CheckoutClient({ cardEnabled }: Props) {
   const base = `/${locale}`;
 
   const [form, setForm] = useState({
+    addressTitle: "",
     name: session?.user?.name ?? "",
     email: session?.user?.email ?? "",
     phone: "",
     address: "",
     city: "",
+    district: "",
+    postalCode: "",
+    invoiceType: "individual" as InvoiceType,
+    companyName: "",
+    taxOffice: "",
+    taxNumber: "",
     kvkkConsent: false,
     marketingConsent: false,
   });
+
+  const addressErrors: Record<string, string> = {
+    title: t("addressTitleRequired"),
+    address: t("addressRequired"),
+    city: t("cityRequired"),
+    district: t("districtRequired"),
+    postalCode: t("postalCodeInvalid"),
+    company: t("companyRequired"),
+    taxOffice: t("taxOfficeRequired"),
+    taxNumber: t("taxNumberRequired"),
+  };
 
   if (items.length === 0 && !done) {
     return (
@@ -60,10 +84,16 @@ export function CheckoutClient({ cardEnabled }: Props) {
       return;
     }
 
+    const parsed = parseShippingAddress(form);
+    if (!parsed.ok) {
+      setError(addressErrors[parsed.error] ?? t("error"));
+      return;
+    }
+
     setLoading(true);
     setError("");
 
-    const shippingAddress = `${form.address}, ${form.city}`;
+    const shippingAddress = formatShippingAddress(parsed.value);
     const orderItems = items.map((i) => ({
       productId: i.id,
       name: i.name,
@@ -79,8 +109,16 @@ export function CheckoutClient({ cardEnabled }: Props) {
         name: form.name,
         email: form.email,
         phone: form.phone,
-        address: shippingAddress,
-        city: form.city,
+        address: parsed.value.address,
+        addressTitle: parsed.value.title,
+        city: parsed.value.city,
+        district: parsed.value.district,
+        postalCode: parsed.value.postalCode,
+        invoiceType: parsed.value.invoiceType,
+        companyName: parsed.value.companyName,
+        taxOffice: parsed.value.taxOffice,
+        taxNumber: parsed.value.taxNumber,
+        shippingAddress,
         kvkkConsent: true,
         marketingConsent: form.marketingConsent,
         locale,
@@ -171,50 +209,10 @@ export function CheckoutClient({ cardEnabled }: Props) {
         className="grid gap-8 lg:grid-cols-2"
       >
         <div className="space-y-6">
-          <div className="card space-y-4">
-            <h2 className="font-semibold">{t("shippingInfo")}</h2>
-            <input
-              required
-              placeholder={t("namePlaceholder")}
-              autoComplete="name"
-              className="input-field"
-              value={form.name}
-              onChange={(e) => setForm({ ...form, name: e.target.value })}
-            />
-            <input
-              required
-              type="email"
-              autoComplete="email"
-              placeholder={t("emailPlaceholder")}
-              className="input-field"
-              value={form.email}
-              onChange={(e) => setForm({ ...form, email: e.target.value })}
-            />
-            <input
-              required
-              type="tel"
-              inputMode="tel"
-              autoComplete="tel"
-              placeholder={t("phonePlaceholder")}
-              className="input-field"
-              value={form.phone}
-              onChange={(e) => setForm({ ...form, phone: e.target.value })}
-            />
-            <input
-              required
-              autoComplete="street-address"
-              placeholder={t("addressPlaceholder")}
-              className="input-field"
-              value={form.address}
-              onChange={(e) => setForm({ ...form, address: e.target.value })}
-            />
-            <input
-              required
-              autoComplete="address-level2"
-              placeholder={t("cityPlaceholder")}
-              className="input-field"
-              value={form.city}
-              onChange={(e) => setForm({ ...form, city: e.target.value })}
+          <div className="card">
+            <CheckoutAddressFields
+              values={form}
+              onChange={(patch) => setForm({ ...form, ...patch })}
             />
           </div>
 
