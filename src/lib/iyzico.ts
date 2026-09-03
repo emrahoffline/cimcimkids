@@ -164,18 +164,26 @@ export async function initializeCheckoutForm(input: {
   locale: "tr" | "en";
   ip: string;
   city: string;
+  zipCode?: string;
+  streetAddress?: string;
   callbackUrl: string;
 }): Promise<CheckoutFormInit> {
-  const { order, locale, ip, city, callbackUrl } = input;
+  const { order, locale, ip, city, zipCode, streetAddress, callbackUrl } = input;
   const gsmNumber = normalizeGsm(order.customerPhone ?? "");
   if (!gsmNumber) {
     throw new IyzicoError("Geçerli bir telefon numarası gereklidir.");
   }
 
   const { name, surname } = splitName(order.customerName);
-  const address = (order.shippingAddress ?? "").slice(0, 500);
+  const address = (
+    streetAddress ||
+    order.shippingAddress ||
+    ""
+  ).slice(0, 350);
   const paidPrice = toIyzicoMoney(order.total);
   const items = basketItemsFor(order);
+  const cityName = city.slice(0, 100) || "Turkiye";
+  const zip = zipCode?.replace(/\D/g, "").slice(0, 10);
 
   const result = await iyzicoPost<{
     token?: string;
@@ -198,21 +206,24 @@ export async function initializeCheckoutForm(input: {
       email: order.customerEmail,
       identityNumber: PLACEHOLDER_IDENTITY,
       registrationAddress: address,
-      city: city.slice(0, 100) || "Turkiye",
+      city: cityName,
       country: "Turkey",
+      zipCode: zip || undefined,
       ip: ip.slice(0, 45) || "127.0.0.1",
     },
     shippingAddress: {
       contactName: order.customerName.slice(0, 200),
-      city: city.slice(0, 100) || "Turkiye",
+      city: cityName,
       country: "Turkey",
       address,
+      zipCode: zip || undefined,
     },
     billingAddress: {
       contactName: order.customerName.slice(0, 200),
-      city: city.slice(0, 100) || "Turkiye",
+      city: cityName,
       country: "Turkey",
       address,
+      zipCode: zip || undefined,
     },
     basketItems: items,
   });

@@ -48,7 +48,7 @@ function buildOrderEmailHtml(order: Order) {
       <p><strong>Müşteri:</strong> ${escapeHtml(order.customerName)}</p>
       <p><strong>Telefon:</strong> ${escapeHtml(order.customerPhone ?? "—")}</p>
       <p><strong>E-posta:</strong> ${escapeHtml(order.customerEmail)}</p>
-      <p><strong>Adres:</strong> ${escapeHtml(order.shippingAddress ?? "—")}</p>
+      <p><strong>Adres:</strong><br>${escapeHtml(order.shippingAddress ?? "—").replaceAll("\n", "<br>")}</p>
       <table style="width:100%;border-collapse:collapse;margin:16px 0">
         <thead>
           <tr style="background:#f5f5f0">

@@ -18,6 +18,11 @@ import {
   normalizeGsm,
 } from "@/lib/iyzico";
 import { randomBytes } from "crypto";
+import {
+  formatShippingAddress,
+  iyzicoStreetAddress,
+  parseShippingAddress,
+} from "@/lib/shipping-address";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -76,12 +81,24 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Ad soyad gereklidir." }, { status: 400 });
   }
 
-  const address = isNonEmptyString((body as { address?: unknown }).address)
-    ? String((body as { address: string }).address).trim().slice(0, 500)
-    : "";
-  if (!address || address.length < 5) {
-    return NextResponse.json({ error: "Adres gereklidir." }, { status: 400 });
+  const parsedAddress = parseShippingAddress(body as Record<string, unknown>);
+  if (!parsedAddress.ok) {
+    const addressErrors: Record<string, string> = {
+      title: "Adres başlığı gereklidir.",
+      address: "Adres gereklidir.",
+      city: "İl seçiniz.",
+      district: "İlçe seçiniz.",
+      postalCode: "Posta kodu 5 haneli olmalıdır.",
+      company: "Firma ünvanı gereklidir.",
+      taxOffice: "Vergi dairesi gereklidir.",
+      taxNumber: "Vergi numarası 10 haneli olmalıdır.",
+    };
+    return NextResponse.json(
+      { error: addressErrors[parsedAddress.error] ?? "Adres gereklidir." },
+      { status: 400 }
+    );
   }
+  const address = formatShippingAddress(parsedAddress.value);
 
   const itemsRaw = Array.isArray((body as { items?: unknown }).items)
     ? (body as { items: unknown[] }).items
@@ -160,9 +177,7 @@ export async function POST(request: Request) {
     );
   }
 
-  const city = isNonEmptyString((body as { city?: unknown }).city)
-    ? String((body as { city: string }).city).trim().slice(0, 100)
-    : "";
+  const city = parsedAddress.value.city;
 
   const paymentMethod =
     (body as { paymentMethod?: unknown }).paymentMethod === "card"
@@ -209,7 +224,9 @@ export async function POST(request: Request) {
         order,
         locale,
         ip,
-        city: city || "Turkiye",
+        city,
+        zipCode: parsedAddress.value.postalCode,
+        streetAddress: iyzicoStreetAddress(parsedAddress.value),
         callbackUrl: `${origin}/api/payments/iyzico/callback?locale=${locale}`,
       });
       await saveOrderPaymentToken(order.id, checkout.token);

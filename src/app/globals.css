@@ -125,11 +125,30 @@ h3 {
 }
 
 .input-field {
-  @apply w-full min-h-[44px] rounded-full border border-bamboo/20 bg-white px-5 py-3 text-base outline-none transition focus:border-bamboo focus:ring-2 focus:ring-bamboo/15;
+  @apply w-full min-h-[44px] rounded-full border border-bamboo/20 bg-white px-5 py-3 text-base outline-none transition placeholder:text-olive/45 focus:border-bamboo focus:ring-2 focus:ring-bamboo/15;
+}
+
+.select-field {
+  @apply w-full min-h-[44px] appearance-none rounded-full border border-bamboo/20 bg-white bg-[length:1rem] bg-[right_1rem_center] bg-no-repeat py-3 pl-5 pr-10 text-base text-slate-600 outline-none transition focus:border-bamboo focus:ring-2 focus:ring-bamboo/15;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%233db8a8' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+}
+
+.select-field:disabled {
+  @apply cursor-default opacity-100;
+}
+
+.select-placeholder {
+  @apply text-olive/45;
+}
+
+.textarea-field {
+  @apply w-full min-h-[5.5rem] resize-y rounded-3xl border border-bamboo/20 bg-white px-5 py-3 text-base outline-none transition placeholder:text-olive/45 focus:border-bamboo focus:ring-2 focus:ring-bamboo/15;
 }
 
 @media (min-width: 768px) {
-  .input-field {
+  .input-field,
+  .select-field,
+  .textarea-field {
     @apply text-sm;
   }
 }
