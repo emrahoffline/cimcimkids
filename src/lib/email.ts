@@ -60,7 +60,15 @@ function buildOrderEmailHtml(order: Order) {
         <tbody>${itemsHtml}</tbody>
       </table>
       <p style="font-size:18px"><strong>Toplam: ${order.total} TL</strong></p>
-      <p style="color:#888">Durum: Ödeme bekleniyor (Havale/EFT)</p>
+      <p style="color:#888">Ödeme: ${
+        order.paymentMethod === "card"
+          ? order.paidAt
+            ? `Kredi/banka kartı (ödendi${
+                order.paymentLastFour ? ` · **** ${escapeHtml(order.paymentLastFour)}` : ""
+              })`
+            : "Kredi/banka kartı (bekleniyor)"
+          : "Havale/EFT (ödeme bekleniyor)"
+      }</p>
       <hr style="border:none;border-top:1px solid #eee;margin:24px 0" />
       <p style="font-size:12px;color:#888">IBAN: ${formatIban(STORE_CONFIG.iban)}</p>
     </div>
@@ -84,7 +92,7 @@ export async function sendOrderNotificationEmail(order: Order) {
   await transporter.sendMail({
     from,
     to,
-    subject: `Yeni Sipariş: ${order.orderNumber} — ${order.customerName}`.replaceAll(
+    subject: `${order.paidAt ? "Ödendi" : "Yeni Sipariş"}: ${order.orderNumber} — ${order.customerName}`.replaceAll(
       /[\r\n]+/g,
       " "
     ),
@@ -101,6 +109,13 @@ export async function sendOrderNotificationEmail(order: Order) {
       ),
       "",
       `Toplam: ${order.total} TL`,
+      `Ödeme: ${
+        order.paymentMethod === "card"
+          ? order.paidAt
+            ? "Kart (ödendi)"
+            : "Kart (bekleniyor)"
+          : "Havale/EFT"
+      }`,
     ].join("\n"),
   });
 

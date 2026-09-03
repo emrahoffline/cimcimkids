@@ -59,13 +59,15 @@ export default function AdminOrdersPage() {
       <main className="admin-main">
         <div className="admin-card overflow-hidden">
           <div className="admin-table-wrap">
-            <table className="admin-table w-full min-w-[720px]">
+            <table className="admin-table w-full min-w-[960px]">
               <thead>
                 <tr>
                   <th>Sipariş No</th>
                   <th>Müşteri</th>
+                  <th>Adres</th>
                   <th>Ürünler</th>
                   <th>Tutar</th>
+                  <th>Ödeme</th>
                   <th>Durum</th>
                   <th>Tarih</th>
                 </tr>
@@ -73,7 +75,7 @@ export default function AdminOrdersPage() {
               <tbody>
                 {orders.length === 0 && (
                   <tr>
-                    <td colSpan={6} className="py-8 text-center text-gray-400">
+                    <td colSpan={8} className="py-8 text-center text-gray-400">
                       Henüz sipariş yok
                     </td>
                   </tr>
@@ -100,6 +102,9 @@ export default function AdminOrdersPage() {
                         <p className="text-xs text-gray-400">{order.customerPhone}</p>
                       )}
                     </td>
+                    <td className="max-w-[18rem] whitespace-pre-wrap text-xs text-gray-700">
+                      {order.shippingAddress || "—"}
+                    </td>
                     <td className="text-xs">
                       {order.items.map((i) => (
                         <p key={i.productId}>
@@ -108,6 +113,25 @@ export default function AdminOrdersPage() {
                       ))}
                     </td>
                     <td>{formatPrice(order.total, "tr")}</td>
+                    <td className="text-xs text-gray-600">
+                      {order.paymentMethod === "card" ? (
+                        <>
+                          <p>Kart</p>
+                          {order.paymentLastFour ? (
+                            <p className="text-gray-400">
+                              **** {order.paymentLastFour}
+                              {order.paidAt ? " · ödendi" : ""}
+                            </p>
+                          ) : (
+                            <p className="text-gray-400">
+                              {order.paidAt ? "ödendi" : "bekleniyor"}
+                            </p>
+                          )}
+                        </>
+                      ) : (
+                        "Havale/EFT"
+                      )}
+                    </td>
                     <td>
                       <select
                         className="min-h-[40px] rounded-lg border border-gray-200 px-2 py-1.5 text-xs"
