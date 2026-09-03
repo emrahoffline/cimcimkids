@@ -231,6 +231,7 @@ export type CheckoutFormResult = {
   status: string;
   paymentStatus?: string;
   conversationId?: string;
+  basketId?: string;
   paymentId?: string;
   paidPrice?: string | number;
   fraudStatus?: number;
@@ -244,10 +245,14 @@ export async function retrieveCheckoutForm(
   token: string,
   locale: "tr" | "en" = "tr"
 ): Promise<CheckoutFormResult> {
-  return iyzicoPost<CheckoutFormResult>(RETRIEVE_PATH, {
-    locale,
-    token,
-  });
+  const result = await iyzicoPost<CheckoutFormResult & { basketId?: string }>(
+    RETRIEVE_PATH,
+    { locale, token }
+  );
+  return {
+    ...result,
+    conversationId: result.conversationId || result.basketId,
+  };
 }
 
 export function amountsMatch(

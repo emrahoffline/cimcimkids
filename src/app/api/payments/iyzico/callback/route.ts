@@ -93,12 +93,25 @@ export async function POST(request: Request) {
   const apiOk = retrieved.status === "success";
   const paidOk = apiOk && paymentStatus === "SUCCESS";
 
+  const conversationOk =
+    retrieved.conversationId === order.orderNumber ||
+    retrieved.basketId === order.orderNumber;
   if (
     !paidOk ||
-    retrieved.conversationId !== order.orderNumber ||
+    !conversationOk ||
     !retrieved.paymentId ||
     !amountsMatch(retrieved.paidPrice, order.total)
   ) {
+    console.error("[iyzico] callback reddedildi", {
+      orderNumber: order.orderNumber,
+      status: retrieved.status,
+      paymentStatus: retrieved.paymentStatus,
+      conversationId: retrieved.conversationId,
+      basketId: retrieved.basketId,
+      paymentId: retrieved.paymentId,
+      paidPrice: retrieved.paidPrice,
+      expected: order.total,
+    });
     return NextResponse.redirect(
       resultUrl(locale, "failure", order.orderNumber),
       303
