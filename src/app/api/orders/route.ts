@@ -8,6 +8,7 @@ import { upsertShopperState } from "@/lib/shopper-state";
 import {
   sendNewsletterWelcomeEmail,
   sendOrderNotificationEmail,
+  sendCustomerPaymentConfirmationEmail,
 } from "@/lib/email";
 import { getClientIp, rateLimit } from "@/lib/rate-limit";
 import { randomBytes } from "crypto";
@@ -187,6 +188,14 @@ export async function POST(request: Request) {
     await sendOrderNotificationEmail(order);
   } catch (err) {
     console.error("[email] Sipariş bildirimi gönderilemedi:", err);
+  }
+
+  if (order.status === "confirmed" || order.total <= 0) {
+    try {
+      await sendCustomerPaymentConfirmationEmail(order);
+    } catch (err) {
+      console.error("[email] Müşteri ödeme onay maili gönderilemedi:", err);
+    }
   }
 
   return NextResponse.json(

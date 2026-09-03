@@ -2,6 +2,15 @@ import { NextResponse } from "next/server";
 import { requireAdminApi } from "@/lib/admin-api";
 import { syncAllTimeTotals } from "@/lib/analytics-db";
 import { getOrders, saveOrders } from "@/lib/db";
+import { sendCustomerPaymentConfirmationEmail } from "@/lib/email";
+
+const PAID_STATUSES = [
+  "pending",
+  "confirmed",
+  "preparing",
+  "shipped",
+  "delivered",
+] as const;
 
 export async function GET() {
   const { error } = await requireAdminApi();
@@ -34,8 +43,21 @@ export async function PATCH(request: Request) {
     return NextResponse.json({ error: "Not found" }, { status: 404 });
   }
 
+  const prevStatus = order.status;
   order.status = status;
   await saveOrders(orders);
+
+  if (
+    prevStatus === "pending_payment" &&
+    (PAID_STATUSES as readonly string[]).includes(status)
+  ) {
+    try {
+      await sendCustomerPaymentConfirmationEmail(order);
+    } catch (err) {
+      console.error("[email] Müşteri ödeme onay maili gönderilemedi:", err);
+    }
+  }
+
   await syncAllTimeTotals(orders).catch(() => undefined);
   return NextResponse.json(order);
 }
