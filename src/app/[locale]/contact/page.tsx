@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { Mail, MapPin, Clock } from "lucide-react";
+import { SellerLegalInfo } from "@/components/SellerLegalInfo";
+import { STORE_CONFIG } from "@/lib/store-config";
 
 export default function ContactPage() {
   const t = useTranslations("contact");
@@ -18,6 +20,12 @@ export default function ContactPage() {
       <div className="mb-10 text-center">
         <h1 className="page-title">{t("title")}</h1>
         <p className="page-subtitle">{t("subtitle")}</p>
+      </div>
+      <div
+        id="iletisim"
+        className="card mb-10 space-y-1.5 text-sm leading-relaxed text-olive/80"
+      >
+        <SellerLegalInfo />
       </div>
       <div className="grid gap-10 lg:grid-cols-2">
         <form onSubmit={handleSubmit} className="card space-y-4">
@@ -52,7 +60,7 @@ export default function ContactPage() {
             <MapPin className="h-6 w-6 shrink-0 text-bamboo" />
             <div>
               <p className="font-medium">{t("address")}</p>
-              <p className="text-olive/70">{t("addressValue")}</p>
+              <p className="text-olive/70">{STORE_CONFIG.legalAddress}</p>
             </div>
           </div>
           <div className="card flex gap-4">
@@ -67,10 +75,10 @@ export default function ContactPage() {
             <div>
               <p className="font-medium">E-mail</p>
               <a
-                href="mailto:info@cimcimkids.com"
+                href={`mailto:${STORE_CONFIG.legalEmail}`}
                 className="text-olive/70 hover:text-olive"
               >
-                info@cimcimkids.com
+                {STORE_CONFIG.legalEmail}
               </a>
             </div>
           </div>

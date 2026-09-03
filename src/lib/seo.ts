@@ -158,10 +158,19 @@ export function organizationJsonLd() {
     "@context": "https://schema.org",
     "@type": "Organization",
     name: SITE_NAME,
+    legalName: "Nuriye Kostak",
+    taxID: "1630080944",
     url: canonicalUrl("tr"),
     logo: absoluteUrl("/logo.png"),
-    email: SITE_EMAIL,
+    email: "efruzebendes@hotmail.com",
     telephone: "+905337007318",
+    address: {
+      "@type": "PostalAddress",
+      streetAddress: "Akbük Mah. 5932 Cad. Rüyamkent Sitesi No: 7/4",
+      addressLocality: "Didim",
+      addressRegion: "Aydın",
+      addressCountry: "TR",
+    },
   };
 }
 

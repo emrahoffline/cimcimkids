@@ -110,6 +110,11 @@ export function AdminNotifications() {
                           <p className="text-xs text-gray-500">
                             {order.customerName}
                           </p>
+                          {order.shippingAddress && (
+                            <p className="mt-0.5 whitespace-pre-line text-xs text-gray-600">
+                              {order.shippingAddress}
+                            </p>
+                          )}
                           <p className="text-xs text-gray-400">
                             {order.itemCount} ürün ·{" "}
                             {new Date(order.createdAt).toLocaleString("tr-TR")}

@@ -33,6 +33,7 @@ export default async function ReturnsPage({ params }: Props) {
         { title: t("s2title"), text: t("s2") },
         { title: t("s3title"), text: t("s3") },
         { title: t("s4title"), text: t("s4") },
+        { title: t("s5title"), text: t("s5") },
       ]}
     />
   );

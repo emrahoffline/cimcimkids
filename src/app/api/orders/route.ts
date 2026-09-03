@@ -1,15 +1,35 @@
 import { NextResponse } from "next/server";
 import {
   addNewsletterSubscriber,
+  cancelUnpaidOrder,
   createOrder,
   getProducts,
+  saveOrderPaymentToken,
 } from "@/lib/db";
 import {
-  sendNewsletterWelcomeEmail,
   sendOrderNotificationEmail,
+  sendCustomerPaymentConfirmationEmail,
 } from "@/lib/email";
 import { getClientIp, rateLimit } from "@/lib/rate-limit";
+import {
+  IyzicoError,
+  getPublicOrigin,
+  initializeCheckoutForm,
+  isCardPaymentEnabled,
+  normalizeGsm,
+} from "@/lib/iyzico";
 import { randomBytes } from "crypto";
+import {
+  formatShippingAddress,
+  iyzicoStreetAddress,
+  parseShippingAddress,
+} from "@/lib/shipping-address";
+import {
+  appendGiftWrapToAddress,
+  giftWrapOrderItem,
+  isGiftWrapProductId,
+  parseGiftNote,
+} from "@/lib/gift-wrap";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -68,12 +88,24 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Ad soyad gereklidir." }, { status: 400 });
   }
 
-  const address = isNonEmptyString((body as { address?: unknown }).address)
-    ? String((body as { address: string }).address).trim().slice(0, 500)
-    : "";
-  if (!address || address.length < 5) {
-    return NextResponse.json({ error: "Adres gereklidir." }, { status: 400 });
+  const parsedAddress = parseShippingAddress(body as Record<string, unknown>);
+  if (!parsedAddress.ok) {
+    const addressErrors: Record<string, string> = {
+      title: "Adres başlığı gereklidir.",
+      address: "Adres gereklidir.",
+      city: "İl seçiniz.",
+      district: "İlçe seçiniz.",
+      postalCode: "Posta kodu 5 haneli olmalıdır.",
+      company: "Firma ünvanı gereklidir.",
+      taxOffice: "Vergi dairesi gereklidir.",
+      taxNumber: "Vergi numarası 10 haneli olmalıdır.",
+    };
+    return NextResponse.json(
+      { error: addressErrors[parsedAddress.error] ?? "Adres gereklidir." },
+      { status: 400 }
+    );
   }
+  const address = formatShippingAddress(parsedAddress.value);
 
   const itemsRaw = Array.isArray((body as { items?: unknown }).items)
     ? (body as { items: unknown[] }).items
@@ -100,6 +132,9 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Geçersiz ürünler." }, { status: 400 });
     }
     const row = item as Record<string, unknown>;
+    if (isNonEmptyString(row.productId) && isGiftWrapProductId(row.productId)) {
+      continue;
+    }
     if (!isNonEmptyString(row.productId)) {
       return NextResponse.json({ error: "Geçersiz ürünler." }, { status: 400 });
     }
@@ -142,24 +177,56 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Tutar limiti aşıldı." }, { status: 400 });
   }
 
+  const phone = isNonEmptyString((body as { phone?: unknown }).phone)
+    ? String((body as { phone: string }).phone).trim().slice(0, 50)
+    : "";
+  if (!phone || !normalizeGsm(phone)) {
+    return NextResponse.json(
+      { error: "Geçerli bir telefon numarası gereklidir." },
+      { status: 400 }
+    );
+  }
+
+  const city = parsedAddress.value.city;
+
+  const paymentMethod =
+    (body as { paymentMethod?: unknown }).paymentMethod === "card"
+      ? "card"
+      : "bank_transfer";
+  if (paymentMethod === "card" && !isCardPaymentEnabled()) {
+    return NextResponse.json(
+      { error: "Kart ile ödeme şu an kullanılamıyor." },
+      { status: 400 }
+    );
+  }
+
   const locale =
     (body as { locale?: unknown }).locale === "en" ? "en" : "tr";
+
+  let shippingAddress = address;
+  if ((body as { giftWrap?: unknown }).giftWrap === true) {
+    const note = parseGiftNote((body as { giftNote?: unknown }).giftNote);
+    const wrapItem = giftWrapOrderItem(locale);
+    serverTotal += wrapItem.price;
+    validatedItems.push(wrapItem);
+    shippingAddress = appendGiftWrapToAddress(address, note);
+  }
+  if (serverTotal > 1_000_000) {
+    return NextResponse.json({ error: "Tutar limiti aşıldı." }, { status: 400 });
+  }
 
   const order = await createOrder({
     orderNumber: makeOrderNumber(),
     customerEmail: emailRaw,
     customerName: name,
-    customerPhone: isNonEmptyString((body as { phone?: unknown }).phone)
-      ? String((body as { phone: string }).phone).slice(0, 50)
-      : undefined,
+    customerPhone: phone,
     items: validatedItems,
     total: serverTotal,
     status: "pending_payment",
-    shippingAddress: address,
+    paymentMethod,
+    shippingAddress,
   });
 
-  // Marketing: kayıt et ama hoş geldin mailini hemen gönderme (spam / mail bomb riski).
-  // Abone listesine eklenir; kampanya gönderimi admin onaylı süreçle yapılmalı.
   if ((body as { marketingConsent?: unknown }).marketingConsent === true) {
     try {
       await addNewsletterSubscriber({
@@ -172,10 +239,54 @@ export async function POST(request: Request) {
     }
   }
 
+  if (paymentMethod === "card") {
+    try {
+      const origin = getPublicOrigin();
+      const checkout = await initializeCheckoutForm({
+        order,
+        locale,
+        ip,
+        city,
+        zipCode: parsedAddress.value.postalCode,
+        streetAddress: iyzicoStreetAddress(parsedAddress.value),
+        callbackUrl: `${origin}/api/payments/iyzico/callback?locale=${locale}`,
+      });
+      await saveOrderPaymentToken(order.id, checkout.token);
+      return NextResponse.json(
+        {
+          id: order.id,
+          orderNumber: order.orderNumber,
+          total: order.total,
+          status: order.status,
+          paymentMethod,
+          paymentPageUrl: checkout.paymentPageUrl,
+          createdAt: order.createdAt,
+        },
+        { status: 201 }
+      );
+    } catch (err) {
+      await cancelUnpaidOrder(order.id).catch(() => undefined);
+      console.error("[iyzico] Checkout formu başlatılamadı:", err);
+      const message =
+        err instanceof IyzicoError
+          ? err.message
+          : "Kart ödemesi başlatılamadı. Lütfen tekrar deneyin.";
+      return NextResponse.json({ error: message }, { status: 502 });
+    }
+  }
+
   try {
     await sendOrderNotificationEmail(order);
   } catch (err) {
     console.error("[email] Sipariş bildirimi gönderilemedi:", err);
+  }
+
+  if (paymentMethod === "bank_transfer") {
+    try {
+      await sendCustomerPaymentConfirmationEmail(order);
+    } catch (err) {
+      console.error("[email] Müşteri sipariş maili gönderilemedi:", err);
+    }
   }
 
   return NextResponse.json(
@@ -184,6 +295,7 @@ export async function POST(request: Request) {
       orderNumber: order.orderNumber,
       total: order.total,
       status: order.status,
+      paymentMethod,
       createdAt: order.createdAt,
     },
     { status: 201 }

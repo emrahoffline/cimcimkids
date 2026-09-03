@@ -4,14 +4,16 @@ import Image from "next/image";
 import Link from "next/link";
 import { useTranslations, useLocale } from "next-intl";
 import { Minus, Plus, Trash2 } from "lucide-react";
-import { useCartStore, cartTotal } from "@/store/cart";
+import { useCartStore, cartTotal, cartTotalWithWrap } from "@/store/cart";
 import { formatPrice } from "@/lib/products";
+import { GiftWrapOption } from "@/components/GiftWrapOption";
 
 export default function CartPage() {
   const t = useTranslations("cart");
   const locale = useLocale();
-  const { items, updateQuantity, removeItem } = useCartStore();
-  const total = cartTotal(items);
+  const { items, updateQuantity, removeItem, giftWrap } = useCartStore();
+  const subtotal = cartTotal(items);
+  const total = cartTotalWithWrap(items, giftWrap);
   const base = `/${locale}`;
 
   if (items.length === 0) {
@@ -87,12 +89,21 @@ export default function CartPage() {
               </div>
             </li>
           ))}
+          <li>
+            <GiftWrapOption />
+          </li>
         </ul>
         <div className="card hidden h-fit space-y-3 border border-bamboo/10 shadow-sm md:block">
           <div className="flex justify-between text-sm text-slate-600">
             <span>{t("subtotal")}</span>
-            <span>{formatPrice(total, locale)}</span>
+            <span>{formatPrice(subtotal, locale)}</span>
           </div>
+          {giftWrap ? (
+            <div className="flex justify-between text-sm text-slate-600">
+              <span>{t("giftWrap")}</span>
+              <span>{formatPrice(total - subtotal, locale)}</span>
+            </div>
+          ) : null}
           <div className="flex justify-between text-sm text-slate-600">
             <span>{t("shipping")}</span>
             <span className="font-medium text-olive">{t("freeShipping")}</span>

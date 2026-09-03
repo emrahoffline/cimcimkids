@@ -18,6 +18,7 @@ const statuses = [
 
 export default function AdminOrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
+  const [smtpConfigured, setSmtpConfigured] = useState<boolean | null>(null);
   const { markAllSeen, refresh: refreshNotifications } = useAdminNotifications();
 
   const load = async () => {
@@ -30,6 +31,15 @@ export default function AdminOrdersPage() {
 
     async function init() {
       await load();
+      try {
+        const statusRes = await fetch("/api/admin/email-status");
+        if (statusRes.ok) {
+          const data = (await statusRes.json()) as { configured?: boolean };
+          if (active) setSmtpConfigured(Boolean(data.configured));
+        }
+      } catch {
+        /* banner optional */
+      }
       if (!active) return;
       await markAllSeen();
       refreshNotifications();
@@ -53,19 +63,42 @@ export default function AdminOrdersPage() {
     refreshNotifications();
   };
 
+  const resendEmail = async (id: string) => {
+    const res = await fetch("/api/admin/orders", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id, resendEmail: true }),
+    });
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      window.alert(data.error || "E-posta gönderilemedi.");
+      return;
+    }
+    window.alert("Sipariş maili müşteriye gönderildi.");
+  };
+
   return (
     <>
       <AdminHeader title="Siparişler" />
       <main className="admin-main">
+        {smtpConfigured === false && (
+          <div className="mb-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+            Sipariş mailleri gönderilemiyor: sunucuda Gmail SMTP şifresi
+            (uygulama şifresi) tanımlı değil. Müşteriye ürün özeti ancak bu
+            ayar eklendikten sonra gider.
+          </div>
+        )}
         <div className="admin-card overflow-hidden">
           <div className="admin-table-wrap">
-            <table className="admin-table w-full min-w-[720px]">
+            <table className="admin-table w-full min-w-[960px]">
               <thead>
                 <tr>
                   <th>Sipariş No</th>
                   <th>Müşteri</th>
+                  <th>Adres</th>
                   <th>Ürünler</th>
                   <th>Tutar</th>
+                  <th>Ödeme</th>
                   <th>Durum</th>
                   <th>Tarih</th>
                 </tr>
@@ -73,7 +106,7 @@ export default function AdminOrdersPage() {
               <tbody>
                 {orders.length === 0 && (
                   <tr>
-                    <td colSpan={6} className="py-8 text-center text-gray-400">
+                    <td colSpan={8} className="py-8 text-center text-gray-400">
                       Henüz sipariş yok
                     </td>
                   </tr>
@@ -100,6 +133,9 @@ export default function AdminOrdersPage() {
                         <p className="text-xs text-gray-400">{order.customerPhone}</p>
                       )}
                     </td>
+                    <td className="max-w-[18rem] whitespace-pre-wrap text-xs text-gray-700">
+                      {order.shippingAddress || "—"}
+                    </td>
                     <td className="text-xs">
                       {order.items.map((i) => (
                         <p key={i.productId}>
@@ -108,6 +144,25 @@ export default function AdminOrdersPage() {
                       ))}
                     </td>
                     <td>{formatPrice(order.total, "tr")}</td>
+                    <td className="text-xs text-gray-600">
+                      {order.paymentMethod === "card" ? (
+                        <>
+                          <p>Kart</p>
+                          {order.paymentLastFour ? (
+                            <p className="text-gray-400">
+                              **** {order.paymentLastFour}
+                              {order.paidAt ? " · ödendi" : ""}
+                            </p>
+                          ) : (
+                            <p className="text-gray-400">
+                              {order.paidAt ? "ödendi" : "bekleniyor"}
+                            </p>
+                          )}
+                        </>
+                      ) : (
+                        "Havale/EFT"
+                      )}
+                    </td>
                     <td>
                       <select
                         className="min-h-[40px] rounded-lg border border-gray-200 px-2 py-1.5 text-xs"
@@ -120,6 +175,13 @@ export default function AdminOrdersPage() {
                           </option>
                         ))}
                       </select>
+                      <button
+                        type="button"
+                        className="mt-1 block text-xs text-olive underline"
+                        onClick={() => resendEmail(order.id)}
+                      >
+                        Mail gönder
+                      </button>
                     </td>
                     <td className="whitespace-nowrap text-gray-400">
                       {new Date(order.createdAt).toLocaleString("tr-TR")}
