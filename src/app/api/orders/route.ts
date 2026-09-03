@@ -23,6 +23,12 @@ import {
   iyzicoStreetAddress,
   parseShippingAddress,
 } from "@/lib/shipping-address";
+import {
+  appendGiftWrapToAddress,
+  giftWrapOrderItem,
+  isGiftWrapProductId,
+  parseGiftNote,
+} from "@/lib/gift-wrap";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -125,6 +131,9 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Geçersiz ürünler." }, { status: 400 });
     }
     const row = item as Record<string, unknown>;
+    if (isNonEmptyString(row.productId) && isGiftWrapProductId(row.productId)) {
+      continue;
+    }
     if (!isNonEmptyString(row.productId)) {
       return NextResponse.json({ error: "Geçersiz ürünler." }, { status: 400 });
     }
@@ -193,6 +202,18 @@ export async function POST(request: Request) {
   const locale =
     (body as { locale?: unknown }).locale === "en" ? "en" : "tr";
 
+  let shippingAddress = address;
+  if ((body as { giftWrap?: unknown }).giftWrap === true) {
+    const note = parseGiftNote((body as { giftNote?: unknown }).giftNote);
+    const wrapItem = giftWrapOrderItem(locale);
+    serverTotal += wrapItem.price;
+    validatedItems.push(wrapItem);
+    shippingAddress = appendGiftWrapToAddress(address, note);
+  }
+  if (serverTotal > 1_000_000) {
+    return NextResponse.json({ error: "Tutar limiti aşıldı." }, { status: 400 });
+  }
+
   const order = await createOrder({
     orderNumber: makeOrderNumber(),
     customerEmail: emailRaw,
@@ -202,7 +223,7 @@ export async function POST(request: Request) {
     total: serverTotal,
     status: "pending_payment",
     paymentMethod,
-    shippingAddress: address,
+    shippingAddress,
   });
 
   if ((body as { marketingConsent?: unknown }).marketingConsent === true) {

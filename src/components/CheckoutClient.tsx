@@ -5,11 +5,12 @@ import Link from "next/link";
 import { useTranslations, useLocale } from "next-intl";
 import { useSession } from "next-auth/react";
 import { CreditCard, Landmark } from "lucide-react";
-import { useCartStore, cartTotal } from "@/store/cart";
+import { useCartStore, cartTotal, cartTotalWithWrap } from "@/store/cart";
 import { formatPrice } from "@/lib/products";
 import { STORE_CONFIG, formatIban } from "@/lib/store-config";
 import { PaymentLogos } from "./PaymentLogos";
 import { CheckoutAddressFields } from "./CheckoutAddressFields";
+import { GiftWrapOption } from "./GiftWrapOption";
 import {
   formatShippingAddress,
   parseShippingAddress,
@@ -27,7 +28,7 @@ export function CheckoutClient({ cardEnabled }: Props) {
   const tCart = useTranslations("cart");
   const locale = useLocale();
   const { data: session } = useSession();
-  const { items, clearCart } = useCartStore();
+  const { items, clearCart, giftWrap, giftNote } = useCartStore();
   const [done, setDone] = useState(false);
   const [orderNumber, setOrderNumber] = useState("");
   const [loading, setLoading] = useState(false);
@@ -35,7 +36,8 @@ export function CheckoutClient({ cardEnabled }: Props) {
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>(
     cardEnabled ? "card" : "bank_transfer"
   );
-  const total = cartTotal(items);
+  const merchandiseTotal = cartTotal(items);
+  const total = cartTotalWithWrap(items, giftWrap);
   const base = `/${locale}`;
 
   const [form, setForm] = useState({
@@ -124,6 +126,8 @@ export function CheckoutClient({ cardEnabled }: Props) {
         locale,
         paymentMethod,
         items: orderItems,
+        giftWrap,
+        giftNote: giftWrap ? giftNote : "",
       }),
     });
 
@@ -215,6 +219,8 @@ export function CheckoutClient({ cardEnabled }: Props) {
               onChange={(patch) => setForm({ ...form, ...patch })}
             />
           </div>
+
+          <GiftWrapOption />
 
           <div className="card space-y-4">
             <h2 className="font-semibold">{t("paymentInfo")}</h2>
@@ -359,6 +365,18 @@ export function CheckoutClient({ cardEnabled }: Props) {
 
         <div className="card hidden h-fit lg:block">
           <p className="mb-4 font-semibold">{tCart("total")}</p>
+          <div className="mb-2 space-y-1 text-sm text-olive/70">
+            <div className="flex justify-between">
+              <span>{tCart("subtotal")}</span>
+              <span>{formatPrice(merchandiseTotal, locale)}</span>
+            </div>
+            {giftWrap ? (
+              <div className="flex justify-between">
+                <span>{tCart("giftWrap")}</span>
+                <span>{formatPrice(total - merchandiseTotal, locale)}</span>
+              </div>
+            ) : null}
+          </div>
           <p className="mb-2 text-2xl font-semibold text-bamboo">
             {formatPrice(total, locale)}
           </p>
