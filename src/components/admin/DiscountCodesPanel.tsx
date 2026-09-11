@@ -83,7 +83,7 @@ export function DiscountCodesPanel() {
           indirimi, ürün tutarına (kargo ve hediye kartı hariç) uygulanır.
         </p>
         <form onSubmit={handleCreate} className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          <div>
+          <div className="min-w-0">
             <label className="mb-1 block text-sm font-medium">Kod</label>
             <input
               value={code}
@@ -93,7 +93,7 @@ export function DiscountCodesPanel() {
               maxLength={24}
             />
           </div>
-          <div>
+          <div className="min-w-0">
             <label className="mb-1 block text-sm font-medium">Tür</label>
             <select
               className="admin-input"
@@ -104,7 +104,7 @@ export function DiscountCodesPanel() {
               <option value="amount">Tutar (₺)</option>
             </select>
           </div>
-          <div>
+          <div className="min-w-0">
             <label className="mb-1 block text-sm font-medium">
               {kind === "percent" ? "İndirim yüzdesi" : "İndirim tutarı (₺)"}
             </label>
@@ -119,7 +119,7 @@ export function DiscountCodesPanel() {
               required
             />
           </div>
-          <div>
+          <div className="min-w-0">
             <label className="mb-1 block text-sm font-medium">
               Min. sepet (₺, isteğe bağlı)
             </label>
@@ -133,7 +133,7 @@ export function DiscountCodesPanel() {
               placeholder="Yok"
             />
           </div>
-          <div>
+          <div className="min-w-0">
             <label className="mb-1 block text-sm font-medium">
               Kullanım limiti (isteğe bağlı)
             </label>
@@ -147,7 +147,7 @@ export function DiscountCodesPanel() {
               placeholder="Sınırsız"
             />
           </div>
-          <div>
+          <div className="min-w-0">
             <label className="mb-1 block text-sm font-medium">
               Son geçerlilik (isteğe bağlı)
             </label>
@@ -159,7 +159,7 @@ export function DiscountCodesPanel() {
             />
           </div>
           <div className="flex items-end sm:col-span-2 lg:col-span-3">
-            <button type="submit" disabled={saving} className="admin-btn-primary">
+            <button type="submit" disabled={saving} className="admin-btn-primary w-full sm:w-auto">
               {saving ? "Oluşturuluyor..." : "Kod oluştur"}
             </button>
           </div>
@@ -175,71 +175,114 @@ export function DiscountCodesPanel() {
       </div>
 
       <div className="admin-card overflow-hidden">
-        <div className="border-b border-gray-100 px-4 py-3 text-sm text-gray-500">
-          {loading ? "Yükleniyor..." : `${codes.length} indirim kodu`}
-        </div>
-        <div className="admin-table-wrap">
-          <table className="admin-table w-full">
-            <thead>
-              <tr>
-                <th>Kod</th>
-                <th>İndirim</th>
-                <th>Min. sepet</th>
-                <th>Kullanım</th>
-                <th>Son tarih</th>
-                <th>Durum</th>
-                <th>İşlem</th>
-              </tr>
-            </thead>
-            <tbody>
-              {!loading && codes.length === 0 && (
-                <tr>
-                  <td colSpan={7} className="py-8 text-center text-gray-400">
-                    Henüz indirim kodu yok
-                  </td>
-                </tr>
-              )}
+        {loading && codes.length === 0 ? (
+          <p className="px-4 py-8 text-center text-gray-400">Yükleniyor...</p>
+        ) : !loading && codes.length === 0 ? (
+          <p className="px-4 py-8 text-center text-gray-400">Henüz indirim kodu yok</p>
+        ) : (
+          <>
+            <div className="border-b border-gray-100 px-4 py-3 text-sm text-gray-500">
+              {codes.length} indirim kodu
+            </div>
+            <div className="divide-y divide-gray-100 md:hidden">
               {codes.map((row) => (
-                <tr key={row.id}>
-                  <td className="font-mono font-medium">{row.code}</td>
-                  <td>{valueLabel(row)}</td>
-                  <td className="text-gray-500">
-                    {row.minSubtotal > 0 ? formatPrice(row.minSubtotal, "tr") : "—"}
-                  </td>
-                  <td className="text-gray-500">
-                    {row.usedCount}
-                    {row.maxUses != null ? ` / ${row.maxUses}` : ""}
-                  </td>
-                  <td className="whitespace-nowrap text-gray-400">
-                    {row.expiresAt
-                      ? new Date(row.expiresAt).toLocaleString("tr-TR")
-                      : "—"}
-                  </td>
-                  <td>
+                <div key={row.id} className="space-y-2 px-4 py-3">
+                  <div className="flex items-start justify-between gap-3">
+                    <p className="min-w-0 break-all font-mono font-medium text-gray-900">
+                      {row.code}
+                    </p>
                     {row.active ? (
-                      <span className="rounded-full bg-olive/15 px-2 py-0.5 text-xs text-olive">
+                      <span className="shrink-0 rounded-full bg-olive/15 px-2 py-0.5 text-xs text-olive">
                         Aktif
                       </span>
                     ) : (
-                      <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-500">
+                      <span className="shrink-0 rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-500">
                         Pasif
                       </span>
                     )}
-                  </td>
-                  <td>
-                    <button
-                      type="button"
-                      onClick={() => toggleActive(row)}
-                      className="text-sm text-bamboo hover:underline"
-                    >
-                      {row.active ? "Pasifleştir" : "Aktifleştir"}
-                    </button>
-                  </td>
-                </tr>
+                  </div>
+                  <p className="text-sm font-semibold text-gray-900">
+                    {valueLabel(row)}
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    Min. sepet{" "}
+                    {row.minSubtotal > 0 ? formatPrice(row.minSubtotal, "tr") : "yok"}
+                    {" · "}
+                    Kullanım {row.usedCount}
+                    {row.maxUses != null ? ` / ${row.maxUses}` : ""}
+                  </p>
+                  <p className="text-xs text-gray-400">
+                    {row.expiresAt
+                      ? `Son tarih ${new Date(row.expiresAt).toLocaleString("tr-TR")}`
+                      : "Son tarih yok"}
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => toggleActive(row)}
+                    className="inline-flex min-h-[40px] items-center text-sm font-medium text-bamboo"
+                  >
+                    {row.active ? "Pasifleştir" : "Aktifleştir"}
+                  </button>
+                </div>
               ))}
-            </tbody>
-          </table>
-        </div>
+            </div>
+            <div className="admin-table-wrap hidden md:block">
+              <table className="admin-table w-full">
+                <thead>
+                  <tr>
+                    <th>Kod</th>
+                    <th>İndirim</th>
+                    <th>Min. sepet</th>
+                    <th>Kullanım</th>
+                    <th>Son tarih</th>
+                    <th>Durum</th>
+                    <th>İşlem</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {codes.map((row) => (
+                    <tr key={row.id}>
+                      <td className="font-mono font-medium">{row.code}</td>
+                      <td>{valueLabel(row)}</td>
+                      <td className="text-gray-500">
+                        {row.minSubtotal > 0 ? formatPrice(row.minSubtotal, "tr") : "—"}
+                      </td>
+                      <td className="text-gray-500">
+                        {row.usedCount}
+                        {row.maxUses != null ? ` / ${row.maxUses}` : ""}
+                      </td>
+                      <td className="whitespace-nowrap text-gray-400">
+                        {row.expiresAt
+                          ? new Date(row.expiresAt).toLocaleString("tr-TR")
+                          : "—"}
+                      </td>
+                      <td>
+                        {row.active ? (
+                          <span className="rounded-full bg-olive/15 px-2 py-0.5 text-xs text-olive">
+                            Aktif
+                          </span>
+                        ) : (
+                          <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-500">
+                            Pasif
+                          </span>
+                        )}
+                      </td>
+                      <td>
+                        <button
+                          type="button"
+                          onClick={() => toggleActive(row)}
+                          className="text-sm text-bamboo hover:underline"
+                        >
+                          {row.active ? "Pasifleştir" : "Aktifleştir"}
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );

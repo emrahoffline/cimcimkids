@@ -67,6 +67,33 @@
   padding-left: 2.5rem;
 }
 
+select.admin-input,
+input[type="datetime-local"].admin-input {
+  height: 44px;
+  min-height: 44px;
+  max-height: 44px;
+  box-sizing: border-box;
+}
+
+input[type="datetime-local"].admin-input {
+  min-width: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+  line-height: 44px;
+}
+
+input[type="datetime-local"].admin-input::-webkit-datetime-edit,
+input[type="datetime-local"].admin-input::-webkit-datetime-edit-fields-wrapper {
+  display: flex;
+  align-items: center;
+  padding: 0;
+  height: 100%;
+}
+
+input[type="datetime-local"].admin-input::-webkit-calendar-picker-indicator {
+  margin: 0;
+}
+
 input[type="search"].admin-input {
   -webkit-appearance: none;
   appearance: none;
