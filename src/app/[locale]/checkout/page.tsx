@@ -27,7 +27,16 @@ import {
   TURKEY_COUNTRY,
   districtsOf,
 } from "@/lib/turkey-locations";
-import { rememberShopperEmail } from "@/lib/shopper";
+import {
+  rememberShopperEmail,
+  readRememberedShopperEmail,
+} from "@/lib/shopper";
+import { GoogleSurveyOptIn } from "@/components/GoogleCustomerReviews";
+import {
+  estimatedDeliveryDate,
+  readGcrOptIn,
+  saveGcrOptIn,
+} from "@/lib/google-customer-reviews";
 
 type PayMethod = "card" | "bank_transfer";
 
@@ -76,6 +85,11 @@ export default function CheckoutPage() {
   const [orderNumber, setOrderNumber] = useState("");
   const [paidTotal, setPaidTotal] = useState(0);
   const [paidByCard, setPaidByCard] = useState(false);
+  const [gcrOptIn, setGcrOptIn] = useState<{
+    orderId: string;
+    email: string;
+    estimatedDeliveryDate: string;
+  } | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [payMethod, setPayMethod] = useState<PayMethod>("card");
@@ -145,6 +159,21 @@ export default function CheckoutPage() {
       setError(t("cardPaymentFailed"));
     }
   }, [clearCart, t]);
+
+  useEffect(() => {
+    if (!done || !orderNumber) return;
+    const paidForGoogle = paidByCard || paidTotal <= 0;
+    if (!paidForGoogle) return;
+    const stored = readGcrOptIn(orderNumber);
+    const email = stored?.email || readRememberedShopperEmail();
+    if (!email) return;
+    setGcrOptIn({
+      orderId: orderNumber,
+      email,
+      estimatedDeliveryDate:
+        stored?.estimatedDeliveryDate || estimatedDeliveryDate(),
+    });
+  }, [done, orderNumber, paidByCard, paidTotal]);
 
   useEffect(() => {
     if (!checkoutFormHtml || typeof document === "undefined") return;
@@ -249,6 +278,9 @@ export default function CheckoutPage() {
     }
 
     const order = await res.json();
+    if (order.orderNumber && form.email) {
+      saveGcrOptIn({ orderId: String(order.orderNumber), email: form.email });
+    }
     if (payMethod === "card" && (order.total ?? payable) > 0) {
       if (typeof order.paymentPageUrl === "string" && order.paymentPageUrl) {
         clearCart();
@@ -295,6 +327,13 @@ export default function CheckoutPage() {
     const noTransfer = paidTotal <= 0;
     return (
       <div className="mx-auto max-w-lg px-4 py-20">
+        {gcrOptIn ? (
+          <GoogleSurveyOptIn
+            orderId={gcrOptIn.orderId}
+            email={gcrOptIn.email}
+            estimatedDeliveryDate={gcrOptIn.estimatedDeliveryDate}
+          />
+        ) : null}
         <div className="card space-y-4 text-center">
           <p className="text-xl font-semibold text-olive">{t("success")}</p>
           {orderNumber && (
