@@ -1,32 +1,63 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { AdminHeader } from "@/components/admin/AdminHeader";
-import { Plus, Pencil, Trash2 } from "lucide-react";
+import { Plus, Pencil, Search, Trash2 } from "lucide-react";
 import type { Product, Category } from "@/lib/types";
 import { formatPrice } from "@/lib/products";
 import { isUploadedProductImage } from "@/lib/image-utils";
+
+function fold(value: string) {
+  return value.toLocaleLowerCase("tr-TR").trim();
+}
+
+function productMatches(
+  product: Product,
+  query: string,
+  categoryLabel: string
+) {
+  if (!query) return true;
+  const haystack = fold(
+    [
+      product.nameTr,
+      product.nameEn,
+      product.code,
+      product.slug,
+      product.category,
+      categoryLabel,
+      ...(product.ages?.length ? product.ages : product.ageRange ? [product.ageRange] : []),
+    ].join(" ")
+  );
+  return haystack.includes(query);
+}
 
 export default function AdminProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
+  const [query, setQuery] = useState("");
 
   const load = () => {
     Promise.all([
       fetch("/api/admin/products").then((r) => r.json()),
       fetch("/api/admin/categories").then((r) => r.json()),
     ]).then(([prods, cats]) => {
-      setProducts(prods);
-      setCategories(cats);
+      setProducts(Array.isArray(prods) ? prods : []);
+      setCategories(Array.isArray(cats) ? cats : []);
       setLoading(false);
     });
   };
 
   const categoryName = (slug: string) =>
     categories.find((c) => c.slug === slug)?.nameTr ?? slug;
+
+  const filtered = useMemo(() => {
+    const q = fold(query);
+    if (!q) return products;
+    return products.filter((p) => productMatches(p, q, categoryName(p.category)));
+  }, [products, query, categories]);
 
   useEffect(() => {
     load();
@@ -42,8 +73,19 @@ export default function AdminProductsPage() {
     <>
       <AdminHeader title="Ürünler" />
       <main className="admin-main">
-        <div className="mb-4 flex justify-end">
-          <Link href="/admin/products/new" className="admin-btn-primary">
+        <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <label className="relative min-w-0 flex-1 sm:max-w-md">
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+            <input
+              type="search"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Ürün adı, kod veya kategori ara"
+              className="admin-input pl-9"
+              autoComplete="off"
+            />
+          </label>
+          <Link href="/admin/products/new" className="admin-btn-primary shrink-0">
             <Plus className="h-4 w-4" />
             Ürün Ekle
           </Link>
@@ -54,10 +96,14 @@ export default function AdminProductsPage() {
             <p className="p-8 text-center text-gray-400">Yükleniyor...</p>
           ) : products.length === 0 ? (
             <p className="p-8 text-center text-gray-400">Ürün bulunamadı</p>
+          ) : filtered.length === 0 ? (
+            <p className="p-8 text-center text-gray-400">
+              Aramanıza uygun ürün yok
+            </p>
           ) : (
             <>
               <div className="divide-y divide-gray-100 md:hidden">
-                {products.map((p) => (
+                {filtered.map((p) => (
                   <div key={p.id} className="flex gap-3 px-4 py-3">
                     <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-lg bg-gray-100">
                       <Image
@@ -133,7 +179,7 @@ export default function AdminProductsPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {products.map((p) => (
+                  {filtered.map((p) => (
                     <tr key={p.id}>
                       <td>
                         <div className="flex items-center gap-3">
