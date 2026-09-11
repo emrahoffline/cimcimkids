@@ -61,7 +61,7 @@ const nextConfig: NextConfig = {
       ? [
           "default-src 'self'",
           "base-uri 'self'",
-          "frame-ancestors 'none'",
+          "frame-ancestors 'self' https://*.google.com https://*.google.com.tr https://analytics.google.com https://tagassistant.google.com",
           "object-src 'none'",
           "img-src 'self' data: blob: https:",
           "font-src 'self' data: https:",
@@ -90,7 +90,6 @@ const nextConfig: NextConfig = {
         ].join("; ");
 
     const headers = [
-      { key: "X-Frame-Options", value: "DENY" },
       { key: "X-Content-Type-Options", value: "nosniff" },
       { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
       { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
@@ -105,6 +104,19 @@ const nextConfig: NextConfig = {
     }
 
     return [
+      {
+        source: "/admin/:path*",
+        headers: [
+          { key: "X-Frame-Options", value: "DENY" },
+          {
+            key: "Content-Security-Policy",
+            value: csp.replace(
+              /frame-ancestors [^;]+/,
+              "frame-ancestors 'none'"
+            ),
+          },
+        ],
+      },
       {
         source: "/:path*",
         headers,
