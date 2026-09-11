@@ -1,10 +1,15 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Trash2, ArrowUp, ArrowDown } from "lucide-react";
+import { Trash2, ArrowUp, ArrowDown, Pencil } from "lucide-react";
 import { AdminHeader } from "@/components/admin/AdminHeader";
 import type { StoryItem } from "@/lib/types";
-import { groupStories, isStoryVideo } from "@/lib/stories";
+import { groupStories, isStoryVideo, type StoryGroup } from "@/lib/stories";
+
+type EditState =
+  | { type: "slide"; item: StoryItem }
+  | { type: "group"; group: StoryGroup }
+  | null;
 
 export default function AdminStoriesPage() {
   const [items, setItems] = useState<StoryItem[]>([]);
@@ -18,9 +23,13 @@ export default function AdminStoriesPage() {
   const [mediaUrls, setMediaUrls] = useState<string[]>([]);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
+  const [editing, setEditing] = useState<EditState>(null);
   const fileRef = useRef<HTMLInputElement>(null);
+  const formCardRef = useRef<HTMLDivElement>(null);
 
   const groups = groupStories(items);
+  const editingSlide = editing?.type === "slide" ? editing.item : null;
+  const editingGroup = editing?.type === "group" ? editing.group : null;
 
   const load = () => {
     setLoading(true);
@@ -33,6 +42,44 @@ export default function AdminStoriesPage() {
   useEffect(() => {
     load();
   }, []);
+
+  const scrollToForm = () => {
+    formCardRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
+  const resetForm = () => {
+    setTitle("");
+    setLinkUrl("");
+    setDurationSec(5);
+    setGroupId("");
+    setMediaUrls([]);
+    setEditing(null);
+    setError("");
+  };
+
+  const startEditSlide = (item: StoryItem) => {
+    setEditing({ type: "slide", item });
+    setTitle(item.title);
+    setLinkUrl(item.linkUrl);
+    setDurationSec(item.durationSec);
+    setGroupId(item.groupId || item.id);
+    setMediaUrls(item.mediaUrl ? [item.mediaUrl] : []);
+    setError("");
+    setMessage("");
+    scrollToForm();
+  };
+
+  const startEditGroup = (group: StoryGroup) => {
+    setEditing({ type: "group", group });
+    setTitle(group.title);
+    setLinkUrl("");
+    setDurationSec(5);
+    setGroupId(group.id);
+    setMediaUrls([]);
+    setError("");
+    setMessage("");
+    scrollToForm();
+  };
 
   const uploadFiles = async (files: FileList | null) => {
     if (!files?.length) return;
@@ -54,23 +101,89 @@ export default function AdminStoriesPage() {
       }
       if (typeof data.url === "string") uploaded.push(data.url);
     }
-    setMediaUrls((prev) => [...prev, ...uploaded]);
+    setMediaUrls((prev) =>
+      editingSlide ? uploaded.slice(0, 1) : [...prev, ...uploaded]
+    );
     setUploading(false);
   };
 
-  const handleAdd = async (e: React.FormEvent) => {
+  const patch = async (id: string, body: Record<string, unknown>) => {
+    const res = await fetch("/api/admin/stories", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id, ...body }),
+    });
+    if (!res.ok) return null;
+    const updated = (await res.json()) as StoryItem;
+    setItems((prev) => prev.map((s) => (s.id === updated.id ? updated : s)));
+    return updated;
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim()) {
       setError("Başlık gerekli");
       return;
     }
-    if (mediaUrls.length === 0) {
-      setError("Fotoğraf veya video yükleyin");
-      return;
-    }
+
     setSaving(true);
     setError("");
     setMessage("");
+
+    if (editingGroup) {
+      const first = editingGroup.items[0];
+      if (!first) {
+        setSaving(false);
+        setError("Hikaye bulunamadı");
+        return;
+      }
+      const updated = await patch(first.id, {
+        title,
+        applyTitleToGroup: true,
+      });
+      setSaving(false);
+      if (!updated) {
+        setError("Güncellenemedi");
+        return;
+      }
+      resetForm();
+      setMessage("Hikaye güncellendi");
+      load();
+      return;
+    }
+
+    if (editingSlide) {
+      if (mediaUrls.length === 0) {
+        setSaving(false);
+        setError("Fotoğraf veya video yükleyin");
+        return;
+      }
+      const nextGroupId =
+        groupId.trim() || editingSlide.groupId || editingSlide.id;
+      const updated = await patch(editingSlide.id, {
+        title,
+        mediaUrl: mediaUrls[0],
+        durationSec,
+        linkUrl,
+        groupId: nextGroupId,
+        applyTitleToGroup: nextGroupId === editingSlide.groupId,
+      });
+      setSaving(false);
+      if (!updated) {
+        setError("Güncellenemedi");
+        return;
+      }
+      resetForm();
+      setMessage("Slayt güncellendi");
+      load();
+      return;
+    }
+
+    if (mediaUrls.length === 0) {
+      setSaving(false);
+      setError("Fotoğraf veya video yükleyin");
+      return;
+    }
     const res = await fetch("/api/admin/stories", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -88,25 +201,9 @@ export default function AdminStoriesPage() {
       setError(data.error || "Eklenemedi");
       return;
     }
-    setTitle("");
-    setLinkUrl("");
-    setDurationSec(5);
-    setGroupId("");
-    setMediaUrls([]);
+    resetForm();
     setMessage("Hikaye eklendi");
     load();
-  };
-
-  const patch = async (id: string, body: Record<string, unknown>) => {
-    const res = await fetch("/api/admin/stories", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id, ...body }),
-    });
-    if (res.ok) {
-      const updated = (await res.json()) as StoryItem;
-      setItems((prev) => prev.map((s) => (s.id === updated.id ? updated : s)));
-    }
   };
 
   const moveGroup = async (index: number, dir: -1 | 1) => {
@@ -139,7 +236,10 @@ export default function AdminStoriesPage() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ id }),
     });
-    if (res.ok) setItems((prev) => prev.filter((s) => s.id !== id));
+    if (res.ok) {
+      setItems((prev) => prev.filter((s) => s.id !== id));
+      if (editingSlide?.id === id) resetForm();
+    }
   };
 
   const handleDeleteGroup = async (gid: string, name: string) => {
@@ -149,21 +249,26 @@ export default function AdminStoriesPage() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ groupId: gid }),
     });
-    if (res.ok) setItems((prev) => prev.filter((s) => s.groupId !== gid));
+    if (res.ok) {
+      setItems((prev) => prev.filter((s) => s.groupId !== gid));
+      if (editingGroup?.id === gid || editingSlide?.groupId === gid) resetForm();
+    }
   };
 
   return (
     <>
       <AdminHeader title="Hikayeler" />
       <main className="admin-main space-y-6">
-        <div className="admin-card space-y-4 p-4 sm:p-6">
+        <div ref={formCardRef} className="admin-card space-y-4 p-4 sm:p-6">
           <p className="text-sm text-gray-600">
-            Anasayfada Instagram tarzı hikayeler. Aynı başlıkla birden fazla
-            fotoğraf/video ekleyebilir veya mevcut bir gruba slayt ekleyebilirsiniz.
-            Görseller 3–15 sn; videolar kendi süresinde oynar.
+            {editingGroup
+              ? "Hikaye adı anasayfadaki dairede görünür. Slaytları aşağıdaki listeden düzenleyebilirsiniz."
+              : editingSlide
+                ? "Bu slaytın görseli, süresi ve ürün linkini güncelleyin."
+                : "Anasayfada Instagram tarzı hikayeler. Aynı başlıkla birden fazla fotoğraf/video ekleyebilir veya mevcut bir gruba slayt ekleyebilirsiniz. Görseller 3–15 sn; videolar kendi süresinde oynar."}
           </p>
-          <form onSubmit={handleAdd} className="space-y-4">
-            <div className="grid gap-3 sm:grid-cols-2">
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className={`grid gap-3 ${editingGroup ? "" : "sm:grid-cols-2"}`}>
               <div>
                 <label className="mb-1 block text-sm font-medium">Başlık</label>
                 <input
@@ -174,104 +279,134 @@ export default function AdminStoriesPage() {
                   maxLength={80}
                 />
               </div>
-              <div>
-                <label className="mb-1 block text-sm font-medium">
-                  Mevcut gruba ekle
-                </label>
-                <select
-                  className="admin-input"
-                  value={groupId}
-                  onChange={(e) => setGroupId(e.target.value)}
-                >
-                  <option value="">Yeni hikaye grubu</option>
-                  {groups.map((g) => (
-                    <option key={g.id} value={g.id}>
-                      {g.title || g.id}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-            <div className="grid gap-3 sm:grid-cols-2">
-              <div>
-                <label className="mb-1 block text-sm font-medium">
-                  Görsel süresi (sn)
-                </label>
-                <input
-                  type="number"
-                  min={3}
-                  max={15}
-                  className="admin-input"
-                  value={durationSec}
-                  onChange={(e) => setDurationSec(Number(e.target.value))}
-                />
-              </div>
-              <div>
-                <label className="mb-1 block text-sm font-medium">
-                  Ürün linki (isteğe bağlı)
-                </label>
-                <input
-                  className="admin-input"
-                  value={linkUrl}
-                  onChange={(e) => setLinkUrl(e.target.value)}
-                  placeholder="https://www.cimcimkids.com/tr/products/..."
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="mb-1 block text-sm font-medium">Medya</label>
-              <div className="flex flex-wrap gap-2">
-                {mediaUrls.map((url) => (
-                  <div
-                    key={url}
-                    className="relative h-20 w-20 overflow-hidden rounded-lg border bg-gray-50"
+              {!editingGroup ? (
+                <div>
+                  <label className="mb-1 block text-sm font-medium">
+                    {editingSlide ? "Grup" : "Mevcut gruba ekle"}
+                  </label>
+                  <select
+                    className="admin-input"
+                    value={groupId}
+                    onChange={(e) => setGroupId(e.target.value)}
                   >
-                    {isStoryVideo(url) ? (
-                      <video src={url} className="h-full w-full object-cover" muted />
-                    ) : (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img src={url} alt="" className="h-full w-full object-cover" />
+                    {editingSlide ? null : (
+                      <option value="">Yeni hikaye grubu</option>
                     )}
-                    <button
-                      type="button"
-                      className="absolute right-1 top-1 rounded bg-red-500 px-1 text-[10px] text-white"
-                      onClick={() =>
-                        setMediaUrls((prev) => prev.filter((u) => u !== url))
-                      }
-                    >
-                      ×
-                    </button>
-                  </div>
-                ))}
-              </div>
-              <input
-                ref={fileRef}
-                type="file"
-                accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm"
-                multiple
-                className="mt-2 text-sm"
-                onChange={(e) => {
-                  uploadFiles(e.target.files);
-                  e.target.value = "";
-                }}
-              />
-              <p className="mt-1 text-xs text-gray-400">
-                {uploading
-                  ? "Yükleniyor..."
-                  : "JPG, PNG, MP4 · görsel max 8 MB, video max 40 MB"}
-              </p>
+                    {groups.map((g) => (
+                      <option key={g.id} value={g.id}>
+                        {g.title || g.id}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              ) : null}
             </div>
+            {!editingGroup ? (
+              <div className="grid gap-3 sm:grid-cols-2">
+                <div>
+                  <label className="mb-1 block text-sm font-medium">
+                    Görsel süresi (sn)
+                  </label>
+                  <input
+                    type="number"
+                    min={3}
+                    max={15}
+                    className="admin-input"
+                    value={durationSec}
+                    onChange={(e) => setDurationSec(Number(e.target.value))}
+                  />
+                </div>
+                <div>
+                  <label className="mb-1 block text-sm font-medium">
+                    Ürün linki (isteğe bağlı)
+                  </label>
+                  <input
+                    className="admin-input"
+                    value={linkUrl}
+                    onChange={(e) => setLinkUrl(e.target.value)}
+                    placeholder="https://www.cimcimkids.com/tr/products/..."
+                  />
+                </div>
+              </div>
+            ) : null}
+
+            {!editingGroup ? (
+              <div>
+                <label className="mb-1 block text-sm font-medium">Medya</label>
+                <div className="flex flex-wrap gap-2">
+                  {mediaUrls.map((url) => (
+                    <div
+                      key={url}
+                      className="relative h-20 w-20 overflow-hidden rounded-lg border bg-gray-50"
+                    >
+                      {isStoryVideo(url) ? (
+                        <video src={url} className="h-full w-full object-cover" muted />
+                      ) : (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={url} alt="" className="h-full w-full object-cover" />
+                      )}
+                      <button
+                        type="button"
+                        className="absolute right-1 top-1 rounded bg-red-500 px-1 text-[10px] text-white"
+                        onClick={() =>
+                          setMediaUrls((prev) => prev.filter((u) => u !== url))
+                        }
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ))}
+                </div>
+                <input
+                  ref={fileRef}
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm"
+                  multiple={!editingSlide}
+                  className="mt-2 text-sm"
+                  onChange={(e) => {
+                    uploadFiles(e.target.files);
+                    e.target.value = "";
+                  }}
+                />
+                <p className="mt-1 text-xs text-gray-400">
+                  {uploading
+                    ? "Yükleniyor..."
+                    : editingSlide
+                      ? "Yeni dosya seçerseniz mevcut medyanın yerini alır."
+                      : "JPG, PNG, MP4 · görsel max 8 MB, video max 40 MB"}
+                </p>
+              </div>
+            ) : null}
 
             {error && <p className="text-sm text-red-600">{error}</p>}
             {message && <p className="text-sm text-green-700">{message}</p>}
-            <button
-              type="submit"
-              disabled={saving || uploading}
-              className="rounded-lg bg-olive px-4 py-2.5 text-sm font-medium text-white hover:bg-olive/90 disabled:opacity-60"
-            >
-              {saving ? "Ekleniyor..." : "Hikaye Ekle"}
-            </button>
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="submit"
+                disabled={saving || uploading}
+                className="rounded-lg bg-olive px-4 py-2.5 text-sm font-medium text-white hover:bg-olive/90 disabled:opacity-60"
+              >
+                {saving
+                  ? editing
+                    ? "Kaydediliyor..."
+                    : "Ekleniyor..."
+                  : editing
+                    ? "Kaydet"
+                    : "Hikaye Ekle"}
+              </button>
+              {editing ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    resetForm();
+                    setMessage("");
+                  }}
+                  className="admin-btn-secondary"
+                >
+                  İptal
+                </button>
+              ) : null}
+            </div>
           </form>
         </div>
 
@@ -292,6 +427,14 @@ export default function AdminStoriesPage() {
                   </p>
                 </div>
                 <div className="flex items-center gap-1">
+                  <button
+                    type="button"
+                    onClick={() => startEditGroup(group)}
+                    className="inline-flex min-h-[40px] items-center gap-1.5 rounded-lg px-2.5 text-sm font-medium text-olive hover:bg-olive/10"
+                  >
+                    <Pencil className="h-4 w-4" />
+                    Düzenle
+                  </button>
                   <button
                     type="button"
                     onClick={() => moveGroup(index, -1)}
@@ -370,14 +513,24 @@ export default function AdminStoriesPage() {
                           </button>
                         </td>
                         <td>
-                          <button
-                            type="button"
-                            onClick={() => handleDeleteItem(item.id)}
-                            className="rounded p-1.5 text-red-500 hover:bg-red-50"
-                            aria-label="Sil"
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </button>
+                          <div className="flex items-center gap-1">
+                            <button
+                              type="button"
+                              onClick={() => startEditSlide(item)}
+                              className="inline-flex min-h-[40px] items-center gap-1.5 rounded-lg px-2.5 text-sm font-medium text-olive hover:bg-olive/10"
+                            >
+                              <Pencil className="h-4 w-4" />
+                              Düzenle
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteItem(item.id)}
+                              className="rounded p-1.5 text-red-500 hover:bg-red-50"
+                              aria-label="Sil"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     ))}

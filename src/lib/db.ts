@@ -1129,14 +1129,17 @@ export async function updateStory(
     active: boolean;
     sortOrder: number;
     groupId: string;
-  }>
+  }>,
+  options?: { applyTitleToGroup?: boolean }
 ): Promise<StoryItem | null> {
   requireDatabaseUrl();
   try {
+    const title =
+      data.title !== undefined ? data.title.trim().slice(0, 80) : undefined;
     const updated = await prisma.story.update({
       where: { id },
       data: {
-        ...(data.title !== undefined ? { title: data.title.trim().slice(0, 80) } : {}),
+        ...(title !== undefined ? { title } : {}),
         ...(data.mediaUrl !== undefined ? { mediaUrl: data.mediaUrl.trim() } : {}),
         ...(data.durationSec !== undefined
           ? { durationSec: clampStoryDuration(data.durationSec) }
@@ -1149,6 +1152,12 @@ export async function updateStory(
         ...(data.groupId !== undefined ? { groupId: data.groupId.trim() } : {}),
       },
     });
+    if (options?.applyTitleToGroup && title !== undefined && updated.groupId) {
+      await prisma.story.updateMany({
+        where: { groupId: updated.groupId, id: { not: id } },
+        data: { title },
+      });
+    }
     return mapStory(updated);
   } catch {
     return null;

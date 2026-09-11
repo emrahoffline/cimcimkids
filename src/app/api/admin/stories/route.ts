@@ -65,7 +65,17 @@ export async function PATCH(request: Request) {
     return NextResponse.json({ error: "Geçersiz istek." }, { status: 400 });
   }
 
-  const { id, title, mediaUrl, durationSec, linkUrl, active, sortOrder } = body as {
+  const {
+    id,
+    title,
+    mediaUrl,
+    durationSec,
+    linkUrl,
+    active,
+    sortOrder,
+    groupId,
+    applyTitleToGroup,
+  } = body as {
     id?: unknown;
     title?: unknown;
     mediaUrl?: unknown;
@@ -73,22 +83,38 @@ export async function PATCH(request: Request) {
     linkUrl?: unknown;
     active?: unknown;
     sortOrder?: unknown;
+    groupId?: unknown;
+    applyTitleToGroup?: unknown;
   };
 
   if (typeof id !== "string" || !id) {
     return NextResponse.json({ error: "Geçersiz istek." }, { status: 400 });
   }
 
-  const updated = await updateStory(id, {
-    ...(typeof title === "string" ? { title } : {}),
-    ...(typeof mediaUrl === "string" ? { mediaUrl } : {}),
-    ...(typeof durationSec === "number" ? { durationSec } : {}),
-    ...(typeof linkUrl === "string" ? { linkUrl } : {}),
-    ...(typeof active === "boolean" ? { active } : {}),
-    ...(typeof sortOrder === "number" && Number.isFinite(sortOrder)
-      ? { sortOrder }
-      : {}),
-  });
+  const duration =
+    typeof durationSec === "number"
+      ? durationSec
+      : typeof durationSec === "string" && durationSec.trim()
+        ? Number(durationSec)
+        : undefined;
+
+  const updated = await updateStory(
+    id,
+    {
+      ...(typeof title === "string" ? { title } : {}),
+      ...(typeof mediaUrl === "string" && mediaUrl.trim() ? { mediaUrl } : {}),
+      ...(duration !== undefined && Number.isFinite(duration)
+        ? { durationSec: duration }
+        : {}),
+      ...(typeof linkUrl === "string" ? { linkUrl } : {}),
+      ...(typeof active === "boolean" ? { active } : {}),
+      ...(typeof sortOrder === "number" && Number.isFinite(sortOrder)
+        ? { sortOrder }
+        : {}),
+      ...(typeof groupId === "string" && groupId.trim() ? { groupId } : {}),
+    },
+    { applyTitleToGroup: applyTitleToGroup === true }
+  );
 
   if (!updated) {
     return NextResponse.json({ error: "Hikaye bulunamadı." }, { status: 404 });
