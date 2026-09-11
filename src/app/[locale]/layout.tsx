@@ -5,6 +5,7 @@ import { Nunito, Outfit } from "next/font/google";
 import { routing } from "@/i18n/routing";
 import { Providers } from "@/components/Providers";
 import { MobileShell } from "@/components/MobileShell";
+import { GoogleTag } from "@/components/GoogleTag";
 import type { Viewport } from "next";
 
 const nunito = Nunito({
@@ -50,6 +51,9 @@ export default async function LocaleLayout({
 
   return (
     <html lang={locale} className={`${nunito.variable} ${outfit.variable}`}>
+      <head>
+        <GoogleTag />
+      </head>
       <body className="flex min-h-screen flex-col antialiased">
         <NextIntlClientProvider messages={messages}>
           <Providers>
