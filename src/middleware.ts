@@ -12,6 +12,15 @@ export default function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
+  // `/` used to 308 to /tr with an empty body. Google Analytics tag detection
+  // fetches https://www.cimcimkids.com/ and misses the snippet. Rewrite so the
+  // homepage HTML (and gtag) is served at the stream URL. Canonical stays /tr.
+  if (request.nextUrl.pathname === "/") {
+    const url = request.nextUrl.clone();
+    url.pathname = `/${routing.defaultLocale}`;
+    return NextResponse.rewrite(url);
+  }
+
   const response = intlMiddleware(request);
 
   // next-intl uses 307; Google consolidates ranking signals on 308/301.
