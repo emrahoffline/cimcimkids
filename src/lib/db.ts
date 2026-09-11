@@ -1130,12 +1130,14 @@ export async function updateStory(
     sortOrder: number;
     groupId: string;
   }>,
-  options?: { applyTitleToGroup?: boolean }
+  options?: { applyTitleToGroup?: boolean; applyLinkToGroup?: boolean }
 ): Promise<StoryItem | null> {
   requireDatabaseUrl();
   try {
     const title =
       data.title !== undefined ? data.title.trim().slice(0, 80) : undefined;
+    const linkUrl =
+      data.linkUrl !== undefined ? data.linkUrl.trim().slice(0, 500) : undefined;
     const updated = await prisma.story.update({
       where: { id },
       data: {
@@ -1144,19 +1146,22 @@ export async function updateStory(
         ...(data.durationSec !== undefined
           ? { durationSec: clampStoryDuration(data.durationSec) }
           : {}),
-        ...(data.linkUrl !== undefined
-          ? { linkUrl: data.linkUrl.trim().slice(0, 500) }
-          : {}),
+        ...(linkUrl !== undefined ? { linkUrl } : {}),
         ...(data.active !== undefined ? { active: data.active } : {}),
         ...(data.sortOrder !== undefined ? { sortOrder: data.sortOrder } : {}),
         ...(data.groupId !== undefined ? { groupId: data.groupId.trim() } : {}),
       },
     });
-    if (options?.applyTitleToGroup && title !== undefined && updated.groupId) {
-      await prisma.story.updateMany({
-        where: { groupId: updated.groupId, id: { not: id } },
-        data: { title },
-      });
+    if (updated.groupId) {
+      const groupData: { title?: string; linkUrl?: string } = {};
+      if (options?.applyTitleToGroup && title !== undefined) groupData.title = title;
+      if (options?.applyLinkToGroup && linkUrl !== undefined) groupData.linkUrl = linkUrl;
+      if (Object.keys(groupData).length > 0) {
+        await prisma.story.updateMany({
+          where: { groupId: updated.groupId, id: { not: id } },
+          data: groupData,
+        });
+      }
     }
     return mapStory(updated);
   } catch {

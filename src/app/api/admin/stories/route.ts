@@ -75,6 +75,7 @@ export async function PATCH(request: Request) {
     sortOrder,
     groupId,
     applyTitleToGroup,
+    applyLinkToGroup,
   } = body as {
     id?: unknown;
     title?: unknown;
@@ -85,6 +86,7 @@ export async function PATCH(request: Request) {
     sortOrder?: unknown;
     groupId?: unknown;
     applyTitleToGroup?: unknown;
+    applyLinkToGroup?: unknown;
   };
 
   if (typeof id !== "string" || !id) {
@@ -113,7 +115,10 @@ export async function PATCH(request: Request) {
         : {}),
       ...(typeof groupId === "string" && groupId.trim() ? { groupId } : {}),
     },
-    { applyTitleToGroup: applyTitleToGroup === true }
+    {
+      applyTitleToGroup: applyTitleToGroup === true,
+      applyLinkToGroup: applyLinkToGroup === true,
+    }
   );
 
   if (!updated) {

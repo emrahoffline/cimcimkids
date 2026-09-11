@@ -70,10 +70,11 @@ export default function AdminStoriesPage() {
   };
 
   const startEditGroup = (group: StoryGroup) => {
+    const first = group.items[0];
     setEditing({ type: "group", group });
     setTitle(group.title);
-    setLinkUrl("");
-    setDurationSec(5);
+    setLinkUrl(first?.linkUrl ?? "");
+    setDurationSec(first?.durationSec ?? 5);
     setGroupId(group.id);
     setMediaUrls([]);
     setError("");
@@ -139,7 +140,9 @@ export default function AdminStoriesPage() {
       }
       const updated = await patch(first.id, {
         title,
+        linkUrl,
         applyTitleToGroup: true,
+        applyLinkToGroup: true,
       });
       setSaving(false);
       if (!updated) {
@@ -262,7 +265,7 @@ export default function AdminStoriesPage() {
         <div ref={formCardRef} className="admin-card space-y-4 p-4 sm:p-6">
           <p className="text-sm text-gray-600">
             {editingGroup
-              ? "Hikaye adı anasayfadaki dairede görünür. Slaytları aşağıdaki listeden düzenleyebilirsiniz."
+              ? "Başlık ve ürün linki bu hikayedeki tüm slaytlara uygulanır. Tek bir slaytı değiştirmek için listedeki Düzenle’yi kullanın."
               : editingSlide
                 ? "Bu slaytın görseli, süresi ve ürün linkini güncelleyin."
                 : "Anasayfada Instagram tarzı hikayeler. Aynı başlıkla birden fazla fotoğraf/video ekleyebilir veya mevcut bir gruba slayt ekleyebilirsiniz. Görseller 3–15 sn; videolar kendi süresinde oynar."}
@@ -301,8 +304,8 @@ export default function AdminStoriesPage() {
                 </div>
               ) : null}
             </div>
-            {!editingGroup ? (
-              <div className="grid gap-3 sm:grid-cols-2">
+            <div className={`grid gap-3 ${editingGroup ? "" : "sm:grid-cols-2"}`}>
+              {!editingGroup ? (
                 <div>
                   <label className="mb-1 block text-sm font-medium">
                     Görsel süresi (sn)
@@ -316,19 +319,19 @@ export default function AdminStoriesPage() {
                     onChange={(e) => setDurationSec(Number(e.target.value))}
                   />
                 </div>
-                <div>
-                  <label className="mb-1 block text-sm font-medium">
-                    Ürün linki (isteğe bağlı)
-                  </label>
-                  <input
-                    className="admin-input"
-                    value={linkUrl}
-                    onChange={(e) => setLinkUrl(e.target.value)}
-                    placeholder="https://www.cimcimkids.com/tr/products/..."
-                  />
-                </div>
+              ) : null}
+              <div>
+                <label className="mb-1 block text-sm font-medium">
+                  Ürün linki (isteğe bağlı)
+                </label>
+                <input
+                  className="admin-input"
+                  value={linkUrl}
+                  onChange={(e) => setLinkUrl(e.target.value)}
+                  placeholder="https://www.cimcimkids.com/tr/products/..."
+                />
               </div>
-            ) : null}
+            </div>
 
             {!editingGroup ? (
               <div>
