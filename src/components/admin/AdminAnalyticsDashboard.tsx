@@ -124,8 +124,8 @@ function RankList({
         const width = Math.max((value / max) * 100, 8);
 
         return (
-          <div key={item.productId} className="flex items-center gap-3">
-            <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gray-100 text-xs font-semibold text-gray-600">
+          <div key={item.productId} className="flex items-start gap-3">
+            <span className="mt-1 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gray-100 text-xs font-semibold text-gray-600">
               {index + 1}
             </span>
             <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-lg bg-gray-100">
@@ -138,15 +138,13 @@ function RankList({
               )}
             </div>
             <div className="min-w-0 flex-1">
-              <div className="mb-1 flex items-center justify-between gap-2">
-                <p className="truncate text-sm font-medium text-gray-900">{item.name}</p>
-                <p className="shrink-0 text-sm font-semibold text-olive">
-                  {type === "sales"
-                    ? `${value} adet`
-                    : `${value} fav`}
-                </p>
-              </div>
-              <div className="h-2 overflow-hidden rounded-full bg-gray-100">
+              <p className="break-words text-sm font-medium leading-snug text-gray-900">
+                {item.name}
+              </p>
+              <p className="mt-0.5 text-sm font-semibold text-olive">
+                {type === "sales" ? `${value} adet` : `${value} fav`}
+              </p>
+              <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-gray-100">
                 <div
                   className={`h-full rounded-full ${
                     type === "sales"
@@ -290,11 +288,11 @@ export function AdminAnalyticsDashboard({ data }: { data: AnalyticsData }) {
             <div className="space-y-4">
               {data.locations.map((loc) => (
                 <div key={`${loc.city}-${loc.country}`}>
-                  <div className="mb-1 flex items-center justify-between text-sm">
-                    <span className="font-medium text-gray-800">
+                  <div className="mb-1 flex flex-col gap-0.5 text-sm sm:flex-row sm:items-center sm:justify-between sm:gap-3">
+                    <span className="min-w-0 break-words font-medium text-gray-800">
                       {loc.city}, {loc.country}
                     </span>
-                    <span className="text-gray-500">
+                    <span className="shrink-0 text-xs text-gray-500 sm:text-sm">
                       {loc.visits} ziyaretçi · %{loc.percentage}
                     </span>
                   </div>

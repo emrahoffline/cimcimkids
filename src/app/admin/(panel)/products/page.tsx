@@ -7,6 +7,7 @@ import { AdminHeader } from "@/components/admin/AdminHeader";
 import { Plus, Pencil, Trash2 } from "lucide-react";
 import type { Product, Category } from "@/lib/types";
 import { formatPrice } from "@/lib/products";
+import { isUploadedProductImage } from "@/lib/image-utils";
 
 export default function AdminProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -54,7 +55,71 @@ export default function AdminProductsPage() {
           ) : products.length === 0 ? (
             <p className="p-8 text-center text-gray-400">Ürün bulunamadı</p>
           ) : (
-            <div className="admin-table-wrap">
+            <>
+              <div className="divide-y divide-gray-100 md:hidden">
+                {products.map((p) => (
+                  <div key={p.id} className="flex gap-3 px-4 py-3">
+                    <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-lg bg-gray-100">
+                      <Image
+                        src={p.image}
+                        alt={p.nameTr}
+                        fill
+                        unoptimized={isUploadedProductImage(p.image)}
+                        className="object-cover"
+                      />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <Link
+                        href={`/admin/products/${p.id}`}
+                        className="break-words font-medium text-gray-900 hover:text-olive"
+                      >
+                        {p.nameTr}
+                      </Link>
+                      <p className="mt-0.5 text-xs text-gray-400">
+                        {p.code}
+                        {p.category ? ` · ${categoryName(p.category)}` : ""}
+                      </p>
+                      <p className="mt-1 text-sm font-semibold text-gray-900">
+                        {formatPrice(p.price, "tr")}
+                        {typeof p.compareAtPrice === "number" &&
+                        p.compareAtPrice > p.price ? (
+                          <span className="ml-1 text-xs font-normal text-gray-400 line-through">
+                            {formatPrice(p.compareAtPrice, "tr")}
+                          </span>
+                        ) : null}
+                      </p>
+                      <span
+                        className={`mt-1.5 inline-block rounded-full px-2 py-0.5 text-xs ${
+                          (p.stockQuantity ?? 0) > 0
+                            ? "bg-green-100 text-green-700"
+                            : "bg-red-100 text-red-700"
+                        }`}
+                      >
+                        {(p.stockQuantity ?? 0) > 0
+                          ? `${p.stockQuantity} adet`
+                          : "Tükendi"}
+                      </span>
+                      <div className="mt-2 flex items-center gap-1">
+                        <Link
+                          href={`/admin/products/${p.id}`}
+                          className="inline-flex min-h-[40px] items-center gap-1.5 rounded-lg px-2.5 text-sm font-medium text-olive hover:bg-olive/10"
+                        >
+                          <Pencil className="h-4 w-4" />
+                          Düzenle
+                        </Link>
+                        <button
+                          onClick={() => handleDelete(p.id, p.nameTr)}
+                          className="inline-flex min-h-[40px] min-w-[40px] items-center justify-center rounded-lg text-red-500 hover:bg-red-50"
+                          aria-label="Sil"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <div className="admin-table-wrap hidden md:block">
               <table className="admin-table w-full">
                 <thead>
                   <tr>
@@ -77,6 +142,7 @@ export default function AdminProductsPage() {
                               src={p.image}
                               alt={p.nameTr}
                               fill
+                              unoptimized={isUploadedProductImage(p.image)}
                               className="object-cover"
                             />
                           </div>
@@ -143,7 +209,8 @@ export default function AdminProductsPage() {
                   ))}
                 </tbody>
               </table>
-            </div>
+              </div>
+            </>
           )}
         </div>
       </main>

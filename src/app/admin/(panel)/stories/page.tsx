@@ -422,14 +422,14 @@ export default function AdminStoriesPage() {
           )}
           {groups.map((group, index) => (
             <div key={group.id} className="admin-card overflow-hidden">
-              <div className="flex flex-wrap items-center justify-between gap-2 border-b border-gray-100 px-4 py-3">
-                <div>
-                  <p className="font-medium">{group.title || "İsimsiz"}</p>
+              <div className="flex flex-col gap-3 border-b border-gray-100 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+                <div className="min-w-0">
+                  <p className="break-words font-medium">{group.title || "İsimsiz"}</p>
                   <p className="text-xs text-gray-400">
                     {group.items.length} slayt
                   </p>
                 </div>
-                <div className="flex items-center gap-1">
+                <div className="flex flex-wrap items-center gap-1">
                   <button
                     type="button"
                     onClick={() => startEditGroup(group)}
@@ -466,7 +466,66 @@ export default function AdminStoriesPage() {
                   </button>
                 </div>
               </div>
-              <div className="admin-table-wrap">
+              <div className="divide-y divide-gray-100 md:hidden">
+                {group.items.map((item) => (
+                  <div key={item.id} className="flex gap-3 px-4 py-3">
+                    <div className="h-16 w-16 shrink-0 overflow-hidden rounded-lg bg-gray-100">
+                      {isStoryVideo(item.mediaUrl) ? (
+                        <video
+                          src={item.mediaUrl}
+                          className="h-full w-full object-cover"
+                          muted
+                        />
+                      ) : (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={item.mediaUrl}
+                          alt=""
+                          className="h-full w-full object-cover"
+                        />
+                      )}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <p className="break-all text-xs text-gray-500">
+                        {item.linkUrl || "Link yok"}
+                      </p>
+                      <p className="mt-1 text-xs text-gray-400">
+                        {item.viewCount} görüntülenme
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => patch(item.id, { active: !item.active })}
+                        className={`mt-2 rounded-full px-2 py-0.5 text-xs ${
+                          item.active
+                            ? "bg-green-100 text-green-700"
+                            : "bg-gray-100 text-gray-500"
+                        }`}
+                      >
+                        {item.active ? "Aktif" : "Pasif"}
+                      </button>
+                      <div className="mt-2 flex items-center gap-1">
+                        <button
+                          type="button"
+                          onClick={() => startEditSlide(item)}
+                          className="inline-flex min-h-[40px] items-center gap-1.5 rounded-lg px-2.5 text-sm font-medium text-olive hover:bg-olive/10"
+                        >
+                          <Pencil className="h-4 w-4" />
+                          Düzenle
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteItem(item.id)}
+                          className="rounded p-1.5 text-red-500 hover:bg-red-50"
+                          aria-label="Sil"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <div className="admin-table-wrap hidden md:block">
                 <table className="admin-table w-full">
                   <thead>
                     <tr>

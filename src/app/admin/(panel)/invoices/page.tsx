@@ -71,7 +71,94 @@ export default function AdminInvoicesPage() {
           </p>
         )}
         <div className="admin-card overflow-hidden">
-          <div className="admin-table-wrap">
+          {loading && invoices.length === 0 ? (
+            <p className="px-4 py-8 text-center text-gray-400">Yükleniyor...</p>
+          ) : !loading && invoices.length === 0 ? (
+            <p className="px-4 py-8 text-center text-gray-400">
+              Henüz fatura yok. Ödeme onaylanan siparişlerden kesilir.
+            </p>
+          ) : (
+            <>
+              <div className="divide-y divide-gray-100 md:hidden">
+                {invoices.map((inv) => (
+                  <div key={inv.id} className="space-y-2 px-4 py-3">
+                    <div className="flex items-start justify-between gap-3">
+                      <p className="min-w-0 break-all font-medium text-gray-900">
+                        {inv.orderNumber}
+                      </p>
+                      <p className="shrink-0 text-sm font-semibold text-gray-900">
+                        {formatPrice(inv.grossAmount, "tr")}
+                      </p>
+                    </div>
+                    <div>
+                      {inv.customerEmail ? (
+                        <Link
+                          href={adminCustomerPath(inv.customerEmail)}
+                          className="font-medium text-bamboo underline decoration-bamboo/40 underline-offset-2 hover:decoration-bamboo"
+                        >
+                          {inv.customerName}
+                        </Link>
+                      ) : (
+                        <p className="text-sm text-gray-800">{inv.customerName}</p>
+                      )}
+                      {inv.customerEmail ? (
+                        <p className="break-all text-xs text-gray-400">
+                          {inv.customerEmail}
+                        </p>
+                      ) : null}
+                    </div>
+                    <p className="text-xs text-gray-500">
+                      {inv.documentType === "e_invoice" ? "e-Fatura" : "e-Arşiv"}
+                      {inv.invoiceNumber || inv.uuid
+                        ? ` · ${inv.invoiceNumber || inv.uuid.slice(0, 8)}`
+                        : ""}
+                    </p>
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <p
+                        className={
+                          inv.status === "sent"
+                            ? "text-sm text-emerald-700"
+                            : inv.status === "failed"
+                              ? "text-sm text-red-600"
+                              : "text-sm text-gray-500"
+                        }
+                      >
+                        {statusLabel[inv.status] ?? inv.status}
+                      </p>
+                      <p className="text-xs text-gray-400">
+                        {new Date(inv.issuedAt || inv.createdAt).toLocaleString(
+                          "tr-TR"
+                        )}
+                      </p>
+                    </div>
+                    {inv.errorMessage ? (
+                      <p className="text-[11px] leading-snug text-red-500">
+                        {inv.errorMessage}
+                      </p>
+                    ) : null}
+                    <div className="pt-1 text-sm">
+                      {inv.status === "sent" ? (
+                        <a
+                          href={`/api/admin/invoices/${inv.id}/pdf`}
+                          className="inline-flex min-h-[40px] items-center text-bamboo underline"
+                        >
+                          PDF
+                        </a>
+                      ) : (
+                        <button
+                          type="button"
+                          disabled={retryingId === inv.id}
+                          onClick={() => retry(inv.orderId, inv.id)}
+                          className="rounded-lg border border-gray-200 px-3 py-2 hover:bg-gray-50 disabled:opacity-40"
+                        >
+                          {retryingId === inv.id ? "Kesiliyor..." : "Tekrar dene"}
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <div className="admin-table-wrap hidden md:block">
             <table className="admin-table w-full min-w-[800px]">
               <thead>
                 <tr>
@@ -85,20 +172,6 @@ export default function AdminInvoicesPage() {
                 </tr>
               </thead>
               <tbody>
-                {loading && invoices.length === 0 && (
-                  <tr>
-                    <td colSpan={7} className="py-8 text-center text-gray-400">
-                      Yükleniyor...
-                    </td>
-                  </tr>
-                )}
-                {!loading && invoices.length === 0 && (
-                  <tr>
-                    <td colSpan={7} className="py-8 text-center text-gray-400">
-                      Henüz fatura yok. Ödeme onaylanan siparişlerden kesilir.
-                    </td>
-                  </tr>
-                )}
                 {invoices.map((inv) => (
                   <tr key={inv.id}>
                     <td className="font-medium">{inv.orderNumber}</td>
@@ -174,7 +247,9 @@ export default function AdminInvoicesPage() {
                 ))}
               </tbody>
             </table>
-          </div>
+              </div>
+            </>
+          )}
         </div>
       </main>
     </>

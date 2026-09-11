@@ -131,7 +131,43 @@ export default function AdminDashboardPage() {
               </Link>
             </div>
           </div>
-          <div className="admin-table-wrap">
+          <div className="divide-y divide-gray-100 md:hidden">
+            {stats?.recentOrders.length === 0 && (
+              <p className="px-4 py-8 text-center text-gray-400">Henüz sipariş yok</p>
+            )}
+            {stats?.recentOrders.map((order) => (
+              <div
+                key={order.id}
+                className={`space-y-1.5 px-4 py-3 ${
+                  order.unread ? "bg-amber-50/80" : ""
+                }`}
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <p className="min-w-0 break-all font-medium text-gray-900">
+                    {order.orderNumber}
+                    {order.unread ? (
+                      <span className="ml-2 inline-block rounded-full bg-red-500 px-1.5 py-0.5 align-middle text-[10px] font-bold text-white">
+                        Yeni
+                      </span>
+                    ) : null}
+                  </p>
+                  <p className="shrink-0 text-sm font-semibold text-gray-900">
+                    {formatPrice(order.total, "tr")}
+                  </p>
+                </div>
+                <p className="text-sm text-gray-600">{order.customerName}</p>
+                <div className="flex items-center justify-between gap-2 text-xs text-gray-500">
+                  <span className="rounded-full bg-gray-100 px-2 py-0.5 text-gray-700">
+                    {statusLabels[order.status] ?? order.status}
+                  </span>
+                  <span>
+                    {new Date(order.createdAt).toLocaleDateString("tr-TR")}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="admin-table-wrap hidden md:block">
             <table className="admin-table w-full">
               <thead>
                 <tr>
