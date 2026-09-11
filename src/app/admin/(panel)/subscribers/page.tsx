@@ -33,7 +33,7 @@ export default function AdminSubscribersPage() {
     }
   };
 
-  const sourceLabel = (source: string) =>
+  const sourceLabel = (source?: string) =>
     source === "checkout" ? "Sipariş" : "Bülten";
 
   return (
