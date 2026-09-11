@@ -12,7 +12,11 @@ export async function GET(
 
   const { id } = await context.params;
   const invoice = await getInvoiceById(id);
-  if (!invoice || invoice.status !== "sent") {
+  if (
+    !invoice ||
+    (invoice.status !== "sent" &&
+      !(invoice.status === "cancelled" && invoice.issuedAt))
+  ) {
     return NextResponse.json({ error: "Fatura bulunamadı." }, { status: 404 });
   }
 

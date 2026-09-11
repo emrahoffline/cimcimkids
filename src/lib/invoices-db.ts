@@ -85,6 +85,39 @@ export async function getInvoiceById(id: string): Promise<InvoiceRecord | null> 
   });
 }
 
+const invoiceOrderSelect = {
+  orderNumber: true,
+  customerName: true,
+  customerEmail: true,
+} as const;
+
+export async function cancelInvoice(id: string): Promise<InvoiceRecord | null> {
+  requireDatabaseUrl();
+  const row = await prisma.invoice.findUnique({
+    where: { id },
+    include: { order: { select: invoiceOrderSelect } },
+  });
+  if (!row) return null;
+  if (row.status === "cancelled") {
+    return mapInvoice(row, {
+      orderNumber: row.order.orderNumber,
+      customerName: row.order.customerName,
+      customerEmail: row.order.customerEmail,
+    });
+  }
+
+  const updated = await prisma.invoice.update({
+    where: { id },
+    data: { status: "cancelled" },
+    include: { order: { select: invoiceOrderSelect } },
+  });
+  return mapInvoice(updated, {
+    orderNumber: updated.order.orderNumber,
+    customerName: updated.order.customerName,
+    customerEmail: updated.order.customerEmail,
+  });
+}
+
 function canRetry(row: DbInvoice | null): boolean {
   if (!row) return true;
   if (row.status === "sent") return false;
@@ -122,7 +155,10 @@ export async function issueInvoiceForOrder(
   }
 
   const documentType = await resolveDocumentType(order.taxId);
-  const uuid = existing?.uuid ?? randomUUID();
+  const uuid =
+    existing?.status === "cancelled" || !existing?.uuid
+      ? randomUUID()
+      : existing.uuid;
   const id = existing?.id ?? `inv_${Date.now()}_${randomBytes(3).toString("hex")}`;
 
   const provider = getEFaturaProvider() ?? "bien";
@@ -145,6 +181,9 @@ export async function issueInvoiceForOrder(
       status: "sending",
       provider,
       errorMessage: null,
+      ...(existing?.status === "cancelled"
+        ? { invoiceNumber: null, issuedAt: null, emailedAt: null }
+        : {}),
     },
   });
 

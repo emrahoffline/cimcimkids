@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { requireAdminApi } from "@/lib/admin-api";
 import { isEFaturaConfigured } from "@/lib/invoice-config";
 import {
+  cancelInvoice,
   issueInvoiceForOrder,
   listInvoices,
 } from "@/lib/invoices-db";
@@ -59,4 +60,30 @@ export async function POST(request: Request) {
     console.error("[admin/invoices] issue failed:", err);
     return NextResponse.json({ error: message }, { status: 502 });
   }
+}
+
+export async function PATCH(request: Request) {
+  const { error } = await requireAdminApi();
+  if (error) return error;
+
+  const body = await request.json().catch(() => null);
+  const id =
+    body && typeof body === "object"
+      ? String((body as { id?: unknown }).id ?? "")
+      : "";
+  const action =
+    body && typeof body === "object"
+      ? String((body as { action?: unknown }).action ?? "")
+      : "";
+
+  if (!id || action !== "cancel") {
+    return NextResponse.json({ error: "Geçersiz istek." }, { status: 400 });
+  }
+
+  const invoice = await cancelInvoice(id);
+  if (!invoice) {
+    return NextResponse.json({ error: "Fatura bulunamadı." }, { status: 404 });
+  }
+
+  return NextResponse.json(invoice);
 }
