@@ -9,10 +9,12 @@ import {
   publicReviewerName,
   roundAverage,
   sanitizeReviewComment,
+  sanitizeReviewImages,
   type AdminReview,
   type PublicReview,
   type ReviewSummary,
 } from "./reviews";
+import { deleteReviewImageFiles, saveReviewPhotoFiles } from "./review-images";
 import { normalizeShopperEmail, isValidShopperEmail } from "./shopper";
 
 export type { AdminReview, PublicReview, ReviewSummary };
@@ -30,6 +32,7 @@ function mapPublic(row: DbProductReview): PublicReview {
     id: row.id,
     rating: row.rating,
     comment: row.comment,
+    images: sanitizeReviewImages(row.images),
     displayName: publicReviewerName(row.customerName),
     createdAt: row.createdAt.toISOString(),
   };
@@ -127,7 +130,8 @@ export async function setReviewHidden(
 export async function deleteReview(id: string): Promise<boolean> {
   requireDatabaseUrl();
   try {
-    await prisma.productReview.delete({ where: { id } });
+    const row = await prisma.productReview.delete({ where: { id } });
+    await deleteReviewImageFiles(row.images);
     return true;
   } catch {
     return false;
@@ -140,6 +144,7 @@ export async function createVerifiedReview(input: {
   email: string;
   rating: unknown;
   comment?: unknown;
+  files?: File[];
 }): Promise<
   | { ok: true; review: PublicReview }
   | { ok: false; error: string; status: number }
@@ -207,6 +212,16 @@ export async function createVerifiedReview(input: {
     return { ok: false, error: "ALREADY_REVIEWED", status: 409 };
   }
 
+  const files = (input.files ?? []).filter((file) => file instanceof File && file.size > 0);
+  let images: string[] = [];
+  if (files.length > 0) {
+    const saved = await saveReviewPhotoFiles(files);
+    if (!saved.ok) {
+      return { ok: false, error: saved.error, status: 400 };
+    }
+    images = saved.urls;
+  }
+
   try {
     const row = await prisma.productReview.create({
       data: {
@@ -219,10 +234,12 @@ export async function createVerifiedReview(input: {
         customerName: order.customerName.slice(0, 80),
         rating,
         comment,
+        images,
       },
     });
     return { ok: true, review: mapPublic(row) };
   } catch (err) {
+    await deleteReviewImageFiles(images);
     const code =
       err && typeof err === "object" && "code" in err
         ? String((err as { code?: string }).code)

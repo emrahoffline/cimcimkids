@@ -90,6 +90,22 @@ export default function AdminReviewsPage() {
                     ) : (
                       <p className="mt-2 text-xs italic text-gray-400">Yalnızca puan</p>
                     )}
+                    {item.images?.length ? (
+                      <ul className="mt-3 flex flex-wrap gap-2">
+                        {item.images.map((src) => (
+                          <li key={src}>
+                            <a href={src} target="_blank" rel="noreferrer">
+                              {/* eslint-disable-next-line @next/next/no-img-element */}
+                              <img
+                                src={src}
+                                alt=""
+                                className="h-16 w-16 rounded-lg object-cover"
+                              />
+                            </a>
+                          </li>
+                        ))}
+                      </ul>
+                    ) : null}
                     <p className="mt-2 text-[11px] text-gray-400">
                       {new Date(item.createdAt).toLocaleString("tr-TR")}
                       {item.hidden ? " · Gizli" : ""}

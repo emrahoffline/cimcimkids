@@ -102,7 +102,16 @@
     "thanks": "Thank you — your review is now live.",
     "ratingRequired": "Please choose a rating.",
     "error": "Could not submit the review.",
-    "firstReview": "Be the first to review"
+    "firstReview": "Be the first to review",
+    "photos": "Photos (optional)",
+    "photosHint": "Up to 3 photos, 5 MB each (JPG, PNG, WEBP).",
+    "addPhotos": "Add photos",
+    "removePhoto": "Remove photo",
+    "closePhoto": "Close photo",
+    "photoAlt": "Photo from {name}",
+    "tooManyPhotos": "You can add up to 3 photos.",
+    "photoTooLarge": "Each photo can be at most 5 MB.",
+    "photoInvalid": "Please upload JPG, PNG, or WEBP files only."
   },
   "productItems": {
     "lantern": {

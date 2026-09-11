@@ -5,6 +5,8 @@ import { isShippingProductId } from "./shipping";
 export const REVIEW_COMMENT_MAX = 800;
 export const REVIEW_COMMENT_MIN = 10;
 export const REVIEW_NAME_MAX = 80;
+export const REVIEW_IMAGE_MAX = 3;
+export const REVIEW_IMAGE_MAX_BYTES = 5 * 1024 * 1024;
 
 export const REVIEWABLE_ORDER_STATUSES = [
   "confirmed",
@@ -24,6 +26,7 @@ export type PublicReview = {
   id: string;
   rating: number;
   comment: string;
+  images: string[];
   displayName: string;
   createdAt: string;
 };
@@ -62,6 +65,18 @@ export function clampRating(value: unknown): number | null {
 export function sanitizeReviewComment(value: unknown): string {
   if (typeof value !== "string") return "";
   return value.replace(/\s+/g, " ").trim().slice(0, REVIEW_COMMENT_MAX);
+}
+
+export function sanitizeReviewImages(value: unknown): string[] {
+  if (!Array.isArray(value)) return [];
+  const out: string[] = [];
+  for (const item of value) {
+    if (typeof item !== "string") continue;
+    if (!/^\/products\/uploads\/reviews\/[a-zA-Z0-9._-]+$/.test(item)) continue;
+    out.push(item);
+    if (out.length >= REVIEW_IMAGE_MAX) break;
+  }
+  return out;
 }
 
 export function publicReviewerName(fullName: string): string {

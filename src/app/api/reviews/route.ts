@@ -6,6 +6,9 @@ import {
 } from "@/lib/reviews-db";
 import { getClientIp, rateLimit } from "@/lib/rate-limit";
 
+export const runtime = "nodejs";
+export const maxDuration = 60;
+
 const ERROR_MESSAGES: Record<string, string> = {
   INVALID_PRODUCT: "Geçersiz ürün.",
   INVALID_RATING: "Lütfen 1–5 arası bir puan seçin.",
@@ -18,7 +21,14 @@ const ERROR_MESSAGES: Record<string, string> = {
     "Yorum için siparişinizin onaylanmış olması gerekir.",
   PRODUCT_NOT_IN_ORDER: "Bu ürün bu siparişte yok.",
   ALREADY_REVIEWED: "Bu ürüne zaten yorum yaptınız.",
+  TOO_MANY_IMAGES: "En fazla 3 fotoğraf ekleyebilirsiniz.",
+  IMAGE_TOO_LARGE: "Her fotoğraf en fazla 5 MB olabilir.",
+  INVALID_IMAGE: "Geçersiz fotoğraf. JPG, PNG veya WEBP kullanın.",
 };
+
+function stringField(value: FormDataEntryValue | null): string {
+  return typeof value === "string" ? value : "";
+}
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -49,25 +59,47 @@ export async function POST(request: Request) {
     );
   }
 
-  const body = await request.json().catch(() => null);
-  if (!body || typeof body !== "object") {
-    return NextResponse.json({ error: "Geçersiz istek." }, { status: 400 });
-  }
+  const contentType = request.headers.get("content-type") || "";
+  let productId = "";
+  let orderNumber = "";
+  let email = "";
+  let comment: unknown = "";
+  let rating: unknown = "";
+  let files: File[] = [];
 
-  const productId =
-    typeof (body as { productId?: unknown }).productId === "string"
-      ? (body as { productId: string }).productId
-      : "";
-  const orderNumber =
-    typeof (body as { orderNumber?: unknown }).orderNumber === "string"
-      ? (body as { orderNumber: string }).orderNumber
-      : "";
-  const email =
-    typeof (body as { email?: unknown }).email === "string"
-      ? (body as { email: string }).email
-      : "";
-  const comment = (body as { comment?: unknown }).comment;
-  const rating = (body as { rating?: unknown }).rating;
+  if (contentType.includes("multipart/form-data")) {
+    const form = await request.formData().catch(() => null);
+    if (!form) {
+      return NextResponse.json({ error: "Geçersiz istek." }, { status: 400 });
+    }
+    productId = stringField(form.get("productId"));
+    orderNumber = stringField(form.get("orderNumber"));
+    email = stringField(form.get("email"));
+    comment = stringField(form.get("comment"));
+    rating = stringField(form.get("rating"));
+    files = form
+      .getAll("photos")
+      .filter((item): item is File => item instanceof File && item.size > 0);
+  } else {
+    const body = await request.json().catch(() => null);
+    if (!body || typeof body !== "object") {
+      return NextResponse.json({ error: "Geçersiz istek." }, { status: 400 });
+    }
+    productId =
+      typeof (body as { productId?: unknown }).productId === "string"
+        ? (body as { productId: string }).productId
+        : "";
+    orderNumber =
+      typeof (body as { orderNumber?: unknown }).orderNumber === "string"
+        ? (body as { orderNumber: string }).orderNumber
+        : "";
+    email =
+      typeof (body as { email?: unknown }).email === "string"
+        ? (body as { email: string }).email
+        : "";
+    comment = (body as { comment?: unknown }).comment;
+    rating = (body as { rating?: unknown }).rating;
+  }
 
   try {
     const result = await createVerifiedReview({
@@ -76,6 +108,7 @@ export async function POST(request: Request) {
       email,
       rating,
       comment,
+      files,
     });
     if (!result.ok) {
       return NextResponse.json(

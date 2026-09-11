@@ -63,7 +63,7 @@ const nextConfig: NextConfig = {
           "base-uri 'self'",
           "frame-ancestors 'none'",
           "object-src 'none'",
-          "img-src 'self' data: https:",
+          "img-src 'self' data: blob: https:",
           "font-src 'self' data: https:",
           "style-src 'self' 'unsafe-inline'",
           "script-src 'self' 'unsafe-inline' https://*.iyzipay.com https://*.iyzico.com",

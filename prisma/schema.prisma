@@ -449,6 +449,7 @@ model ProductReview {
   customerName  String
   rating        Int
   comment       String   @default("")
+  images        String[] @default([])
   hidden        Boolean  @default(false)
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt

@@ -102,7 +102,16 @@
     "thanks": "Teşekkürler, değerlendirmeniz yayınlandı.",
     "ratingRequired": "Lütfen bir puan seçin.",
     "error": "Yorum gönderilemedi.",
-    "firstReview": "İlk değerlendirmeyi yaz"
+    "firstReview": "İlk değerlendirmeyi yaz",
+    "photos": "Fotoğraflar (isteğe bağlı)",
+    "photosHint": "En fazla 3 fotoğraf, her biri 5 MB’a kadar (JPG, PNG, WEBP).",
+    "addPhotos": "Fotoğraf ekle",
+    "removePhoto": "Fotoğrafı kaldır",
+    "closePhoto": "Fotoğrafı kapat",
+    "photoAlt": "{name} yorum fotoğrafı",
+    "tooManyPhotos": "En fazla 3 fotoğraf ekleyebilirsiniz.",
+    "photoTooLarge": "Her fotoğraf en fazla 5 MB olabilir.",
+    "photoInvalid": "Yalnızca JPG, PNG veya WEBP yükleyebilirsiniz."
   },
   "productItems": {
     "lantern": {

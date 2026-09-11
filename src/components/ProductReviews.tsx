@@ -1,18 +1,69 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import Image from "next/image";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useLocale, useTranslations } from "next-intl";
+import { ImagePlus, X } from "lucide-react";
 import { StarRating } from "./StarRating";
 import { ProductRatingBadge } from "./ProductRatingBadge";
 import { readRememberedShopperEmail } from "@/lib/shopper";
-import { REVIEW_COMMENT_MAX } from "@/lib/reviews";
+import {
+  REVIEW_COMMENT_MAX,
+  REVIEW_IMAGE_MAX,
+  REVIEW_IMAGE_MAX_BYTES,
+} from "@/lib/reviews";
 import type { PublicReview, ReviewSummary } from "@/lib/reviews";
+import { isUploadedProductImage } from "@/lib/image-utils";
 
 type Props = {
   productId: string;
   initialSummary: ReviewSummary;
   initialReviews: PublicReview[];
 };
+
+type PendingPhoto = { file: File; url: string };
+
+const PHOTO_TYPES = new Set([
+  "image/jpeg",
+  "image/jpg",
+  "image/png",
+  "image/webp",
+]);
+
+function ReviewPhotos({
+  images,
+  alt,
+  onOpen,
+}: {
+  images: string[];
+  alt: string;
+  onOpen: (src: string) => void;
+}) {
+  if (!images.length) return null;
+  return (
+    <ul className="mt-3 flex flex-wrap gap-2">
+      {images.map((src) => (
+        <li key={src}>
+          <button
+            type="button"
+            onClick={() => onOpen(src)}
+            aria-label={alt}
+            className="relative block h-20 w-20 overflow-hidden rounded-xl border border-bamboo/15 bg-cream-dark"
+          >
+            <Image
+              src={src}
+              alt={alt}
+              fill
+              unoptimized={isUploadedProductImage(src)}
+              className="object-cover"
+              sizes="80px"
+            />
+          </button>
+        </li>
+      ))}
+    </ul>
+  );
+}
 
 export function ProductReviews({
   productId,
@@ -27,13 +78,33 @@ export function ProductReviews({
   const [email, setEmail] = useState("");
   const [orderNumber, setOrderNumber] = useState("");
   const [comment, setComment] = useState("");
+  const [photos, setPhotos] = useState<PendingPhoto[]>([]);
+  const photosRef = useRef<PendingPhoto[]>([]);
+  const [lightbox, setLightbox] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [done, setDone] = useState(false);
 
+  photosRef.current = photos;
+
   useEffect(() => {
     setEmail(readRememberedShopperEmail());
   }, []);
+
+  useEffect(() => {
+    return () => {
+      photosRef.current.forEach((photo) => URL.revokeObjectURL(photo.url));
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!lightbox) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setLightbox("");
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [lightbox]);
 
   const dateFmt = useMemo(
     () =>
@@ -43,6 +114,42 @@ export function ProductReviews({
     [locale]
   );
 
+  const clearPhotos = () => {
+    photos.forEach((photo) => URL.revokeObjectURL(photo.url));
+    setPhotos([]);
+  };
+
+  const addPhotos = (list: FileList | null) => {
+    if (!list?.length) return;
+    setError("");
+    const next = [...photos];
+    for (const file of Array.from(list)) {
+      if (next.length >= REVIEW_IMAGE_MAX) {
+        setError(t("tooManyPhotos"));
+        break;
+      }
+      if (file.type && !PHOTO_TYPES.has(file.type)) {
+        setError(t("photoInvalid"));
+        continue;
+      }
+      if (file.size > REVIEW_IMAGE_MAX_BYTES) {
+        setError(t("photoTooLarge"));
+        continue;
+      }
+      next.push({ file, url: URL.createObjectURL(file) });
+    }
+    setPhotos(next);
+  };
+
+  const removePhoto = (index: number) => {
+    setPhotos((prev) => {
+      const copy = [...prev];
+      const [removed] = copy.splice(index, 1);
+      if (removed) URL.revokeObjectURL(removed.url);
+      return copy;
+    });
+  };
+
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
@@ -51,16 +158,18 @@ export function ProductReviews({
       return;
     }
     setLoading(true);
+    const form = new FormData();
+    form.set("productId", productId);
+    form.set("rating", String(rating));
+    form.set("email", email);
+    form.set("orderNumber", orderNumber);
+    form.set("comment", comment);
+    for (const photo of photos) {
+      form.append("photos", photo.file);
+    }
     const res = await fetch("/api/reviews", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        productId,
-        rating,
-        email,
-        orderNumber,
-        comment,
-      }),
+      body: form,
     });
     const data = await res.json().catch(() => ({}));
     setLoading(false);
@@ -79,6 +188,7 @@ export function ProductReviews({
     setDone(true);
     setComment("");
     setRating(0);
+    clearPhotos();
   };
 
   return (
@@ -116,6 +226,11 @@ export function ProductReviews({
                   {review.comment}
                 </p>
               ) : null}
+              <ReviewPhotos
+                images={review.images ?? []}
+                alt={t("photoAlt", { name: review.displayName })}
+                onOpen={setLightbox}
+              />
             </li>
           ))}
         </ul>
@@ -178,6 +293,48 @@ export function ProductReviews({
                 className="input-field min-h-[96px] w-full resize-y py-2 text-sm"
               />
             </label>
+            <div>
+              <p className="mb-1 text-xs font-medium text-slate-500">{t("photos")}</p>
+              <p className="mb-2 text-xs text-slate-400">{t("photosHint")}</p>
+              {photos.length > 0 ? (
+                <ul className="mb-2 flex flex-wrap gap-2">
+                  {photos.map((photo, index) => (
+                    <li key={photo.url} className="relative h-20 w-20">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={photo.url}
+                        alt=""
+                        className="h-20 w-20 rounded-xl object-cover"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => removePhoto(index)}
+                        className="absolute -right-1 -top-1 flex h-6 w-6 items-center justify-center rounded-full bg-slate-800 text-white"
+                        aria-label={t("removePhoto")}
+                      >
+                        <X className="h-3.5 w-3.5" />
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              ) : null}
+              {photos.length < REVIEW_IMAGE_MAX ? (
+                <label className="inline-flex cursor-pointer items-center gap-2 rounded-full border border-bamboo/20 bg-cream px-3 py-2 text-sm text-slate-700">
+                  <ImagePlus className="h-4 w-4" />
+                  {t("addPhotos")}
+                  <input
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp"
+                    multiple
+                    className="sr-only"
+                    onChange={(e) => {
+                      addPhotos(e.target.files);
+                      e.target.value = "";
+                    }}
+                  />
+                </label>
+              ) : null}
+            </div>
             {error ? <p className="text-xs text-red-600">{error}</p> : null}
             <button type="submit" disabled={loading} className="btn-primary">
               {loading ? "..." : t("submit")}
@@ -185,6 +342,23 @@ export function ProductReviews({
           </form>
         )}
       </div>
+
+      {lightbox ? (
+        <button
+          type="button"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4"
+          onClick={() => setLightbox("")}
+          aria-label={t("closePhoto")}
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={lightbox}
+            alt=""
+            className="max-h-[90vh] max-w-full rounded-lg object-contain"
+            onClick={(e) => e.stopPropagation()}
+          />
+        </button>
+      ) : null}
     </section>
   );
 }
