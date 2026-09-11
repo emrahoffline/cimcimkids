@@ -13,7 +13,7 @@ export function DiscountCodesPanel() {
   const [value, setValue] = useState("10");
   const [minSubtotal, setMinSubtotal] = useState("");
   const [maxUses, setMaxUses] = useState("");
-  const [expiresAt, setExpiresAt] = useState("");
+  const [expiresDate, setExpiresDate] = useState("");
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
 
@@ -43,7 +43,7 @@ export function DiscountCodesPanel() {
         value: Number(value.replace(",", ".")),
         minSubtotal: minSubtotal.trim() ? Number(minSubtotal.replace(",", ".")) : 0,
         maxUses: maxUses.trim() ? Number(maxUses) : null,
-        expiresAt: expiresAt.trim() || null,
+        expiresAt: expiresDate.trim() ? `${expiresDate.trim()}T23:59` : null,
       }),
     });
     const data = await res.json().catch(() => ({}));
@@ -57,7 +57,7 @@ export function DiscountCodesPanel() {
     setValue(kind === "percent" ? "10" : "100");
     setMinSubtotal("");
     setMaxUses("");
-    setExpiresAt("");
+    setExpiresDate("");
     load();
   };
 
@@ -152,9 +152,9 @@ export function DiscountCodesPanel() {
               Son geçerlilik (isteğe bağlı)
             </label>
             <input
-              type="datetime-local"
-              value={expiresAt}
-              onChange={(e) => setExpiresAt(e.target.value)}
+              type="date"
+              value={expiresDate}
+              onChange={(e) => setExpiresDate(e.target.value)}
               className="admin-input"
             />
           </div>
