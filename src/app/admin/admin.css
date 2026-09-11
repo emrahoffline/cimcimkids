@@ -63,6 +63,24 @@
   outline: none;
 }
 
+.admin-input-with-icon {
+  padding-left: 2.5rem;
+}
+
+input[type="search"].admin-input {
+  -webkit-appearance: none;
+  appearance: none;
+}
+
+input[type="search"].admin-input::-webkit-search-decoration,
+input[type="search"].admin-input::-webkit-search-cancel-button,
+input[type="search"].admin-input::-webkit-search-results-button,
+input[type="search"].admin-input::-webkit-search-results-decoration {
+  -webkit-appearance: none;
+  appearance: none;
+  display: none;
+}
+
 @media (min-width: 768px) {
   .admin-input {
     font-size: 0.875rem;

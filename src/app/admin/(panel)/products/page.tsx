@@ -81,7 +81,7 @@ export default function AdminProductsPage() {
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Ürün adı, kod veya kategori ara"
-              className="admin-input pl-9"
+              className="admin-input admin-input-with-icon"
               autoComplete="off"
             />
           </label>
