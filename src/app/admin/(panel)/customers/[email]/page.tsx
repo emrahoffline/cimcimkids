@@ -12,8 +12,10 @@ import {
   Phone,
   ShoppingBag,
   ShoppingCart,
+  Star,
 } from "lucide-react";
 import { AdminHeader } from "@/components/admin/AdminHeader";
+import { StarRating } from "@/components/StarRating";
 import { formatPrice } from "@/lib/products";
 import {
   customerTelHref,
@@ -259,7 +261,7 @@ export default function AdminCustomerDetailPage() {
               <h3 className="text-base font-semibold text-gray-900 sm:text-lg">
                 Müşteri istatistikleri
               </h3>
-              <div className="grid grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-4">
+              <div className="grid grid-cols-2 gap-2 sm:gap-3 lg:grid-cols-5">
                 <div className="admin-card p-3 sm:p-4">
                   <p className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-gray-400 sm:text-xs">
                     <ShoppingBag className="h-3.5 w-3.5 shrink-0" />
@@ -304,6 +306,20 @@ export default function AdminCustomerDetailPage() {
                   </p>
                   <p className="mt-1.5 text-xl font-semibold text-gray-900 sm:text-2xl">
                     {profile.stats.cartCount}
+                  </p>
+                </div>
+                <div className="admin-card p-3 sm:p-4">
+                  <p className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-gray-400 sm:text-xs">
+                    <Star className="h-3.5 w-3.5 shrink-0" />
+                    Yorum
+                  </p>
+                  <p className="mt-1.5 text-xl font-semibold text-gray-900 sm:text-2xl">
+                    {profile.stats.reviewCount}
+                  </p>
+                  <p className="text-[11px] text-gray-500 sm:text-xs">
+                    {profile.stats.reviewCount > 0
+                      ? `Ort. ${profile.stats.reviewAverage}/5`
+                      : "Henüz yok"}
                   </p>
                 </div>
               </div>
@@ -360,6 +376,66 @@ export default function AdminCustomerDetailPage() {
                     ))
                   )}
                 </div>
+              </div>
+
+              <div className="admin-card p-4 sm:p-5">
+                <h4 className="mb-1 font-semibold text-gray-900">Yorumlar</h4>
+                {(profile.reviews ?? []).length === 0 ? (
+                  <p className="py-2 text-sm text-gray-400">Henüz yorum yok</p>
+                ) : (
+                  <ul className="divide-y divide-gray-100">
+                    {(profile.reviews ?? []).map((review) => (
+                      <li
+                        key={review.id}
+                        className={`space-y-1.5 py-3 first:pt-2 last:pb-0 ${
+                          review.hidden ? "opacity-70" : ""
+                        }`}
+                      >
+                        <div className="flex flex-wrap items-start justify-between gap-2">
+                          <Link
+                            href={`/tr/products/${review.productSlug}`}
+                            className="min-w-0 break-words text-sm font-medium text-gray-900 hover:text-olive"
+                            target="_blank"
+                          >
+                            {review.productName}
+                          </Link>
+                          <StarRating value={review.rating} size="sm" />
+                        </div>
+                        {review.comment ? (
+                          <p className="break-words text-sm leading-relaxed text-gray-700">
+                            {review.comment}
+                          </p>
+                        ) : (
+                          <p className="text-xs italic text-gray-400">
+                            Yalnızca puan
+                          </p>
+                        )}
+                        {review.images?.length ? (
+                          <ul className="flex flex-wrap gap-2">
+                            {review.images.map((src) => (
+                              <li key={src}>
+                                <a href={src} target="_blank" rel="noreferrer">
+                                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                                  <img
+                                    src={src}
+                                    alt=""
+                                    className="h-14 w-14 rounded-lg object-cover"
+                                  />
+                                </a>
+                              </li>
+                            ))}
+                          </ul>
+                        ) : null}
+                        <p className="text-[11px] text-gray-400">
+                          {review.orderNumber}
+                          {" · "}
+                          {new Date(review.createdAt).toLocaleString("tr-TR")}
+                          {review.hidden ? " · Gizli" : ""}
+                        </p>
+                      </li>
+                    ))}
+                  </ul>
+                )}
               </div>
             </section>
           </>

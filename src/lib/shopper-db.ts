@@ -114,7 +114,7 @@ export async function getCustomerProfile(
   const email = normalizeShopperEmail(rawEmail);
   if (!email) return null;
 
-  const [account, orderRows, shopper] = await Promise.all([
+  const [account, orderRows, shopper, reviewRows] = await Promise.all([
     prisma.customer.findUnique({ where: { email } }),
     prisma.order.findMany({
       where: { customerEmail: email },
@@ -122,6 +122,10 @@ export async function getCustomerProfile(
       orderBy: { createdAt: "desc" },
     }),
     prisma.shopperState.findUnique({ where: { email } }),
+    prisma.productReview.findMany({
+      where: { customerEmail: email },
+      orderBy: { createdAt: "desc" },
+    }),
   ]);
 
   if (!account && orderRows.length === 0 && !shopper) return null;
@@ -247,6 +251,18 @@ export async function getCustomerProfile(
     purchasedProducts: [...purchasedMap.entries()]
       .map(([productId, data]) => ({ productId, ...data }))
       .sort((a, b) => b.quantity - a.quantity),
+    reviews: reviewRows.map((row) => ({
+      id: row.id,
+      productId: row.productId,
+      productSlug: row.productSlug,
+      productName: row.productName,
+      orderNumber: row.orderNumber,
+      rating: row.rating,
+      comment: row.comment,
+      images: row.images,
+      hidden: row.hidden,
+      createdAt: row.createdAt.toISOString(),
+    })),
     cart: cartResolved,
     favorites: favoritesResolved,
     stats: {
@@ -254,6 +270,15 @@ export async function getCustomerProfile(
       totalSpent: paidOrders.reduce((sum, o) => sum + o.total, 0),
       cartCount: cartResolved.reduce((sum, i) => sum + i.quantity, 0),
       favoriteCount: favoritesResolved.length,
+      reviewCount: reviewRows.length,
+      reviewAverage:
+        reviewRows.length > 0
+          ? Math.round(
+              (reviewRows.reduce((sum, row) => sum + row.rating, 0) /
+                reviewRows.length) *
+                10
+            ) / 10
+          : 0,
       timeOnSiteSec,
       pageViews,
       sessions,

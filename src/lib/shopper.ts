@@ -31,6 +31,19 @@ export type PurchasedProduct = {
   revenue: number;
 };
 
+export type CustomerReview = {
+  id: string;
+  productId: string;
+  productSlug: string;
+  productName: string;
+  orderNumber: string;
+  rating: number;
+  comment: string;
+  images: string[];
+  hidden: boolean;
+  createdAt: string;
+};
+
 export type CustomerProfileOrder = {
   id: string;
   orderNumber: string;
@@ -61,6 +74,7 @@ export type CustomerProfile = {
   } | null;
   orders: CustomerProfileOrder[];
   purchasedProducts: PurchasedProduct[];
+  reviews: CustomerReview[];
   cart: ShopperCartItem[];
   favorites: ShopperFavoriteItem[];
   stats: {
@@ -68,6 +82,8 @@ export type CustomerProfile = {
     totalSpent: number;
     cartCount: number;
     favoriteCount: number;
+    reviewCount: number;
+    reviewAverage: number;
     timeOnSiteSec: number;
     pageViews: number;
     sessions: number;
