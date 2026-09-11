@@ -14,7 +14,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     locale,
     path: "/distance-sales",
     title: `${t("title")} | Cimcim Kids`,
-    description: t("s1"),
+    description: t("title"),
     absoluteTitle: true,
   });
 }

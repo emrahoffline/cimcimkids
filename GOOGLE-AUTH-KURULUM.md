@@ -1,45 +1,44 @@
-# Google Giriş Kurulumu
+# Google Giriş Kurulumu (Admin)
 
-## 1. Google Cloud Console
+## Production (canlı site)
 
-1. [Google Cloud Console](https://console.cloud.google.com/) → proje seçin veya oluşturun
-2. **APIs & Services** → **Credentials**
-3. **Create Credentials** → **OAuth client ID**
-4. Application type: **Web application**
-5. **Authorized redirect URIs** ekleyin:
+Site zaten Google OAuth ile çalışacak şekilde ayarlı.
 
+**Redirect URI (zorunlu):**
 ```
+https://www.cimcimkids.com/api/auth/callback/google
+https://cimcimkids.com/api/auth/callback/google
 http://localhost:3000/api/auth/callback/google
 ```
 
-6. **Client ID** ve **Client Secret** kopyalayın
-
-## 2. .env.local Dosyası
-
-`~/Desktop/bamboo/.env.local` dosyasını açın ve doldurun:
-
-```env
-NEXTAUTH_URL=http://localhost:3000
-NEXTAUTH_SECRET=ci7vnQ6jX1mB3ywzvlTpMmFlNDQH2h2OUc06ywM1oFE=
-
-GOOGLE_CLIENT_ID=buraya-client-id-yapistirin
-GOOGLE_CLIENT_SECRET=buraya-client-secret-yapistirin
+**JavaScript origins:**
+```
+https://www.cimcimkids.com
+https://cimcimkids.com
+http://localhost:3000
 ```
 
-## 3. Sunucuyu Yeniden Başlatın
+Google Cloud proje: **AryaBamboo**  
+Client: OAuth Web application (`375867941888-…`)
+
+Uygulama yayın durumu **Testing** iken yalnızca **Test users** listesindeki e-postalar Google ile giriş yapabilir. Admin allowlist ile aynı tutulmalı:
+- emrhgtr@gmail.com
+- info@cimcimkids.com
+- efruzebendes@hotmail.com
+- efruzebendes90@gmail.com
+
+Admin giriş: https://www.cimcimkids.com/admin/login
+
+## Yerel geliştirme
+
+`.env.local` içinde `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` dolu olmalı (production ile aynı client kullanılabilir).
 
 ```bash
-cd ~/Desktop/bamboo
 npm run dev
 ```
 
-## 4. Test
+Tarayıcıda `localhost:3000` kullanın (`127.0.0.1` değil).
 
-- Hesabım: http://localhost:3000/tr/account
-- Admin: http://localhost:3000/admin/login
+## Not
 
-**Önemli:** Tarayıcıda `localhost:3000` kullanın (`127.0.0.1` değil), Google Console'daki redirect URI ile aynı olmalı.
-
-## OAuth consent screen
-
-İlk kez kullanıyorsanız **OAuth consent screen** bölümünde test kullanıcısı olarak kendi Gmail adresinizi ekleyin.
+Google ayar değişiklikleri 5 dakika–birkaç saat içinde etkili olabilir.

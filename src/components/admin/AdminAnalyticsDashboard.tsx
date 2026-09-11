@@ -37,11 +37,13 @@ type AnalyticsData = {
     avgDurationSec: number;
     totalSessions: number;
     totalPageViews: number;
+    uniqueVisitors: number;
   };
   locations: {
     city: string;
     country: string;
     visits: number;
+    pageViews?: number;
     percentage: number;
   }[];
   summary: {
@@ -177,29 +179,25 @@ export function AdminAnalyticsDashboard({ data }: { data: AnalyticsData }) {
       color: "bg-emerald-50 text-emerald-700",
     },
     {
+      label: "Tekil Ziyaretçi",
+      value: data.sessionStats.uniqueVisitors,
+      sub: `${data.sessionStats.totalSessions} oturum`,
+      icon: Globe2,
+      color: "bg-sky-50 text-sky-700",
+    },
+    {
       label: "Ort. Oturum Süresi",
       value: formatDuration(data.sessionStats.avgDurationSec),
-      sub: `${data.sessionStats.totalSessions} oturum`,
+      sub: "Sekme kapanana kadar",
       icon: Clock3,
       color: "bg-blue-50 text-blue-700",
     },
     {
       label: "Sayfa Görüntüleme",
       value: data.sessionStats.totalPageViews,
-      sub: "Son kayıtlar",
+      sub: "Tüm zamanlar",
       icon: Eye,
       color: "bg-violet-50 text-violet-700",
-    },
-    {
-      label: "En Çok Ziyaret",
-      value: data.locations[0]
-        ? `${data.locations[0].city}`
-        : "—",
-      sub: data.locations[0]
-        ? `${data.locations[0].country} · %${data.locations[0].percentage}`
-        : "Veri yok",
-      icon: MapPin,
-      color: "bg-amber-50 text-amber-700",
     },
   ];
 
@@ -277,11 +275,11 @@ export function AdminAnalyticsDashboard({ data }: { data: AnalyticsData }) {
         <div className="admin-card p-4 sm:p-5">
           <div className="mb-4 sm:mb-5">
             <h2 className="flex items-center gap-2 text-base font-semibold text-gray-900 sm:text-lg">
-              <Globe2 className="h-5 w-5 shrink-0 text-olive" />
+              <MapPin className="h-5 w-5 shrink-0 text-olive" />
               Konum Dağılımı
             </h2>
             <p className="text-sm text-gray-500">
-              Ziyaretçilerin şehir bazlı girişleri
+              Tekil ziyaretçi sayısına göre şehirler
             </p>
           </div>
           {data.locations.length === 0 ? (
@@ -297,7 +295,7 @@ export function AdminAnalyticsDashboard({ data }: { data: AnalyticsData }) {
                       {loc.city}, {loc.country}
                     </span>
                     <span className="text-gray-500">
-                      {loc.visits} · %{loc.percentage}
+                      {loc.visits} ziyaretçi · %{loc.percentage}
                     </span>
                   </div>
                   <div className="h-2 overflow-hidden rounded-full bg-gray-100">

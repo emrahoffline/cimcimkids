@@ -51,7 +51,7 @@ function ErrorContent() {
             </ul>
           </div>
         )}
-        <Link href="/tr/account" className="btn-primary inline-flex">
+        <Link href="/admin/login" className="btn-primary inline-flex">
           Geri Dön
         </Link>
       </div>

@@ -28,11 +28,13 @@ type AnalyticsData = {
     avgDurationSec: number;
     totalSessions: number;
     totalPageViews: number;
+    uniqueVisitors: number;
   };
   locations: {
     city: string;
     country: string;
     visits: number;
+    pageViews?: number;
     percentage: number;
   }[];
   summary: {

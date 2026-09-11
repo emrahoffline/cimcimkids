@@ -29,12 +29,17 @@ function isValidIp(value: string): boolean {
 
 /**
  * Prefer platform-provided IP. Only trust forwarded headers when
- * TRUST_PROXY=true (behind nginx/cloudflare/etc.).
+ * TRUST_PROXY=true (behind Caddy / Cloudflare / etc.).
+ *
+ * Order: CF-Connecting-IP → X-Forwarded-For → X-Real-IP
  */
 export function getClientIp(request: Request): string {
   const trustProxy = process.env.TRUST_PROXY === "true";
 
   if (trustProxy) {
+    const cfIp = request.headers.get("cf-connecting-ip")?.trim() || "";
+    if (isValidIp(cfIp)) return cfIp;
+
     const xff = request.headers.get("x-forwarded-for");
     if (xff) {
       const first = xff.split(",")[0]?.trim() || "";
@@ -75,4 +80,21 @@ export function rateLimit(
     remaining: Math.max(0, max - state.count),
     resetAt: state.resetAt,
   };
+}
+
+export function rateLimitExceededResponse(resetAt: number): Response {
+  const retryAfter = Math.max(1, Math.ceil((resetAt - Date.now()) / 1000));
+  return Response.json(
+    {
+      error: "Too many requests. Please try again later.",
+      retryAfter,
+    },
+    {
+      status: 429,
+      headers: {
+        "Retry-After": String(retryAfter),
+        "Cache-Control": "no-store",
+      },
+    }
+  );
 }

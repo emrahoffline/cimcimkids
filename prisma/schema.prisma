@@ -34,17 +34,59 @@ enum AnalyticsEventType {
   favorite_remove
 }
 
+enum GiftCardStatus {
+  pending_payment
+  active
+  exhausted
+  void
+}
+
+enum PaymentMethod {
+  bank_transfer
+  card
+}
+
+enum DiscountCodeKind {
+  percent
+  amount
+}
+
+enum InvoiceBuyerKind {
+  individual
+  corporate
+}
+
+enum InvoiceDocumentType {
+  e_archive
+  e_invoice
+}
+
+enum InvoiceStatus {
+  pending
+  sending
+  sent
+  failed
+  cancelled
+}
+
 model Product {
   id             String   @id
+  code           String   @unique
   slug           String   @unique
   image          String
+  images         String[] @default([])
+  colors         Json?
   price          Float
+  compareAtPrice Float?
   category       String
+  ageRange       String?
+  ages           String[] @default([])
   translationKey String?
   nameTr         String
   nameEn         String
   descTr         String
   descEn         String
+  stockQuantity  Int      @default(0)
   inStock        Boolean  @default(true)
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
@@ -80,18 +122,49 @@ model Order {
   customerEmail    String
   customerName     String
   customerPhone    String?
+  /** Merchandise + gift-card purchase subtotal (before redeem) */
+  subtotal         Float?
+  /** Amount paid/credited via gift card redeem */
+  giftCardAmount   Float?
+  giftCardCode     String?
+  /** Coupon discount applied at checkout */
+  discountAmount   Float?
+  discountCode     String?
+  /** Amount customer must pay (card or bank transfer) */
   total            Float
+  paymentMethod    PaymentMethod @default(bank_transfer)
+  iyzicoPaymentId  String?
+  lastFourDigits   String?
+  cardType         String?
+  paymentToken     String?
   status           OrderStatus @default(pending_payment)
+  statusHistory    Json?
   shippingAddress  String?
-  adminSeen        Boolean     @default(false)
-  createdAt        DateTime    @default(now())
-  updatedAt        DateTime    @updatedAt
+  adminSeen        Boolean          @default(false)
+  invoiceKind      InvoiceBuyerKind @default(individual)
+  taxId            String?
+  taxOffice        String?
+  companyTitle     String?
+  invoiceDistrict  String?
+  invoiceCity      String?
+  giftNote         String?
+  cargoCarrier     String?
+  cargoCarrierId   Int?
+  cargoPostNumber  String?
+  cargoTrackingUrl String?
+  cargoBarcodeUrl  String?
+  cargoDesi        Float?
+  cargoCost        Float?
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
   items            OrderItem[]
+  invoices         Invoice[]
 
   @@index([customerEmail])
   @@index([status])
   @@index([createdAt])
   @@index([adminSeen])
+  @@index([paymentToken])
 }
 
 model OrderItem {
@@ -108,6 +181,28 @@ model OrderItem {
   @@index([productId])
 }
 
+model Invoice {
+  id             String              @id
+  orderId        String              @unique
+  uuid           String              @unique
+  invoiceNumber  String?
+  documentType   InvoiceDocumentType
+  status         InvoiceStatus       @default(pending)
+  provider       String              @default("nilvera")
+  netAmount      Float
+  vatAmount      Float
+  grossAmount    Float
+  errorMessage   String?
+  issuedAt       DateTime?
+  emailedAt      DateTime?
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
+  order          Order               @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([status])
+  @@index([createdAt])
+}
+
 model Subscriber {
   id        String            @id
   email     String            @unique
@@ -122,6 +217,7 @@ model AnalyticsEvent {
   id          String             @id @default(cuid())
   type        AnalyticsEventType
   sessionId   String
+  visitorId   String?
   path        String?
   productId   String?
   productName String?
@@ -133,6 +229,7 @@ model AnalyticsEvent {
 
   @@index([type])
   @@index([sessionId])
+  @@index([visitorId])
   @@index([createdAt])
   @@index([productId])
 }
@@ -143,4 +240,199 @@ model AnalyticsAllTime {
   orders    Int      @default(0)
   itemsSold Int      @default(0)
   updatedAt DateTime @updatedAt
+}
+
+/** Durable traffic totals — not affected by event log pruning */
+model AnalyticsTraffic {
+  id                      Int      @id @default(1)
+  pageViews               Int      @default(0)
+  sessions                Int      @default(0)
+  uniqueVisitors          Int      @default(0)
+  totalSessionDurationSec Int      @default(0)
+  completedSessions       Int      @default(0)
+  updatedAt               DateTime @updatedAt
+}
+
+model AnalyticsVisitor {
+  id          String   @id
+  firstSeenAt DateTime @default(now())
+  lastSeenAt  DateTime @updatedAt
+  country     String?
+  city        String?
+  pageViews   Int      @default(0)
+  sessions    Int      @default(0)
+}
+
+model AnalyticsSession {
+  id          String    @id
+  visitorId   String
+  startedAt   DateTime  @default(now())
+  endedAt     DateTime?
+  durationSec Int?
+  pageViews   Int       @default(0)
+  country     String?
+  city        String?
+
+  @@index([visitorId])
+  @@index([startedAt])
+}
+
+model AnalyticsLocation {
+  id             String   @id
+  city           String
+  country        String
+  uniqueVisitors Int      @default(0)
+  pageViews      Int      @default(0)
+  updatedAt      DateTime @updatedAt
+}
+
+model AnalyticsLocationVisitor {
+  visitorId  String
+  locationId String
+
+  @@id([visitorId, locationId])
+  @@index([locationId])
+}
+
+model Announcement {
+  id        String   @id
+  textTr    String
+  textEn    String   @default("")
+  active    Boolean  @default(true)
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([active, sortOrder])
+}
+
+model HeroSlide {
+  id        String   @id
+  imageUrl  String
+  altTr     String   @default("")
+  altEn     String   @default("")
+  active    Boolean  @default(true)
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([active, sortOrder])
+}
+
+model Story {
+  id          String   @id
+  title       String   @default("")
+  mediaUrl    String
+  durationSec Int      @default(5)
+  sortOrder   Int      @default(0)
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  viewCount   Int      @default(0)
+  groupId     String   @default("")
+  linkUrl     String   @default("")
+
+  @@index([active, sortOrder])
+  @@index([groupId])
+}
+
+model AdminPushSubscription {
+  id        String   @id
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  userEmail String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userEmail])
+}
+
+model ShopperState {
+  email      String   @id
+  cart       Json     @default("[]")
+  favorites  Json     @default("[]")
+  visitorId  String?
+  updatedAt  DateTime @updatedAt
+
+  @@index([visitorId])
+}
+
+model GiftCard {
+  id               String             @id
+  code             String             @unique
+  initialBalance   Float
+  remainingBalance Float
+  status           GiftCardStatus     @default(pending_payment)
+  recipientEmail   String?
+  recipientName    String?
+  message          String?
+  purchasedOrderId String?
+  createdByAdmin   Boolean            @default(false)
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+  redemptions      GiftCardRedemption[]
+
+  @@index([status])
+  @@index([purchasedOrderId])
+}
+
+model GiftCardRedemption {
+  id         String   @id @default(cuid())
+  giftCardId String
+  orderId    String
+  amount     Float
+  createdAt  DateTime @default(now())
+  giftCard   GiftCard @relation(fields: [giftCardId], references: [id], onDelete: Cascade)
+
+  @@unique([giftCardId, orderId])
+  @@index([orderId])
+}
+
+model DiscountCode {
+  id          String           @id
+  code        String           @unique
+  kind        DiscountCodeKind
+  value       Float
+  minSubtotal Float            @default(0)
+  maxUses     Int?
+  usedCount   Int              @default(0)
+  active      Boolean          @default(true)
+  startsAt    DateTime?
+  expiresAt   DateTime?
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  redemptions DiscountCodeRedemption[]
+
+  @@index([active])
+}
+
+model DiscountCodeRedemption {
+  id             String       @id @default(cuid())
+  discountCodeId String
+  orderId        String
+  amount         Float
+  createdAt      DateTime     @default(now())
+  discountCode   DiscountCode @relation(fields: [discountCodeId], references: [id], onDelete: Cascade)
+
+  @@unique([discountCodeId, orderId])
+  @@index([orderId])
+}
+
+model Expense {
+  id          String    @id
+  kind        String
+  amount      Float
+  currency    String    @default("TRY")
+  description String?
+  orderId     String?
+  orderNumber String?
+  postNumber  String?   @unique
+  carrier     String?
+  cancelledAt DateTime?
+  createdAt   DateTime  @default(now())
+
+  @@index([kind, cancelledAt])
+  @@index([createdAt])
+  @@index([orderId])
 }

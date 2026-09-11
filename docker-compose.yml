@@ -62,8 +62,10 @@ services:
       DOMAIN: ${DOMAIN:?DOMAIN required}
     volumes:
       - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - ./deploy/verify:/srv/verify:ro
       - caddy_data:/data
       - caddy_config:/config
+      - uploads:/srv/uploads:ro
 
 volumes:
   pgdata:

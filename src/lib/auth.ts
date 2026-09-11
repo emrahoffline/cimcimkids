@@ -1,6 +1,5 @@
 import type { NextAuthOptions } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
-import AppleProvider from "next-auth/providers/apple";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { timingSafeEqual } from "crypto";
 import { isAdminEmail } from "./admin";
@@ -17,15 +16,6 @@ if (googleId && googleSecret) {
     GoogleProvider({
       clientId: googleId,
       clientSecret: googleSecret,
-    })
-  );
-}
-
-if (process.env.APPLE_ID && process.env.APPLE_SECRET) {
-  providers.push(
-    AppleProvider({
-      clientId: process.env.APPLE_ID,
-      clientSecret: process.env.APPLE_SECRET,
     })
   );
 }
@@ -50,7 +40,7 @@ function safeEqualString(a: string, b: string): boolean {
 providers.push(
   CredentialsProvider({
     id: "credentials",
-    name: "E-posta",
+    name: "Admin",
     credentials: {
       email: { label: "E-posta", type: "email" },
       password: { label: "Şifre", type: "password" },
@@ -59,10 +49,10 @@ providers.push(
       const email = credentials?.email?.toLowerCase().trim();
       const password = credentials?.password ?? "";
       if (!email || !password) return null;
+      if (!isAdminEmail(email)) return null;
 
       if (
         allowAdminPasswordLogin &&
-        isAdminEmail(email) &&
         safeEqualString(password, adminDevPassword!)
       ) {
         await upsertCustomer({
@@ -73,52 +63,26 @@ providers.push(
         return { id: `admin_${email}`, email, name: "Admin" };
       }
 
-      const customer = await getCustomerByEmail(email);
-      if (!customer?.passwordHash) return null;
-
-      const ok = await verifyPassword(password, customer.passwordHash);
+      const admin = await getCustomerByEmail(email);
+      if (!admin?.passwordHash) return null;
+      const ok = await verifyPassword(password, admin.passwordHash);
       if (!ok) return null;
 
       await upsertCustomer({
-        email: customer.email,
-        name: customer.name,
-        image: customer.image,
-        role: isAdminEmail(email) ? "admin" : customer.role,
+        email: admin.email,
+        name: admin.name,
+        image: admin.image,
+        role: "admin",
       });
 
       return {
-        id: customer.id,
-        email: customer.email,
-        name: customer.name,
+        id: admin.id,
+        email: admin.email,
+        name: admin.name,
       };
     },
   })
 );
-
-if (allowAdminPasswordLogin) {
-  providers.push(
-    CredentialsProvider({
-      id: "admin-password",
-      name: "Admin şifre",
-      credentials: {
-        email: { label: "E-posta", type: "email" },
-        password: { label: "Şifre", type: "password" },
-      },
-      async authorize(credentials) {
-        const email = credentials?.email?.toLowerCase().trim();
-        const password = credentials?.password ?? "";
-        if (!email || !password) return null;
-        if (!isAdminEmail(email)) return null;
-        if (!safeEqualString(password, adminDevPassword!)) return null;
-        return {
-          id: `admin_${email}`,
-          email,
-          name: "Admin",
-        };
-      },
-    })
-  );
-}
 
 if (!process.env.NEXTAUTH_SECRET) {
   console.warn(
@@ -130,38 +94,39 @@ export const authOptions: NextAuthOptions = {
   providers,
   secret: process.env.NEXTAUTH_SECRET,
   pages: {
-    signIn: "/tr/account",
+    signIn: "/admin/login",
     error: "/auth/error",
   },
   session: { strategy: "jwt" },
   callbacks: {
     async signIn({ user }) {
       if (!user.email) return false;
+      if (!isAdminEmail(user.email)) return false;
 
       try {
-        const role = isAdminEmail(user.email) ? "admin" : "customer";
         await upsertCustomer({
           email: user.email,
           name: user.name,
           image: user.image,
-          role,
+          role: "admin",
         });
       } catch (err) {
-        console.error("[Auth] Müşteri kaydı hatası:", err);
+        console.error("[Auth] Admin kaydı hatası:", err);
+        return false;
       }
       return true;
     },
     async jwt({ token, user }) {
       if (user?.email) {
         token.email = user.email;
-        token.role = isAdminEmail(user.email) ? "admin" : "customer";
+        token.role = "admin";
       }
       return token;
     },
     async session({ session, token }) {
       if (session.user) {
         session.user.id = token.sub;
-        session.user.role = (token.role as "admin" | "customer") ?? "customer";
+        session.user.role = "admin";
       }
       return session;
     },
@@ -176,15 +141,9 @@ export function getConfiguredProviders() {
   ) {
     list.push("google");
   }
-  if (process.env.APPLE_ID?.trim() && process.env.APPLE_SECRET?.trim()) {
-    list.push("apple");
-  }
-  if (allowAdminPasswordLogin) {
-    list.push("admin-password");
-  }
   return list;
 }
 
 export function isAdminPasswordLoginEnabled() {
-  return allowAdminPasswordLogin;
+  return true;
 }

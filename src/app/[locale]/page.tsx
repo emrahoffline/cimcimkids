@@ -2,12 +2,15 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { getAllProducts } from "@/lib/products-server";
+import { getActiveHeroSlides, getActiveStoryGroups } from "@/lib/db";
 import { ProductCard } from "@/components/ProductCard";
-import { BrandName } from "@/components/BrandName";
 import { NewsletterForm } from "@/components/NewsletterForm";
+import { HeroCarousel } from "@/components/HeroCarousel";
+import { StoriesRail } from "@/components/StoriesRail";
 import { JsonLd } from "@/components/JsonLd";
 import {
   buildMetadata,
+  localePath,
   organizationJsonLd,
   websiteJsonLd,
 } from "@/lib/seo";
@@ -33,36 +36,45 @@ export default async function HomePage({ params }: Props) {
   const { locale } = await params;
   setRequestLocale(locale);
   const t = await getTranslations("home");
-  const base = `/${locale}`;
-  const products = await getAllProducts();
+  const tNav = await getTranslations("nav");
+  const tSeo = await getTranslations("seo");
+  const base = localePath(locale);
+  const [products, heroSlides, storyGroups] = await Promise.all([
+    getAllProducts(),
+    getActiveHeroSlides().catch(() => []),
+    getActiveStoryGroups().catch(() => []),
+  ]);
+
+  const slides = heroSlides.map((s) => ({
+    id: s.id,
+    imageUrl: s.imageUrl,
+    alt:
+      (locale === "en" ? s.altEn || s.altTr : s.altTr || s.altEn) ||
+      tSeo("ogImageAlt"),
+  }));
 
   return (
     <>
       <JsonLd data={organizationJsonLd()} />
       <JsonLd data={websiteJsonLd()} />
-      <section className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-b from-leaf/15 via-transparent to-transparent" />
-        <div className="relative mx-auto flex max-w-3xl flex-col items-center px-4 py-16 text-center sm:px-6 sm:py-24 lg:py-28">
-          <BrandName className="animate-fade-up font-serif text-4xl font-extrabold tracking-tight sm:text-5xl" />
-          <h1 className="animate-fade-up-delay mt-5 max-w-xl font-serif text-xl font-semibold text-slate-700 sm:text-2xl">
-            {t("heroTitle")}
-          </h1>
-          <p className="animate-fade-up-delay-2 mt-3 max-w-md text-sm leading-relaxed text-slate-500 sm:text-base">
-            {t("heroSubtitle")}
-          </p>
-          <div className="animate-fade-up-delay-2 mt-8 flex flex-wrap items-center justify-center gap-3">
-            <Link href={`${base}/products`} className="btn-primary">
-              {t("shopNow")}
-              <ArrowRight className="h-4 w-4" />
-            </Link>
-            <Link href={`${base}/about`} className="btn-secondary">
-              {t("learnMore")}
-            </Link>
-          </div>
+
+      <StoriesRail groups={storyGroups} />
+
+      <section className="relative w-full overflow-hidden bg-[#f7f3ee]">
+        <h1 className="sr-only">{tSeo("homeH1")}</h1>
+        <HeroCarousel slides={slides} />
+        <div className="flex flex-wrap items-center justify-center gap-3 px-4 py-5 sm:py-6">
+          <Link href={`${base}/products`} className="btn-primary">
+            {t("shopNow")}
+            <ArrowRight className="h-4 w-4" />
+          </Link>
+          <Link href={`${base}/gift-cards`} className="btn-secondary">
+            {tNav("giftCards")}
+          </Link>
         </div>
       </section>
 
-      <section className="mx-auto max-w-7xl px-4 pb-12 sm:px-6 sm:pb-16 lg:px-8">
+      <section className="mx-auto max-w-7xl px-4 pb-12 pt-8 sm:px-6 sm:pb-16 sm:pt-10 lg:px-8">
         <div className="mb-8 text-center sm:mb-10">
           <h2 className="text-2xl font-semibold sm:text-3xl">{t("featured")}</h2>
           <p className="mt-2 text-sm text-slate-500 sm:text-base">
@@ -70,8 +82,8 @@ export default async function HomePage({ params }: Props) {
           </p>
         </div>
         <div className="mobile-product-grid">
-          {products.map((p) => (
-            <ProductCard key={p.id} product={p} />
+          {products.map((p, index) => (
+            <ProductCard key={p.id} product={p} priority={index < 4} />
           ))}
         </div>
         <div className="mt-10 text-center">

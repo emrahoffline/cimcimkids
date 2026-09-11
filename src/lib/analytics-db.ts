@@ -3,7 +3,8 @@ import type { Order } from "./db";
 import type { Product } from "./types";
 import { prisma, requireDatabaseUrl } from "./prisma";
 
-const MAX_EVENTS = 3000;
+/** Keep recent raw events for favorites/detail; totals live in durable tables */
+const MAX_EVENTS = 10000;
 
 export type AnalyticsEventType =
   | "page_view"
@@ -15,6 +16,7 @@ export type AnalyticsEvent = {
   id: string;
   type: AnalyticsEventType;
   sessionId: string;
+  visitorId?: string;
   path?: string;
   productId?: string;
   productName?: string;
@@ -36,6 +38,7 @@ function mapEvent(e: {
   id: string;
   type: PrismaEventType;
   sessionId: string;
+  visitorId: string | null;
   path: string | null;
   productId: string | null;
   productName: string | null;
@@ -49,6 +52,7 @@ function mapEvent(e: {
     id: e.id,
     type: e.type,
     sessionId: e.sessionId,
+    visitorId: e.visitorId ?? undefined,
     path: e.path ?? undefined,
     productId: e.productId ?? undefined,
     productName: e.productName ?? undefined,
@@ -60,13 +64,17 @@ function mapEvent(e: {
   };
 }
 
+function locationId(city: string, country: string) {
+  return `${city.trim().toLowerCase()}|${country.trim().toLowerCase()}`;
+}
+
 async function getEvents(): Promise<AnalyticsEvent[]> {
   requireDatabaseUrl();
   const rows = await prisma.analyticsEvent.findMany({
-    orderBy: { createdAt: "asc" },
+    orderBy: { createdAt: "desc" },
     take: MAX_EVENTS,
   });
-  return rows.map(mapEvent);
+  return rows.map(mapEvent).reverse();
 }
 
 export function buildAllTimeStats(orders: Order[]): AllTimeTotals {
@@ -116,14 +124,53 @@ export async function getStoredAllTimeTotals(): Promise<AllTimeTotals | null> {
   };
 }
 
+async function ensureTrafficRow() {
+  await prisma.analyticsTraffic.upsert({
+    where: { id: 1 },
+    create: {
+      id: 1,
+      pageViews: 0,
+      sessions: 0,
+      uniqueVisitors: 0,
+      totalSessionDurationSec: 0,
+      completedSessions: 0,
+    },
+    update: {},
+  });
+}
+
+async function pruneEventsIfNeeded() {
+  const count = await prisma.analyticsEvent.count();
+  if (count <= MAX_EVENTS) return;
+  const oldest = await prisma.analyticsEvent.findMany({
+    orderBy: { createdAt: "asc" },
+    take: count - MAX_EVENTS,
+    select: { id: true },
+  });
+  if (oldest.length) {
+    await prisma.analyticsEvent.deleteMany({
+      where: { id: { in: oldest.map((e) => e.id) } },
+    });
+  }
+}
+
 export async function recordAnalyticsEvent(
   event: Omit<AnalyticsEvent, "id" | "createdAt">
 ): Promise<void> {
   requireDatabaseUrl();
+  await ensureTrafficRow();
+
+  const visitorId = event.visitorId?.trim() || "";
+  const sessionId = event.sessionId.trim();
+  const city = event.city?.trim() || "Bilinmiyor";
+  const country = event.country?.trim() || "Bilinmiyor";
+  const locId = locationId(city, country);
+
   await prisma.analyticsEvent.create({
     data: {
       type: event.type,
-      sessionId: event.sessionId,
+      sessionId,
+      visitorId: visitorId || null,
       path: event.path ?? null,
       productId: event.productId ?? null,
       productName: event.productName ?? null,
@@ -134,31 +181,168 @@ export async function recordAnalyticsEvent(
     },
   });
 
-  const count = await prisma.analyticsEvent.count();
-  if (count > MAX_EVENTS) {
-    const oldest = await prisma.analyticsEvent.findMany({
-      orderBy: { createdAt: "asc" },
-      take: count - MAX_EVENTS,
-      select: { id: true },
-    });
-    if (oldest.length) {
-      await prisma.analyticsEvent.deleteMany({
-        where: { id: { in: oldest.map((e) => e.id) } },
+  if (event.type === "page_view" && visitorId && sessionId) {
+    await prisma.$transaction(async (tx) => {
+      const existingVisitor = await tx.analyticsVisitor.findUnique({
+        where: { id: visitorId },
       });
-    }
+      const isNewVisitor = !existingVisitor;
+
+      if (isNewVisitor) {
+        await tx.analyticsVisitor.create({
+          data: {
+            id: visitorId,
+            country,
+            city,
+            pageViews: 1,
+            sessions: 1,
+          },
+        });
+      } else {
+        await tx.analyticsVisitor.update({
+          where: { id: visitorId },
+          data: {
+            pageViews: { increment: 1 },
+            lastSeenAt: new Date(),
+            ...(existingVisitor.country
+              ? {}
+              : { country, city }),
+          },
+        });
+      }
+
+      const existingSession = await tx.analyticsSession.findUnique({
+        where: { id: sessionId },
+      });
+      const isNewSession = !existingSession;
+
+      if (isNewSession) {
+        await tx.analyticsSession.create({
+          data: {
+            id: sessionId,
+            visitorId,
+            pageViews: 1,
+            country,
+            city,
+          },
+        });
+        if (!isNewVisitor) {
+          await tx.analyticsVisitor.update({
+            where: { id: visitorId },
+            data: { sessions: { increment: 1 } },
+          });
+        }
+      } else if (!existingSession.endedAt) {
+        await tx.analyticsSession.update({
+          where: { id: sessionId },
+          data: { pageViews: { increment: 1 } },
+        });
+      }
+
+      let isNewAtLocation = false;
+      try {
+        await tx.analyticsLocationVisitor.create({
+          data: { visitorId, locationId: locId },
+        });
+        isNewAtLocation = true;
+      } catch {
+        // already counted for this location
+      }
+
+      const loc = await tx.analyticsLocation.findUnique({ where: { id: locId } });
+      if (!loc) {
+        await tx.analyticsLocation.create({
+          data: {
+            id: locId,
+            city,
+            country,
+            pageViews: 1,
+            uniqueVisitors: isNewAtLocation ? 1 : 0,
+          },
+        });
+      } else {
+        await tx.analyticsLocation.update({
+          where: { id: locId },
+          data: {
+            pageViews: { increment: 1 },
+            ...(isNewAtLocation ? { uniqueVisitors: { increment: 1 } } : {}),
+          },
+        });
+      }
+
+      await tx.analyticsTraffic.update({
+        where: { id: 1 },
+        data: {
+          pageViews: { increment: 1 },
+          ...(isNewVisitor ? { uniqueVisitors: { increment: 1 } } : {}),
+          ...(isNewSession ? { sessions: { increment: 1 } } : {}),
+        },
+      });
+    });
   }
+
+  if (event.type === "session_end" && sessionId) {
+    const duration = Math.max(0, Math.min(event.durationSec ?? 0, 7200));
+    await prisma.$transaction(async (tx) => {
+      const session = await tx.analyticsSession.findUnique({
+        where: { id: sessionId },
+      });
+      if (!session || session.endedAt) return;
+
+      await tx.analyticsSession.update({
+        where: { id: sessionId },
+        data: {
+          endedAt: new Date(),
+          durationSec: duration,
+        },
+      });
+
+      if (duration >= 2) {
+        await tx.analyticsTraffic.update({
+          where: { id: 1 },
+          data: {
+            totalSessionDurationSec: { increment: duration },
+            completedSessions: { increment: 1 },
+          },
+        });
+      }
+    });
+  }
+
+  await pruneEventsIfNeeded();
 }
 
-function dayKey(date: string) {
-  return date.slice(0, 10);
+/** Calendar day key in Europe/Istanbul (YYYY-MM-DD) */
+function istanbulDayKey(date: Date | string) {
+  const d = typeof date === "string" ? new Date(date) : date;
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Europe/Istanbul",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(d);
 }
 
-function lastNDays(n: number) {
+function lastNIstanbulDays(n: number) {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Europe/Istanbul",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(new Date());
+  const y = Number(parts.find((p) => p.type === "year")?.value);
+  const m = Number(parts.find((p) => p.type === "month")?.value);
+  const day = Number(parts.find((p) => p.type === "day")?.value);
+  const cursor = new Date(Date.UTC(y, m - 1, day));
+
   const days: string[] = [];
   for (let i = n - 1; i >= 0; i--) {
-    const d = new Date();
-    d.setDate(d.getDate() - i);
-    days.push(d.toISOString().slice(0, 10));
+    const d = new Date(cursor);
+    d.setUTCDate(cursor.getUTCDate() - i);
+    const yyyy = d.getUTCFullYear();
+    const mm = String(d.getUTCMonth() + 1).padStart(2, "0");
+    const dd = String(d.getUTCDate()).padStart(2, "0");
+    days.push(`${yyyy}-${mm}-${dd}`);
   }
   return days;
 }
@@ -169,12 +353,12 @@ function formatDayLabel(iso: string) {
 }
 
 export function buildSalesChart(orders: Order[], days = 14) {
-  const range = lastNDays(days);
+  const range = lastNIstanbulDays(days);
   const byDay = new Map(range.map((d) => [d, { revenue: 0, orders: 0 }]));
 
   for (const order of orders) {
     if (order.status === "cancelled") continue;
-    const key = dayKey(order.createdAt);
+    const key = istanbulDayKey(order.createdAt);
     const bucket = byDay.get(key);
     if (bucket) {
       bucket.revenue += order.total;
@@ -260,53 +444,165 @@ export function buildTopFavorites(
     .slice(0, limit);
 }
 
-export function buildSessionStats(events: AnalyticsEvent[]) {
-  const sessions = events.filter((e) => e.type === "session_end" && e.durationSec);
-  const pageViews = events.filter((e) => e.type === "page_view");
-  const uniqueSessions = new Set(pageViews.map((e) => e.sessionId)).size;
+async function getTrafficStats() {
+  requireDatabaseUrl();
+  await ensureTrafficRow();
+  const row = await prisma.analyticsTraffic.findUniqueOrThrow({
+    where: { id: 1 },
+  });
+  const avgDurationSec =
+    row.completedSessions > 0
+      ? Math.round(row.totalSessionDurationSec / row.completedSessions)
+      : 0;
 
-  if (sessions.length === 0) {
-    return {
-      avgDurationSec: 0,
-      totalSessions: uniqueSessions,
-      totalPageViews: pageViews.length,
-    };
-  }
-
-  const totalDuration = sessions.reduce((sum, e) => sum + (e.durationSec ?? 0), 0);
   return {
-    avgDurationSec: Math.round(totalDuration / sessions.length),
-    totalSessions: uniqueSessions,
-    totalPageViews: pageViews.length,
+    avgDurationSec,
+    totalSessions: row.sessions,
+    totalPageViews: row.pageViews,
+    uniqueVisitors: row.uniqueVisitors,
   };
 }
 
-export function buildLocationStats(events: AnalyticsEvent[], limit = 8) {
-  const views = events.filter((e) => e.type === "page_view");
-  const counts = new Map<string, { city: string; country: string; visits: number }>();
+async function getLocationStats(limit = 8) {
+  requireDatabaseUrl();
+  const rows = await prisma.analyticsLocation.findMany({
+    orderBy: [{ uniqueVisitors: "desc" }, { pageViews: "desc" }],
+    take: limit,
+  });
+  const totalVisitors =
+    rows.reduce((s, r) => s + r.uniqueVisitors, 0) ||
+    rows.reduce((s, r) => s + r.pageViews, 0) ||
+    1;
 
-  for (const event of views) {
-    const city = event.city?.trim() || "Bilinmiyor";
-    const country = event.country?.trim() || "Bilinmiyor";
-    const key = `${city}|${country}`;
-    const existing = counts.get(key) ?? { city, country, visits: 0 };
-    existing.visits += 1;
-    counts.set(key, existing);
+  return rows.map((r) => ({
+    city: r.city,
+    country: r.country,
+    visits: r.uniqueVisitors,
+    pageViews: r.pageViews,
+    percentage: Math.round(
+      ((r.uniqueVisitors || r.pageViews) / totalVisitors) * 100
+    ),
+  }));
+}
+
+/** One-time backfill from legacy event log into durable counters (no new events). */
+async function bootstrapTrafficFromLegacyEvents() {
+  requireDatabaseUrl();
+  await ensureTrafficRow();
+  const traffic = await prisma.analyticsTraffic.findUnique({ where: { id: 1 } });
+  if (!traffic || traffic.pageViews > 0) return;
+
+  const pageViews = await prisma.analyticsEvent.findMany({
+    where: { type: "page_view" },
+    orderBy: { createdAt: "asc" },
+  });
+  if (pageViews.length === 0) return;
+
+  const visitorIds = new Set<string>();
+  const sessionIds = new Set<string>();
+  const locVisitors = new Map<string, Set<string>>();
+  const locViews = new Map<string, { city: string; country: string; views: number }>();
+
+  for (const e of pageViews) {
+    const vid = e.visitorId || `legacy_${e.sessionId}`;
+    visitorIds.add(vid);
+    sessionIds.add(e.sessionId);
+    const city = e.city?.trim() || "Bilinmiyor";
+    const country = e.country?.trim() || "Bilinmiyor";
+    const lid = locationId(city, country);
+    if (!locVisitors.has(lid)) locVisitors.set(lid, new Set());
+    locVisitors.get(lid)!.add(vid);
+    const lv = locViews.get(lid) ?? { city, country, views: 0 };
+    lv.views += 1;
+    locViews.set(lid, lv);
+
+    await prisma.analyticsVisitor.upsert({
+      where: { id: vid },
+      create: {
+        id: vid,
+        country,
+        city,
+        pageViews: 1,
+        sessions: 1,
+      },
+      update: { pageViews: { increment: 1 }, lastSeenAt: new Date() },
+    });
+    await prisma.analyticsSession.upsert({
+      where: { id: e.sessionId },
+      create: {
+        id: e.sessionId,
+        visitorId: vid,
+        pageViews: 1,
+        country,
+        city,
+      },
+      update: { pageViews: { increment: 1 } },
+    });
   }
 
-  const total = views.length || 1;
-  return [...counts.values()]
-    .sort((a, b) => b.visits - a.visits)
-    .slice(0, limit)
-    .map((item) => ({
-      ...item,
-      percentage: Math.round((item.visits / total) * 100),
-    }));
+  const ends = await prisma.analyticsEvent.findMany({
+    where: { type: "session_end", durationSec: { gte: 2 } },
+  });
+  let totalDur = 0;
+  let completed = 0;
+  const ended = new Set<string>();
+  for (const e of ends) {
+    if (ended.has(e.sessionId)) continue;
+    ended.add(e.sessionId);
+    const dur = Math.min(e.durationSec ?? 0, 7200);
+    totalDur += dur;
+    completed += 1;
+    await prisma.analyticsSession.updateMany({
+      where: { id: e.sessionId, endedAt: null },
+      data: { endedAt: e.createdAt, durationSec: dur },
+    });
+  }
+
+  for (const [lid, meta] of locViews) {
+    const uniques = locVisitors.get(lid)?.size ?? 0;
+    await prisma.analyticsLocation.upsert({
+      where: { id: lid },
+      create: {
+        id: lid,
+        city: meta.city,
+        country: meta.country,
+        pageViews: meta.views,
+        uniqueVisitors: uniques,
+      },
+      update: {
+        pageViews: meta.views,
+        uniqueVisitors: uniques,
+      },
+    });
+    for (const vid of locVisitors.get(lid) ?? []) {
+      await prisma.analyticsLocationVisitor.upsert({
+        where: {
+          visitorId_locationId: { visitorId: vid, locationId: lid },
+        },
+        create: { visitorId: vid, locationId: lid },
+        update: {},
+      });
+    }
+  }
+
+  await prisma.analyticsTraffic.update({
+    where: { id: 1 },
+    data: {
+      pageViews: pageViews.length,
+      sessions: sessionIds.size,
+      uniqueVisitors: visitorIds.size,
+      totalSessionDurationSec: totalDur,
+      completedSessions: completed,
+    },
+  });
 }
 
 export async function getAdminAnalytics(orders: Order[], products: Product[]) {
+  await bootstrapTrafficFromLegacyEvents();
+
   const events = await getEvents();
-  const sessionStats = buildSessionStats(events);
+  const sessionStats = await getTrafficStats();
+  const locations = await getLocationStats();
   const allTime = buildAllTimeStats(orders);
   const stored = await getStoredAllTimeTotals();
 
@@ -326,7 +622,7 @@ export async function getAdminAnalytics(orders: Order[], products: Product[]) {
     topSellers: buildTopSellers(orders, products),
     topFavorites: buildTopFavorites(events, products),
     sessionStats,
-    locations: buildLocationStats(events),
+    locations,
     summary: {
       chartRevenueTotal: salesChart.reduce((s, d) => s + d.revenue, 0),
       chartOrdersTotal: salesChart.reduce((s, d) => s + d.orders, 0),

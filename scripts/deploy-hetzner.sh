@@ -78,7 +78,7 @@ fi
 
 # Temel production değerleri
 sed -i "s|^DOMAIN=.*|DOMAIN=$DOMAIN|" .env.production || echo "DOMAIN=$DOMAIN" >> .env.production
-grep -q '^NEXTAUTH_URL=' .env.production && sed -i "s|^NEXTAUTH_URL=.*|NEXTAUTH_URL=https://$DOMAIN|" .env.production || echo "NEXTAUTH_URL=https://$DOMAIN" >> .env.production
+grep -q '^NEXTAUTH_URL=' .env.production && sed -i "s|^NEXTAUTH_URL=.*|NEXTAUTH_URL=https://www.${DOMAIN#www.}|" .env.production || echo "NEXTAUTH_URL=https://www.${DOMAIN#www.}" >> .env.production
 grep -q '^TRUST_PROXY=' .env.production && sed -i "s|^TRUST_PROXY=.*|TRUST_PROXY=true|" .env.production || echo "TRUST_PROXY=true" >> .env.production
 grep -q '^POSTGRES_PASSWORD=' .env.production && sed -i "s|^POSTGRES_PASSWORD=.*|POSTGRES_PASSWORD=\$PASS|" .env.production || echo "POSTGRES_PASSWORD=\$PASS" >> .env.production
 
@@ -91,7 +91,7 @@ REMOTE
 # Local .env.local'den Google / mevcut secret taşı
 if [ -f "$LOCAL_ENV" ]; then
   echo "==> 3b) .env.local anahtarlarını production'a aktar"
-  for KEY in NEXTAUTH_SECRET GOOGLE_CLIENT_ID GOOGLE_CLIENT_SECRET SMTP_HOST SMTP_PORT SMTP_USER SMTP_PASS SMTP_FROM ORDER_NOTIFICATION_EMAIL ADMIN_EMAILS; do
+  for KEY in NEXTAUTH_SECRET GOOGLE_CLIENT_ID GOOGLE_CLIENT_SECRET SMTP_HOST SMTP_PORT SMTP_USER SMTP_PASS SMTP_FROM ORDER_NOTIFICATION_EMAIL ADMIN_EMAILS BIEN_USERNAME BIEN_PASSWORD BIEN_TEST COMPANY_TITLE COMPANY_TCKN COMPANY_VKN COMPANY_TAX_OFFICE COMPANY_ADDRESS COMPANY_DISTRICT COMPANY_CITY COMPANY_COUNTRY COMPANY_EMAIL COMPANY_WEBSITE COMPANY_PHONE COMPANY_MERSIS EFATURA_AUTO_ISSUE EFATURA_ARCHIVE_SERIES EFATURA_INVOICE_SERIES EFATURA_PROFILE NAVLUNGO_USERNAME NAVLUNGO_PASSWORD NAVLUNGO_SENDER_ADDRESS_ID NAVLUNGO_TEST; do
     VAL=$(grep -E "^${KEY}=" "$LOCAL_ENV" | head -1 | cut -d= -f2- || true)
     if [ -n "${VAL:-}" ]; then
       # Escape for remote sed
@@ -106,11 +106,17 @@ ssh "${SSH_OPTS[@]}" "$SERVER" bash -s <<REMOTE
 set -euo pipefail
 cd $REMOTE_DIR
 docker compose --env-file .env up -d --build
+# Keep disk free — repeated deploys fill build cache and can crash Postgres
+docker builder prune -af >/dev/null
 docker compose ps
+df -h / | tail -1
 REMOTE
 
-echo "==> 5) JSON → Postgres"
-ssh "${SSH_OPTS[@]}" "$SERVER" bash -s <<REMOTE
+# Tek seferlik JSON seed — her deploy'da ÇALIŞTIRMAYIN (silinen ürünler geri gelir).
+# İlk kurulum veya bilinçli içe aktarım için: IMPORT_JSON=1 ./scripts/deploy-hetzner.sh
+if [ "${IMPORT_JSON:-}" = "1" ]; then
+  echo "==> 5) JSON → Postgres (IMPORT_JSON=1)"
+  ssh "${SSH_OPTS[@]}" "$SERVER" bash -s <<REMOTE
 set -euo pipefail
 cd $REMOTE_DIR
 PASS=\$(grep '^POSTGRES_PASSWORD=' .env | cut -d= -f2-)
@@ -119,6 +125,9 @@ docker compose --env-file .env exec -T \
   app node --experimental-strip-types ./scripts/migrate-json-to-pg.ts \
   || echo "UYARI: JSON import başarısız — sonra tekrar dene"
 REMOTE
+else
+  echo "==> 5) JSON import atlandı (silinen veriyi korumak için). Gerekirse: IMPORT_JSON=1"
+fi
 
 echo ""
 echo "========================================"

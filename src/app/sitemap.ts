@@ -1,5 +1,5 @@
 import type { MetadataRoute } from "next";
-import { getProducts } from "@/lib/db";
+import { getCategories, getProducts } from "@/lib/db";
 import {
   PUBLIC_STATIC_PATHS,
   SITE_ORIGIN,
@@ -8,7 +8,7 @@ import {
 } from "@/lib/seo";
 import { routing } from "@/i18n/routing";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 3600;
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const locales = routing.locales;
@@ -16,10 +16,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   const add = (
     path: string,
-    extras?: Pick<
-      MetadataRoute.Sitemap[number],
-      "lastModified" | "changeFrequency" | "priority"
-    >
+    extras?: Pick<MetadataRoute.Sitemap[number], "lastModified" | "changeFrequency" | "priority">
   ) => {
     for (const locale of locales) {
       entries.push({
@@ -41,9 +38,23 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   }
 
   try {
-    const products = await getProducts();
+    const [categories, products] = await Promise.all([
+      getCategories(),
+      getProducts(),
+    ]);
+
+    for (const category of categories) {
+      add(`/kategori/${category.slug}`, {
+        changeFrequency: "daily",
+        priority: 0.85,
+      });
+    }
+
     for (const product of products) {
       add(`/products/${product.slug}`, {
+        lastModified: product.updatedAt
+          ? new Date(product.updatedAt)
+          : undefined,
         changeFrequency: "weekly",
         priority: 0.8,
       });
@@ -52,5 +63,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     // Build/runtime without DB: still emit static URLs.
   }
 
+  // Guarantee origin is production www even if a helper is misused
   return entries.filter((entry) => entry.url.startsWith(SITE_ORIGIN));
 }

@@ -11,6 +11,7 @@ export function isAdminEmail(email: string | null | undefined): boolean {
     "emrhgtr@gmail.com",
     "info@cimcimkids.com",
     "efruzebendes@hotmail.com",
+    "efruzebendes90@gmail.com",
   ];
   const allowlist = fromEnv.length > 0 ? fromEnv : defaults;
 

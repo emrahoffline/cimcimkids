@@ -3,13 +3,15 @@
 import Image from "next/image";
 import { useRef, useState } from "react";
 import { Upload, X, ImageIcon } from "lucide-react";
+import { isUploadedProductImage } from "@/lib/image-utils";
 
 type Props = {
   value: string;
   onChange: (url: string) => void;
+  label?: string;
 };
 
-export function ImageUpload({ value, onChange }: Props) {
+export function ImageUpload({ value, onChange, label = "Ürün Görseli" }: Props) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState("");
@@ -56,7 +58,7 @@ export function ImageUpload({ value, onChange }: Props) {
 
   return (
     <div className="space-y-3">
-      <label className="block text-sm font-medium">Ürün Görseli</label>
+      <label className="block text-sm font-medium">{label}</label>
 
       {value && (
         <div className="relative inline-block">
@@ -65,6 +67,7 @@ export function ImageUpload({ value, onChange }: Props) {
               src={value}
               alt="Önizleme"
               fill
+              unoptimized={isUploadedProductImage(value)}
               className="object-cover"
               sizes="160px"
             />
@@ -139,7 +142,7 @@ export function ImageUpload({ value, onChange }: Props) {
       {!value && (
         <p className="flex items-center gap-1 text-xs text-amber-600">
           <ImageIcon className="h-3 w-3" />
-          Ürün kaydetmeden önce bir görsel yükleyin
+          Kaydetmeden önce bir görsel yükleyin
         </p>
       )}
     </div>

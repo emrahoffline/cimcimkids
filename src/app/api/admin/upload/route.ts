@@ -4,17 +4,25 @@ import path from "path";
 import { requireAdminApi } from "@/lib/admin-api";
 import { randomBytes } from "crypto";
 
-const MAX_SIZE = 5 * 1024 * 1024; // 5 MB
+const MAX_IMAGE_SIZE = 8 * 1024 * 1024; // 8 MB
+const MAX_VIDEO_SIZE = 40 * 1024 * 1024; // 40 MB
 
-const MAGIC: Array<{ ext: string; mime: string; check: (b: Buffer) => boolean }> = [
+const MAGIC: Array<{
+  ext: string;
+  mime: string;
+  kind: "image" | "video";
+  check: (b: Buffer) => boolean;
+}> = [
   {
     ext: "jpg",
     mime: "image/jpeg",
+    kind: "image",
     check: (b) => b.length > 3 && b[0] === 0xff && b[1] === 0xd8 && b[2] === 0xff,
   },
   {
     ext: "png",
     mime: "image/png",
+    kind: "image",
     check: (b) =>
       b.length > 8 &&
       b[0] === 0x89 &&
@@ -25,6 +33,7 @@ const MAGIC: Array<{ ext: string; mime: string; check: (b: Buffer) => boolean }>
   {
     ext: "webp",
     mime: "image/webp",
+    kind: "image",
     check: (b) =>
       b.length > 12 &&
       b.toString("ascii", 0, 4) === "RIFF" &&
@@ -33,10 +42,28 @@ const MAGIC: Array<{ ext: string; mime: string; check: (b: Buffer) => boolean }>
   {
     ext: "gif",
     mime: "image/gif",
+    kind: "image",
     check: (b) =>
       b.length > 6 &&
       (b.toString("ascii", 0, 6) === "GIF87a" ||
         b.toString("ascii", 0, 6) === "GIF89a"),
+  },
+  {
+    ext: "mp4",
+    mime: "video/mp4",
+    kind: "video",
+    check: (b) => b.length > 12 && b.toString("ascii", 4, 8) === "ftyp",
+  },
+  {
+    ext: "webm",
+    mime: "video/webm",
+    kind: "video",
+    check: (b) =>
+      b.length > 4 &&
+      b[0] === 0x1a &&
+      b[1] === 0x45 &&
+      b[2] === 0xdf &&
+      b[3] === 0xa3,
   },
 ];
 
@@ -52,9 +79,9 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Dosya seçilmedi" }, { status: 400 });
     }
 
-    if (file.size > MAX_SIZE) {
+    if (file.size > MAX_VIDEO_SIZE) {
       return NextResponse.json(
-        { error: "Dosya boyutu en fazla 5 MB olabilir" },
+        { error: "Dosya boyutu en fazla 40 MB olabilir" },
         { status: 400 }
       );
     }
@@ -65,20 +92,26 @@ export async function POST(request: Request) {
 
     if (!matched) {
       return NextResponse.json(
-        { error: "Sadece geçerli JPG, PNG, WebP veya GIF yüklenebilir" },
+        { error: "Sadece JPG, PNG, WebP, GIF, MP4 veya WebM yüklenebilir" },
         { status: 400 }
       );
     }
 
-    // Content-Type istemciye güvenmeden magic ile eşleşmeli (yoksa yine de magic ext kullan)
-    if (file.type && file.type !== matched.mime && file.type !== "image/jpeg") {
-      // jpeg alias
-      if (!(matched.ext === "jpg" && file.type === "image/jpg")) {
-        // soft check only — bytes win
-      }
+    const maxSize = matched.kind === "video" ? MAX_VIDEO_SIZE : MAX_IMAGE_SIZE;
+    if (file.size > maxSize) {
+      return NextResponse.json(
+        {
+          error:
+            matched.kind === "video"
+              ? "Video en fazla 40 MB olabilir"
+              : "Görsel en fazla 8 MB olabilir",
+        },
+        { status: 400 }
+      );
     }
 
-    const filename = `product-${Date.now()}-${randomBytes(4).toString("hex")}.${matched.ext}`;
+    const prefix = matched.kind === "video" ? "product-video" : "product";
+    const filename = `${prefix}-${Date.now()}-${randomBytes(4).toString("hex")}.${matched.ext}`;
     const uploadDir = path.join(process.cwd(), "public", "products", "uploads");
 
     await mkdir(uploadDir, { recursive: true });

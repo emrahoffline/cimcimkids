@@ -19,13 +19,15 @@ type NotificationData = {
   orders: AdminNotificationOrder[];
 };
 
-export function useAdminNotifications(pollMs = 20000) {
+export function useAdminNotifications(pollMs = 12000) {
   const [data, setData] = useState<NotificationData>({ count: 0, orders: [] });
   const [loading, setLoading] = useState(true);
 
   const refresh = useCallback(async () => {
     try {
-      const res = await fetch("/api/admin/notifications");
+      const res = await fetch("/api/admin/notifications", {
+        cache: "no-store",
+      });
       if (!res.ok) return;
       const json = await res.json();
       setData(json);
@@ -46,7 +48,18 @@ export function useAdminNotifications(pollMs = 20000) {
   useEffect(() => {
     refresh();
     const id = setInterval(refresh, pollMs);
-    return () => clearInterval(id);
+
+    const onVisible = () => {
+      if (document.visibilityState === "visible") refresh();
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    window.addEventListener("focus", onVisible);
+
+    return () => {
+      clearInterval(id);
+      document.removeEventListener("visibilitychange", onVisible);
+      window.removeEventListener("focus", onVisible);
+    };
   }, [refresh, pollMs]);
 
   return { ...data, loading, refresh, markAllSeen };

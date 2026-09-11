@@ -1,9 +1,11 @@
 "use client";
 
-import { useLocale } from "next-intl";
+import { useState } from "react";
+import { useLocale, useTranslations } from "next-intl";
 import { AddToCartButton } from "./AddToCartButton";
 import { FavoriteButton } from "./FavoriteButton";
-import type { Product } from "@/lib/types";
+import type { Product, ProductColor } from "@/lib/types";
+import { getColorLabel, getProductAges } from "@/lib/types";
 import { formatPrice } from "@/lib/products";
 
 export function ProductDetailActions({
@@ -14,12 +16,103 @@ export function ProductDetailActions({
   name: string;
 }) {
   const locale = useLocale();
+  const t = useTranslations("products");
   const price = formatPrice(product.price, locale);
+  const colors = product.colors ?? [];
+  const ages = getProductAges(product);
+  const [selectedColor, setSelectedColor] = useState<ProductColor | null>(
+    colors[0] ?? null
+  );
+  const [selectedAge, setSelectedAge] = useState<string | null>(
+    ages[0] ?? null
+  );
+
+  const needsColor = colors.length > 0;
+  const needsAge = ages.length > 0;
+  const variantsReady =
+    (!needsColor || !!selectedColor) && (!needsAge || !!selectedAge);
 
   return (
     <>
+      {needsAge && (
+        <div className="mt-6">
+          <p className="mb-2 text-sm font-medium text-slate-700">
+            {t("age")}
+            {selectedAge && (
+              <span className="ml-2 font-normal text-slate-500">
+                {selectedAge}
+              </span>
+            )}
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {ages.map((age) => {
+              const active = selectedAge === age;
+              return (
+                <button
+                  key={age}
+                  type="button"
+                  onClick={() => setSelectedAge(age)}
+                  className={`rounded-full border px-3 py-1.5 text-xs font-medium transition ${
+                    active
+                      ? "border-bamboo bg-bamboo text-white"
+                      : "border-slate-200 bg-white text-slate-700 hover:border-bamboo"
+                  }`}
+                  aria-pressed={active}
+                >
+                  {age}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {needsColor && (
+        <div className="mt-6">
+          <p className="mb-2 text-sm font-medium text-slate-700">
+            {t("color")}
+            {selectedColor && (
+              <span className="ml-2 font-normal text-slate-500">
+                {getColorLabel(selectedColor, locale)}
+              </span>
+            )}
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {colors.map((color) => {
+              const active = selectedColor?.id === color.id;
+              return (
+                <button
+                  key={color.id}
+                  type="button"
+                  onClick={() => setSelectedColor(color)}
+                  title={getColorLabel(color, locale)}
+                  className={`flex h-9 w-9 items-center justify-center rounded-full border-2 transition ${
+                    active
+                      ? "border-bamboo ring-2 ring-bamboo/30"
+                      : "border-slate-200 hover:border-slate-400"
+                  }`}
+                  aria-label={getColorLabel(color, locale)}
+                  aria-pressed={active}
+                >
+                  <span
+                    className="h-6 w-6 rounded-full border border-black/10"
+                    style={{ backgroundColor: color.hex }}
+                  />
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       <div className="mt-8 flex flex-wrap items-center gap-3">
-        <AddToCartButton product={product} name={name} />
+        <AddToCartButton
+          product={product}
+          name={name}
+          color={selectedColor}
+          ageLabel={selectedAge}
+          disabled={!product.inStock || !variantsReady}
+        />
         <FavoriteButton
           product={product}
           className="border border-bamboo/20 bg-white"
@@ -35,6 +128,9 @@ export function ProductDetailActions({
           <AddToCartButton
             product={product}
             name={name}
+            color={selectedColor}
+            ageLabel={selectedAge}
+            disabled={!product.inStock || !variantsReady}
             className="shrink-0 px-5"
           />
         </div>

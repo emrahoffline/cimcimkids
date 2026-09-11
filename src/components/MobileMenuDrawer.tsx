@@ -3,14 +3,15 @@
 import { useEffect } from "react";
 import Link from "next/link";
 import { useTranslations, useLocale } from "next-intl";
-import { X, User, HelpCircle, Truck, FileText } from "lucide-react";
+import { X, HelpCircle, Truck, FileText } from "lucide-react";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 import { BrandName } from "./BrandName";
 
 const mainLinks = [
   { href: "", key: "home" },
-  { href: "/about", key: "about" },
+  { href: "/gift-cards", key: "giftCards" },
   { href: "/products", key: "products" },
+  { href: "/about", key: "about" },
   { href: "/contact", key: "contact" },
 ] as const;
 
@@ -123,14 +124,6 @@ export function MobileMenuDrawer({ open, onClose }: Props) {
             </Link>
           </div>
 
-          <Link
-            href={`${base}/account`}
-            onClick={onClose}
-            className="btn-primary mt-4 flex w-full gap-2"
-          >
-            <User className="h-5 w-5" />
-            {t("account")}
-          </Link>
         </div>
 
         <div className="border-t border-bamboo/10 px-5 py-4">

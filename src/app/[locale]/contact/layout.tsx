@@ -9,12 +9,13 @@ type Props = {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale } = await params;
-  const t = await getTranslations({ locale, namespace: "contact" });
+  const t = await getTranslations({ locale, namespace: "seo" });
+  const tPage = await getTranslations({ locale, namespace: "contact" });
   return buildMetadata({
     locale,
     path: "/contact",
-    title: `${t("title")} | Cimcim Kids`,
-    description: t("subtitle"),
+    title: `${tPage("title")} | Cimcim Kids`,
+    description: t("contactMetaDescription"),
     absoluteTitle: true,
   });
 }

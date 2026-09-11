@@ -10,12 +10,13 @@ type Props = {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { locale } = await params;
-  const t = await getTranslations({ locale, namespace: "about" });
+  const t = await getTranslations({ locale, namespace: "seo" });
+  const tPage = await getTranslations({ locale, namespace: "about" });
   return buildMetadata({
     locale,
     path: "/about",
-    title: `${t("title")} | Cimcim Kids`,
-    description: t("p1"),
+    title: `${tPage("title")} | Cimcim Kids`,
+    description: t("aboutMetaDescription"),
     absoluteTitle: true,
   });
 }
@@ -24,6 +25,7 @@ export default async function AboutPage({ params }: Props) {
   const { locale } = await params;
   setRequestLocale(locale);
   const t = await getTranslations("about");
+  const tSeo = await getTranslations("seo");
 
   const values = [t("value1"), t("value2"), t("value3"), t("value4")];
 
@@ -37,7 +39,7 @@ export default async function AboutPage({ params }: Props) {
         <div className="relative aspect-[4/3] overflow-hidden rounded-3xl">
           <Image
             src="/products/product-2.png"
-            alt="CimcimKids children clothing"
+            alt={tSeo("ogImageAlt")}
             fill
             className="object-cover"
             sizes="(max-width: 1024px) 100vw, 50vw"

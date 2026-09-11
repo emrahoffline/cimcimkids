@@ -1,0 +1,24 @@
+{
+  "name": "CimcimKids Admin",
+  "short_name": "Admin",
+  "description": "CimcimKids sipariş ve yönetim paneli",
+  "start_url": "/admin",
+  "scope": "/admin",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#556B2F",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

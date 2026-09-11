@@ -6,6 +6,7 @@ import { useTranslations, useLocale } from "next-intl";
 import { Heart, ShoppingBag, Trash2 } from "lucide-react";
 import { useFavoritesStore } from "@/store/favorites";
 import { useCartStore } from "@/store/cart";
+import { useCartToastStore } from "@/store/cart-toast";
 import { formatPrice } from "@/lib/products";
 
 export default function FavoritesPage() {
@@ -15,6 +16,7 @@ export default function FavoritesPage() {
   const locale = useLocale();
   const { items, remove } = useFavoritesStore();
   const addItem = useCartStore((s) => s.addItem);
+  const showToast = useCartToastStore((s) => s.show);
   const base = `/${locale}`;
 
   if (items.length === 0) {
@@ -75,15 +77,16 @@ export default function FavoritesPage() {
                     <span className="hidden sm:inline">{t("remove")}</span>
                   </button>
                   <button
-                    onClick={() =>
+                    onClick={() => {
                       addItem({
-                        id: item.id,
+                        productId: item.id,
                         slug: item.slug,
                         name,
                         price: item.price,
                         image: item.image,
-                      })
-                    }
+                      });
+                      showToast(name);
+                    }}
                     className="btn-primary text-sm"
                   >
                     <ShoppingBag className="h-4 w-4" />

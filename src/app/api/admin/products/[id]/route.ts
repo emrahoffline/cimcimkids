@@ -2,6 +2,11 @@ import { NextResponse } from "next/server";
 import { requireAdminApi } from "@/lib/admin-api";
 import { getProducts, saveProducts } from "@/lib/db";
 import { slugify } from "@/lib/product-utils";
+import {
+  normalizeProductImages,
+  parseProductColors,
+} from "@/lib/product-variants";
+import { normalizeProductAges } from "@/lib/product-ages";
 
 export async function GET(
   _request: Request,
@@ -43,23 +48,68 @@ export async function PUT(
     return NextResponse.json({ error: "Slug already exists" }, { status: 400 });
   }
 
-  const nextImage =
-    typeof body.image === "string" &&
-    /^\/products\/(?:uploads\/)?[a-zA-Z0-9._-]+$/.test(body.image)
-      ? body.image
-      : products[index].image;
+  const images = normalizeProductImages(
+    body.images ?? products[index].images,
+    body.image ?? products[index].image
+  );
+  if (images.length === 0) {
+    return NextResponse.json(
+      { error: "En az bir ürün görseli gerekli" },
+      { status: 400 }
+    );
+  }
+
+  const ages = normalizeProductAges(
+    body.ages ?? products[index].ages,
+    body.ageRange ?? products[index].ageRange
+  );
+  if (ages.length === 0) {
+    return NextResponse.json(
+      { error: "En az bir yaş varyantı seçin" },
+      { status: 400 }
+    );
+  }
+
+  const colors =
+    body.colors !== undefined
+      ? parseProductColors(body.colors)
+      : products[index].colors;
+
+  const nameTr = String(body.nameTr ?? products[index].nameTr).trim();
+  if (!nameTr) {
+    return NextResponse.json({ error: "Ürün adı (TR) gerekli" }, { status: 400 });
+  }
+  const nameEn =
+    body.nameEn !== undefined
+      ? String(body.nameEn).trim() || nameTr
+      : products[index].nameEn || nameTr;
+
+  const stockQuantity =
+    body.stockQuantity !== undefined || body.stock !== undefined
+      ? Math.max(
+          0,
+          Math.floor(Number(body.stockQuantity ?? body.stock ?? 0))
+        )
+      : products[index].stockQuantity ?? 0;
 
   products[index] = {
     ...products[index],
     slug,
-    image: nextImage,
-    price: Number(body.price) ?? products[index].price,
+    image: images[0],
+    images,
+    colors,
+    price: Number.isFinite(Number(body.price))
+      ? Number(body.price)
+      : products[index].price,
     category: body.category ?? products[index].category,
-    nameTr: body.nameTr ?? products[index].nameTr,
-    nameEn: body.nameEn ?? products[index].nameEn,
+    ageRange: ages[0],
+    ages,
+    nameTr,
+    nameEn,
     descTr: body.descTr ?? products[index].descTr,
     descEn: body.descEn ?? products[index].descEn,
-    inStock: body.inStock ?? products[index].inStock,
+    stockQuantity,
+    inStock: stockQuantity > 0,
   };
 
   await saveProducts(products);

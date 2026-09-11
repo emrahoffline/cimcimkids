@@ -4,11 +4,31 @@
 	}
 }
 
-www.cimcimkids.com {
-	redir https://cimcimkids.com{uri} permanent
+# Apex → www (canonical for SEO)
+cimcimkids.com {
+	redir https://www.cimcimkids.com{uri} permanent
 }
 
-cimcimkids.com {
+www.cimcimkids.com {
 	encode gzip
-	reverse_proxy app:3000
+
+	# Runtime uploads (Next standalone does not serve new public files until restart)
+	handle_path /products/uploads/* {
+		root * /srv/uploads
+		file_server
+	}
+
+	# Search Console HTML ownership file (also in public/ for Next)
+	handle /google07fb01a1b30d8b3f.html {
+		root * /srv/verify
+		file_server
+	}
+
+	handle {
+		# Cloudflare önde ise gerçek istemci IP'sini uygulamaya ilet.
+		# Cloudflare yokken header boş kalır; getClientIp X-Forwarded-For'a düşer.
+		reverse_proxy app:3000 {
+			header_up CF-Connecting-IP {http.request.header.CF-Connecting-IP}
+		}
+	}
 }

@@ -26,9 +26,15 @@ export async function POST(request: Request) {
       ? await resolveVisitorGeo(request)
       : { country: body.country, city: body.city };
 
+  const visitorId =
+    typeof body.visitorId === "string" && body.visitorId.trim()
+      ? body.visitorId.trim().slice(0, 80)
+      : undefined;
+
   await recordAnalyticsEvent({
     type: body.type,
-    sessionId: String(body.sessionId),
+    sessionId: String(body.sessionId).slice(0, 80),
+    visitorId,
     path: body.path,
     productId: body.productId,
     productName: body.productName,

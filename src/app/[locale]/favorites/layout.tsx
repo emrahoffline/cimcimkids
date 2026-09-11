@@ -14,7 +14,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     locale,
     "/favorites",
     `${t("title")} | Cimcim Kids`,
-    t("title")
+    t("subtitle")
   );
 }
 

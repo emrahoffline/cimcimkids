@@ -10,7 +10,12 @@
  */
 import { promises as fs } from "fs";
 import path from "path";
+import { createHash } from "crypto";
 import { PrismaClient } from "@prisma/client";
+
+function productCodeFromId(id: string): string {
+  return `CKP-${createHash("sha256").update(id).digest("hex").slice(0, 8).toUpperCase()}`;
+}
 
 const DATA_DIR = path.join(process.cwd(), "data");
 const prisma = new PrismaClient();
@@ -27,16 +32,22 @@ async function readJson<T>(filename: string, fallback: T): Promise<T> {
 
 type JsonProduct = {
   id: string;
+  code?: string;
   slug: string;
   image: string;
+  images?: string[];
+  colors?: unknown;
   price: number;
   category: string;
+  ages?: string[];
+  ageRange?: string;
   translationKey?: string;
   nameTr: string;
   nameEn: string;
   descTr: string;
   descEn: string;
   inStock: boolean;
+  stockQuantity?: number;
 };
 
 type JsonCategory = { slug: string; nameTr: string; nameEn: string };
@@ -135,37 +146,67 @@ async function main() {
 
   console.log("→ Ürünler...");
   const products = await readJson<JsonProduct[]>("products.json", []);
-  for (const p of products) {
-    await prisma.product.upsert({
-      where: { id: p.id },
-      create: {
-        id: p.id,
-        slug: p.slug,
-        image: p.image,
-        price: p.price,
-        category: p.category,
-        translationKey: p.translationKey ?? null,
-        nameTr: p.nameTr,
-        nameEn: p.nameEn,
-        descTr: p.descTr,
-        descEn: p.descEn,
-        inStock: p.inStock ?? true,
-      },
-      update: {
-        slug: p.slug,
-        image: p.image,
-        price: p.price,
-        category: p.category,
-        translationKey: p.translationKey ?? null,
-        nameTr: p.nameTr,
-        nameEn: p.nameEn,
-        descTr: p.descTr,
-        descEn: p.descEn,
-        inStock: p.inStock ?? true,
-      },
-    });
+  const existingCount = await prisma.product.count();
+  const force = process.env.FORCE_JSON_SEED === "1";
+  if (existingCount > 0 && !force) {
+    console.log(
+      `  ⏭ ${existingCount} ürün zaten var — JSON seed atlandı (silinenler geri gelmesin). Zorlamak için FORCE_JSON_SEED=1`
+    );
+  } else {
+    for (const p of products) {
+      const code = p.code || productCodeFromId(p.id);
+      const images =
+        Array.isArray(p.images) && p.images.length > 0 ? p.images : [p.image];
+      const ages =
+        Array.isArray(p.ages) && p.ages.length > 0
+          ? p.ages
+          : p.ageRange
+            ? [p.ageRange]
+            : [];
+      await prisma.product.upsert({
+        where: { id: p.id },
+        create: {
+          id: p.id,
+          code,
+          slug: p.slug,
+          image: images[0] || p.image,
+          images,
+          colors: p.colors ?? undefined,
+          price: p.price,
+          category: p.category,
+          ageRange: ages[0] ?? null,
+          ages,
+          translationKey: p.translationKey ?? null,
+          nameTr: p.nameTr,
+          nameEn: p.nameEn,
+          descTr: p.descTr,
+          descEn: p.descEn,
+          stockQuantity:
+            p.stockQuantity ?? (p.inStock === false ? 0 : 1),
+          inStock: (p.stockQuantity ?? (p.inStock === false ? 0 : 1)) > 0,
+        },
+        update: {
+          slug: p.slug,
+          image: images[0] || p.image,
+          images,
+          colors: p.colors ?? undefined,
+          price: p.price,
+          category: p.category,
+          ageRange: ages[0] ?? null,
+          ages,
+          translationKey: p.translationKey ?? null,
+          nameTr: p.nameTr,
+          nameEn: p.nameEn,
+          descTr: p.descTr,
+          descEn: p.descEn,
+          stockQuantity:
+            p.stockQuantity ?? (p.inStock === false ? 0 : 1),
+          inStock: (p.stockQuantity ?? (p.inStock === false ? 0 : 1)) > 0,
+        },
+      });
+    }
+    console.log(`  ✓ ${products.length} ürün`);
   }
-  console.log(`  ✓ ${products.length} ürün`);
 
   console.log("→ Müşteriler...");
   const customers = await readJson<JsonCustomer[]>("customers.json", []);

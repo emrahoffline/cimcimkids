@@ -1,26 +1,7 @@
 import { NextResponse } from "next/server";
-import { getOrders, type Order } from "@/lib/db";
+import { getOrders } from "@/lib/db";
+import { statusToStep } from "@/lib/order-status";
 import { getClientIp, rateLimit } from "@/lib/rate-limit";
-
-/** Maps order status → tracking timeline step index (0–3). */
-function statusToStep(status: Order["status"]): number {
-  switch (status) {
-    case "pending_payment":
-    case "pending":
-    case "confirmed":
-      return 0;
-    case "preparing":
-      return 1;
-    case "shipped":
-      return 2;
-    case "delivered":
-      return 3;
-    case "cancelled":
-      return -1;
-    default:
-      return 0;
-  }
-}
 
 export async function POST(request: Request) {
   const ip = getClientIp(request);
@@ -70,6 +51,20 @@ export async function POST(request: Request) {
     status: order.status,
     step: statusToStep(order.status),
     createdAt: order.createdAt,
+    updatedAt: order.updatedAt ?? order.createdAt,
     itemCount: order.items.reduce((n, i) => n + i.quantity, 0),
+    total: order.total,
+    items: order.items.map((i) => ({
+      name: i.name,
+      quantity: i.quantity,
+      price: i.price,
+    })),
+    history: (order.statusHistory ?? []).map((h) => ({
+      status: h.status,
+      at: h.at,
+    })),
+    cargoCarrier: order.cargoCarrier,
+    cargoPostNumber: order.cargoPostNumber,
+    cargoTrackingUrl: order.cargoTrackingUrl,
   });
 }

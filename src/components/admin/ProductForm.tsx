@@ -2,9 +2,14 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import type { Product } from "@/lib/products";
-import { ImageUpload } from "./ImageUpload";
+import type { Product, ProductColor } from "@/lib/types";
+import { getProductImages, getProductAges } from "@/lib/types";
+import { MultiImageUpload } from "./MultiImageUpload";
+import { ColorOptionsEditor } from "./ColorOptionsEditor";
+import { AgeOptionsEditor } from "./AgeOptionsEditor";
 import { CategorySelect } from "./CategorySelect";
+import { parseProductColors } from "@/lib/product-variants";
+import { normalizeProductAges } from "@/lib/product-ages";
 
 type Props = {
   product?: Product;
@@ -22,20 +27,33 @@ export function ProductForm({ product }: Props) {
     descEn: product?.descEn ?? "",
     price: product?.price ?? 0,
     category: product?.category ?? "",
-    image: product?.image ?? "",
-    inStock: product?.inStock ?? true,
+    ages: product
+      ? normalizeProductAges(getProductAges(product), product.ageRange)
+      : ([] as string[]),
+    images: product ? getProductImages(product) : ([] as string[]),
+    colors: (product?.colors ?? []) as ProductColor[],
+    stockQuantity: product?.stockQuantity ?? 0,
     slug: product?.slug ?? "",
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!form.image) {
-      setError("Lütfen bir ürün görseli yükleyin");
+    if (form.images.length === 0) {
+      setError("Lütfen en az bir ürün görseli yükleyin");
       return;
     }
     if (!form.category) {
       setError("Lütfen bir kategori seçin");
+      return;
+    }
+    if (form.ages.length === 0) {
+      setError("Lütfen en az bir yaş varyantı seçin");
+      return;
+    }
+    const colors = parseProductColors(form.colors);
+    if (form.colors.length > 0 && colors.length === 0) {
+      setError("Renk adlarını (TR) doldurun veya boş renkleri silin");
       return;
     }
 
@@ -50,7 +68,14 @@ export function ProductForm({ product }: Props) {
     const res = await fetch(url, {
       method,
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(form),
+      body: JSON.stringify({
+        ...form,
+        image: form.images[0],
+        images: form.images,
+        ages: form.ages,
+        ageRange: form.ages[0],
+        colors,
+      }),
     });
 
     if (!res.ok) {
@@ -73,6 +98,21 @@ export function ProductForm({ product }: Props) {
         <p className="rounded-lg bg-red-50 p-3 text-sm text-red-600">{error}</p>
       )}
 
+      {product ? (
+        <div>
+          <label className="mb-1 block text-sm font-medium">Ürün kodu</label>
+          <input
+            readOnly
+            className="admin-input bg-gray-50 font-mono text-sm"
+            value={product.code}
+          />
+        </div>
+      ) : (
+        <p className="rounded-lg bg-gray-50 px-3 py-2 text-sm text-gray-500">
+          Ürün kodu kaydettiğinizde otomatik oluşturulur.
+        </p>
+      )}
+
       <div className="grid gap-4 sm:grid-cols-2">
         <div>
           <label className="mb-1 block text-sm font-medium">Ad (TR)</label>
@@ -84,12 +124,15 @@ export function ProductForm({ product }: Props) {
           />
         </div>
         <div>
-          <label className="mb-1 block text-sm font-medium">Ad (EN)</label>
+          <label className="mb-1 block text-sm font-medium">
+            Ad (EN){" "}
+            <span className="font-normal text-gray-400">(opsiyonel)</span>
+          </label>
           <input
-            required
             className="admin-input"
             value={form.nameEn}
             onChange={(e) => setForm({ ...form, nameEn: e.target.value })}
+            placeholder="Boş bırakılırsa Türkçe ad kullanılır"
           />
         </div>
       </div>
@@ -130,17 +173,26 @@ export function ProductForm({ product }: Props) {
           />
         </div>
         <div>
-          <label className="mb-1 block text-sm font-medium">Stok</label>
-          <select
+          <label className="mb-1 block text-sm font-medium">Stok adedi</label>
+          <input
+            type="number"
+            required
+            min={0}
+            step={1}
             className="admin-input"
-            value={form.inStock ? "yes" : "no"}
+            value={form.stockQuantity}
             onChange={(e) =>
-              setForm({ ...form, inStock: e.target.value === "yes" })
+              setForm({
+                ...form,
+                stockQuantity: Math.max(0, Math.floor(Number(e.target.value) || 0)),
+              })
             }
-          >
-            <option value="yes">Stokta</option>
-            <option value="no">Tükendi</option>
-          </select>
+          />
+          <p className="mt-1 text-xs text-gray-400">
+            {form.stockQuantity > 0
+              ? `Stokta ${form.stockQuantity} adet`
+              : "Stok 0 — ürün tükendi olarak görünür"}
+          </p>
         </div>
       </div>
 
@@ -149,9 +201,19 @@ export function ProductForm({ product }: Props) {
         onChange={(category) => setForm({ ...form, category })}
       />
 
-      <ImageUpload
-        value={form.image}
-        onChange={(image) => setForm({ ...form, image })}
+      <AgeOptionsEditor
+        value={form.ages}
+        onChange={(ages) => setForm({ ...form, ages })}
+      />
+
+      <ColorOptionsEditor
+        value={form.colors}
+        onChange={(colors) => setForm({ ...form, colors })}
+      />
+
+      <MultiImageUpload
+        value={form.images}
+        onChange={(images) => setForm({ ...form, images })}
       />
 
       <div className="flex flex-col-reverse gap-3 pt-2 sm:flex-row">

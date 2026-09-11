@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { useTranslations } from "next-intl";
-import { Mail, MapPin, Clock } from "lucide-react";
+import { Mail, MapPin, Clock, Instagram, ShoppingBag, Facebook } from "lucide-react";
+import { STORE_CONFIG } from "@/lib/store-config";
 
 export default function ContactPage() {
   const t = useTranslations("contact");
@@ -71,6 +72,62 @@ export default function ContactPage() {
                 className="text-olive/70 hover:text-olive"
               >
                 info@cimcimkids.com
+              </a>
+            </div>
+          </div>
+          <div className="card flex gap-4">
+            <Instagram className="h-6 w-6 shrink-0 text-bamboo" />
+            <div>
+              <p className="font-medium">{t("instagram")}</p>
+              <a
+                href={STORE_CONFIG.instagramUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-olive/70 hover:text-olive"
+              >
+                {t("instagramHandle")}
+              </a>
+            </div>
+          </div>
+          <div className="card flex gap-4">
+            <ShoppingBag className="h-6 w-6 shrink-0 text-bamboo" />
+            <div>
+              <p className="font-medium">{t("trendyol")}</p>
+              <a
+                href={STORE_CONFIG.trendyolUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-olive/70 hover:text-olive"
+              >
+                {t("trendyolStore")}
+              </a>
+            </div>
+          </div>
+          <div className="card flex gap-4">
+            <ShoppingBag className="h-6 w-6 shrink-0 text-bamboo" />
+            <div>
+              <p className="font-medium">{t("hepsiburada")}</p>
+              <a
+                href={STORE_CONFIG.hepsiburadaUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-olive/70 hover:text-olive"
+              >
+                {t("hepsiburadaStore")}
+              </a>
+            </div>
+          </div>
+          <div className="card flex gap-4">
+            <Facebook className="h-6 w-6 shrink-0 text-bamboo" />
+            <div>
+              <p className="font-medium">{t("facebook")}</p>
+              <a
+                href={STORE_CONFIG.facebookUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-olive/70 hover:text-olive"
+              >
+                {t("facebookPage")}
               </a>
             </div>
           </div>
