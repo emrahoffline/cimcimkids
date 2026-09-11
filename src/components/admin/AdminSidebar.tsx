@@ -20,6 +20,7 @@ import {
   FileText,
   ChevronDown,
   X,
+  Star,
   type LucideIcon,
 } from "lucide-react";
 import { signOut } from "next-auth/react";
@@ -54,6 +55,7 @@ const navGroups: NavGroup[] = [
     title: "Ürünler",
     items: [
       { href: "/admin/products", label: "Ürünler", icon: Package },
+      { href: "/admin/reviews", label: "Yorumlar", icon: Star },
       { href: "/admin/discounts", label: "İndirimler", icon: Percent },
     ],
   },

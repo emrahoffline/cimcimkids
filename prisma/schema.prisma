@@ -159,6 +159,7 @@ model Order {
   updatedAt        DateTime         @updatedAt
   items            OrderItem[]
   invoices         Invoice[]
+  reviews          ProductReview[]
 
   @@index([customerEmail])
   @@index([status])
@@ -435,4 +436,26 @@ model Expense {
   @@index([kind, cancelledAt])
   @@index([createdAt])
   @@index([orderId])
+}
+
+model ProductReview {
+  id            String   @id @default(cuid())
+  productId     String
+  productSlug   String
+  productName   String
+  orderId       String
+  orderNumber   String
+  customerEmail String
+  customerName  String
+  rating        Int
+  comment       String   @default("")
+  hidden        Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  order         Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@unique([productId, customerEmail])
+  @@index([productId, hidden, createdAt])
+  @@index([customerEmail])
+  @@index([hidden, createdAt])
 }

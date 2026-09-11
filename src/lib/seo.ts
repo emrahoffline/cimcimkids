@@ -309,8 +309,9 @@ export function productJsonLd(input: {
   product: Product;
   locale: string;
   categoryLabel: string;
+  rating?: { average: number; count: number };
 }) {
-  const { product, locale, categoryLabel } = input;
+  const { product, locale, categoryLabel, rating } = input;
   const name = getProductName(product, locale);
   const description = getSearchableProductDesc(product, locale).trim();
   const images = getProductImages(product).map((src) => absoluteUrl(src));
@@ -352,6 +353,16 @@ export function productJsonLd(input: {
         : "https://schema.org/OutOfStock",
       itemCondition: "https://schema.org/NewCondition",
     },
+    aggregateRating:
+      rating && rating.count > 0
+        ? {
+            "@type": "AggregateRating",
+            ratingValue: rating.average.toFixed(1),
+            reviewCount: rating.count,
+            bestRating: 5,
+            worstRating: 1,
+          }
+        : undefined,
   };
 }
 

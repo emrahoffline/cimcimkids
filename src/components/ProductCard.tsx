@@ -13,13 +13,16 @@ import { useCartStore } from "@/store/cart";
 import { useCartToastStore } from "@/store/cart-toast";
 import { FavoriteButton } from "./FavoriteButton";
 import { ProductPrice } from "./ProductPrice";
+import { ProductRatingBadge } from "./ProductRatingBadge";
 
 export function ProductCard({
   product,
   priority = false,
+  rating,
 }: {
   product: Product;
   priority?: boolean;
+  rating?: { average: number; count: number } | null;
 }) {
   const t = useTranslations("products");
   const locale = useLocale();
@@ -113,6 +116,11 @@ export function ProductCard({
           <p className="mt-0.5 line-clamp-1 min-h-4 text-xs text-slate-400">
             {getProductAges(product).join(" · ") || "\u00a0"}
           </p>
+          {rating && rating.count > 0 ? (
+            <div className="mt-1">
+              <ProductRatingBadge summary={rating} compact />
+            </div>
+          ) : null}
           <div className="mt-1.5 flex h-3 gap-1">
             {product.colors?.slice(0, 5).map((c) => (
               <span

@@ -12,6 +12,8 @@ import { ProductPrice } from "@/components/ProductPrice";
 import { ProductSpecs } from "@/components/ProductSpecs";
 import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { JsonLd } from "@/components/JsonLd";
+import { ProductRatingBadge } from "@/components/ProductRatingBadge";
+import { ProductReviews } from "@/components/ProductReviews";
 import {
   breadcrumbJsonLd,
   buildMetadata,
@@ -20,6 +22,7 @@ import {
   productJsonLd,
   productMetaDescription,
 } from "@/lib/seo";
+import { getReviewSummary, listVisibleReviews } from "@/lib/reviews-db";
 import { ArrowLeft } from "lucide-react";
 
 type Props = {
@@ -53,7 +56,12 @@ export default async function ProductDetailPage({ params }: Props) {
   const t = await getTranslations("products");
   const tSeo = await getTranslations("seo");
   const tNav = await getTranslations("nav");
-  const categories = await getAllCategories();
+  const tReviews = await getTranslations("reviews");
+  const [categories, reviewSummary, reviews] = await Promise.all([
+    getAllCategories(),
+    getReviewSummary(product.id),
+    listVisibleReviews(product.id),
+  ]);
   const name = getProductName(product, locale);
   const desc = getStorefrontProductDesc(product, locale);
   const categoryLabel = getCategoryLabel(categories, product.category, locale);
@@ -64,7 +72,12 @@ export default async function ProductDetailPage({ params }: Props) {
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 pb-28 sm:px-6 sm:py-12 lg:px-8 lg:pb-12">
       <JsonLd
-        data={productJsonLd({ product, locale, categoryLabel })}
+        data={productJsonLd({
+          product,
+          locale,
+          categoryLabel,
+          rating: reviewSummary,
+        })}
       />
       <JsonLd
         data={breadcrumbJsonLd([
@@ -106,6 +119,17 @@ export default async function ProductDetailPage({ params }: Props) {
           <h1 className="mt-2 text-2xl font-semibold text-slate-800 sm:text-4xl">
             {name}
           </h1>
+          <div className="mt-2">
+            {reviewSummary.count > 0 ? (
+              <a href="#yorumlar" className="inline-flex">
+                <ProductRatingBadge summary={reviewSummary} />
+              </a>
+            ) : (
+              <a href="#yorumlar" className="text-sm text-olive underline-offset-2 hover:underline">
+                {tReviews("firstReview")}
+              </a>
+            )}
+          </div>
           <p className="mt-2 text-sm text-slate-400">
             {t("productCode")}:{" "}
             <span className="font-mono text-slate-600">{product.code}</span>
@@ -131,6 +155,11 @@ export default async function ProductDetailPage({ params }: Props) {
           <ProductDetailActions product={product} name={name} />
         </div>
       </div>
+      <ProductReviews
+        productId={product.id}
+        initialSummary={reviewSummary}
+        initialReviews={reviews}
+      />
     </div>
   );
 }

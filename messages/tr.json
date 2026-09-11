@@ -87,6 +87,23 @@
     "discountPercent": "%{percent} indirim",
     "discountSaved": "{amount} indirim (eski fiyata göre)"
   },
+  "reviews": {
+    "title": "Değerlendirmeler",
+    "verifiedHint": "Yalnızca bu ürünü satın alan müşteriler puan ve yorum bırakabilir.",
+    "empty": "Bu ürün için henüz değerlendirme yok. İlk yorumu siz yazın.",
+    "formTitle": "Puan ve yorum yaz",
+    "yourRating": "Puanınız",
+    "email": "Sipariş e-postası",
+    "orderNumber": "Sipariş numarası",
+    "orderNumberPlaceholder": "Örn. CK-A1B2C3",
+    "comment": "Yorum (isteğe bağlı)",
+    "commentPlaceholder": "Ürün hakkındaki düşünceleriniz",
+    "submit": "Gönder",
+    "thanks": "Teşekkürler, değerlendirmeniz yayınlandı.",
+    "ratingRequired": "Lütfen bir puan seçin.",
+    "error": "Yorum gönderilemedi.",
+    "firstReview": "İlk değerlendirmeyi yaz"
+  },
   "productItems": {
     "lantern": {
       "name": "Fiyonklu Tweed Jile",

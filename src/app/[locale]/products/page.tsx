@@ -5,6 +5,7 @@ import { getAllProducts } from "@/lib/products-server";
 import { getAllCategories } from "@/lib/categories-server";
 import { ProductsGrid } from "@/components/ProductsGrid";
 import { buildMetadata } from "@/lib/seo";
+import { getReviewSummaries } from "@/lib/reviews-db";
 
 type Props = {
   params: Promise<{ locale: string }>;
@@ -42,6 +43,7 @@ export default async function ProductsPage({ params, searchParams }: Props) {
     getAllProducts(),
     getAllCategories(),
   ]);
+  const ratings = await getReviewSummaries(products.map((p) => p.id));
 
   return (
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
@@ -53,6 +55,7 @@ export default async function ProductsPage({ params, searchParams }: Props) {
         products={products}
         categories={categories}
         activeCategory="all"
+        ratings={ratings}
       />
     </div>
   );

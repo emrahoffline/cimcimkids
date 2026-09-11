@@ -13,6 +13,7 @@ import {
   getCategorySeo,
   localePath,
 } from "@/lib/seo";
+import { getReviewSummaries } from "@/lib/reviews-db";
 
 type Props = {
   params: Promise<{ locale: string; slug: string }>;
@@ -49,6 +50,7 @@ export default async function CategoryPage({ params }: Props) {
 
   const seo = getCategorySeo(category, locale);
   const filtered = products.filter((p) => p.category === slug);
+  const ratings = await getReviewSummaries(filtered.map((p) => p.id));
   const base = localePath(locale);
 
   return (
@@ -75,6 +77,7 @@ export default async function CategoryPage({ params }: Props) {
         products={filtered}
         categories={categories}
         activeCategory={slug}
+        ratings={ratings}
       />
     </div>
   );

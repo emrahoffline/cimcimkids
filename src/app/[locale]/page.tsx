@@ -3,6 +3,7 @@ import Link from "next/link";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { getAllProducts } from "@/lib/products-server";
 import { getActiveHeroSlides, getActiveStoryGroups } from "@/lib/db";
+import { getReviewSummaries } from "@/lib/reviews-db";
 import { ProductCard } from "@/components/ProductCard";
 import { NewsletterForm } from "@/components/NewsletterForm";
 import { HeroCarousel } from "@/components/HeroCarousel";
@@ -44,6 +45,7 @@ export default async function HomePage({ params }: Props) {
     getActiveHeroSlides().catch(() => []),
     getActiveStoryGroups().catch(() => []),
   ]);
+  const ratings = await getReviewSummaries(products.map((p) => p.id));
 
   const slides = heroSlides.map((s) => ({
     id: s.id,
@@ -83,7 +85,12 @@ export default async function HomePage({ params }: Props) {
         </div>
         <div className="mobile-product-grid">
           {products.map((p, index) => (
-            <ProductCard key={p.id} product={p} priority={index < 4} />
+            <ProductCard
+              key={p.id}
+              product={p}
+              priority={index < 4}
+              rating={ratings[p.id]}
+            />
           ))}
         </div>
         <div className="mt-10 text-center">

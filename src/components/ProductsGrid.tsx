@@ -9,12 +9,14 @@ type Props = {
   products: Product[];
   categories: Category[];
   activeCategory?: string;
+  ratings?: Record<string, { average: number; count: number }>;
 };
 
 export function ProductsGrid({
   products,
   categories,
   activeCategory = "all",
+  ratings,
 }: Props) {
   const t = useTranslations("products");
   const locale = useLocale();
@@ -47,7 +49,12 @@ export function ProductsGrid({
       </div>
       <div className="mobile-product-grid">
         {products.map((p, index) => (
-          <ProductCard key={p.id} product={p} priority={index < 4} />
+          <ProductCard
+            key={p.id}
+            product={p}
+            priority={index < 4}
+            rating={ratings?.[p.id]}
+          />
         ))}
       </div>
     </>

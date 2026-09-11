@@ -87,6 +87,23 @@
     "discountPercent": "{percent}% off",
     "discountSaved": "Save {amount}"
   },
+  "reviews": {
+    "title": "Reviews",
+    "verifiedHint": "Only customers who bought this product can leave a rating and review.",
+    "empty": "No reviews yet. Be the first to share your experience.",
+    "formTitle": "Write a rating and review",
+    "yourRating": "Your rating",
+    "email": "Order email",
+    "orderNumber": "Order number",
+    "orderNumberPlaceholder": "e.g. CK-A1B2C3",
+    "comment": "Review (optional)",
+    "commentPlaceholder": "What did you think of this product?",
+    "submit": "Submit",
+    "thanks": "Thank you — your review is now live.",
+    "ratingRequired": "Please choose a rating.",
+    "error": "Could not submit the review.",
+    "firstReview": "Be the first to review"
+  },
   "productItems": {
     "lantern": {
       "name": "Bow Tweed Pinafore",
