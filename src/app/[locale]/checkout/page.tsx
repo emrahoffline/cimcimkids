@@ -37,6 +37,11 @@ import {
   readGcrOptIn,
   saveGcrOptIn,
 } from "@/lib/google-customer-reviews";
+import {
+  readGaPurchase,
+  saveGaPurchase,
+  trackGaPurchase,
+} from "@/lib/google-analytics";
 
 type PayMethod = "card" | "bank_transfer";
 
@@ -166,12 +171,19 @@ export default function CheckoutPage() {
     if (!paidForGoogle) return;
     const stored = readGcrOptIn(orderNumber);
     const email = stored?.email || readRememberedShopperEmail();
-    if (!email) return;
-    setGcrOptIn({
+    if (email) {
+      setGcrOptIn({
+        orderId: orderNumber,
+        email,
+        estimatedDeliveryDate:
+          stored?.estimatedDeliveryDate || estimatedDeliveryDate(),
+      });
+    }
+    const purchase = readGaPurchase(orderNumber);
+    trackGaPurchase({
       orderId: orderNumber,
-      email,
-      estimatedDeliveryDate:
-        stored?.estimatedDeliveryDate || estimatedDeliveryDate(),
+      value: purchase?.value ?? paidTotal,
+      items: purchase?.items ?? [],
     });
   }, [done, orderNumber, paidByCard, paidTotal]);
 
@@ -280,6 +292,18 @@ export default function CheckoutPage() {
     const order = await res.json();
     if (order.orderNumber && form.email) {
       saveGcrOptIn({ orderId: String(order.orderNumber), email: form.email });
+    }
+    if (order.orderNumber) {
+      saveGaPurchase({
+        orderId: String(order.orderNumber),
+        value: typeof order.total === "number" ? order.total : payable,
+        items: orderItems.map((item) => ({
+          item_id: String(item.productId),
+          item_name: String(item.name),
+          price: Number(item.price) || 0,
+          quantity: Number(item.quantity) || 1,
+        })),
+      });
     }
     if (payMethod === "card" && (order.total ?? payable) > 0) {
       if (typeof order.paymentPageUrl === "string" && order.paymentPageUrl) {

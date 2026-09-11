@@ -6,6 +6,7 @@ import { Footer } from "./Footer";
 import { MobileBottomNav } from "./MobileBottomNav";
 import { MobileMenuDrawer } from "./MobileMenuDrawer";
 import { AnalyticsTracker } from "./AnalyticsTracker";
+import { GoogleAnalytics } from "./GoogleAnalytics";
 import { ShopperSync } from "./ShopperSync";
 import { SiteChatbot } from "./SiteChatbot";
 import { FreeShippingBanner } from "./FreeShippingBanner";
@@ -16,6 +17,7 @@ export function MobileShell({ children }: { children: React.ReactNode }) {
 
   return (
     <>
+      <GoogleAnalytics />
       <AnalyticsTracker />
       <ShopperSync />
       <div className="sticky top-0 z-40 safe-top">
