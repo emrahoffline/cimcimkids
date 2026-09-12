@@ -534,10 +534,18 @@ export type LiveInterestRow = {
   sold: number;
 };
 
+export type LiveCityRow = {
+  city: string;
+  country: string;
+  visitors: number;
+  views: number;
+};
+
 export type LiveInsights = {
   activeVisitors: number;
   viewsLast30m: number;
   pages: LivePageRow[];
+  cities: LiveCityRow[];
   bounceRate: number;
   bouncedSessions: number;
   endedSessions: number;
@@ -561,7 +569,7 @@ async function buildLiveInsights(
   const [liveViews, weekSessions, productViews] = await Promise.all([
     prisma.analyticsEvent.findMany({
       where: { type: "page_view", createdAt: { gte: thirtyMinAgo } },
-      select: { path: true, visitorId: true },
+      select: { path: true, visitorId: true, city: true, country: true },
     }),
     prisma.analyticsSession.findMany({
       where: { startedAt: { gte: sevenDaysAgo } },
@@ -608,6 +616,30 @@ async function buildLiveInsights(
       visitors: bucket.visitors.size,
     }))
     .sort((a, b) => b.views - a.views)
+    .slice(0, 8);
+
+  const cityMap = new Map<
+    string,
+    { city: string; country: string; views: number; visitors: Set<string> }
+  >();
+  for (const row of liveViews) {
+    const city = (row.city || "Bilinmiyor").trim() || "Bilinmiyor";
+    const country = (row.country || "Bilinmiyor").trim() || "Bilinmiyor";
+    const key = `${city}|${country}`;
+    const bucket =
+      cityMap.get(key) ?? { city, country, views: 0, visitors: new Set() };
+    bucket.views += 1;
+    if (row.visitorId) bucket.visitors.add(row.visitorId);
+    cityMap.set(key, bucket);
+  }
+  const cities = [...cityMap.values()]
+    .map((bucket) => ({
+      city: bucket.city,
+      country: bucket.country,
+      views: bucket.views,
+      visitors: bucket.visitors.size,
+    }))
+    .sort((a, b) => b.visitors - a.visitors || b.views - a.views)
     .slice(0, 8);
 
   const ended = weekSessions.filter((s) => s.endedAt);
@@ -753,6 +785,7 @@ async function buildLiveInsights(
     activeVisitors: liveVisitors.size,
     viewsLast30m: liveViews.length,
     pages,
+    cities,
     bounceRate,
     bouncedSessions: bounced.length,
     endedSessions: ended.length,

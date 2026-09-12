@@ -54,6 +54,7 @@ type AnalyticsData = {
     bouncedSessions: number;
     endedSessions: number;
     pages: { path: string; label: string; views: number; visitors: number }[];
+    cities: { city: string; country: string; visitors: number; views: number }[];
     exits: { path: string; label: string; count: number }[];
     sources: {
       source: string;

@@ -65,6 +65,7 @@ type AnalyticsData = {
     bouncedSessions: number;
     endedSessions: number;
     pages: { path: string; label: string; views: number; visitors: number }[];
+    cities: { city: string; country: string; visitors: number; views: number }[];
     exits: { path: string; label: string; count: number }[];
     sources: {
       source: string;
@@ -199,6 +200,7 @@ export function AdminAnalyticsDashboard({ data }: { data: AnalyticsData }) {
     bouncedSessions: 0,
     endedSessions: 0,
     pages: [],
+    cities: [],
     exits: [],
     sources: [],
     viewedNotSold: [],
@@ -309,36 +311,84 @@ export function AdminAnalyticsDashboard({ data }: { data: AnalyticsData }) {
             aktif · {live.viewsLast30m} görüntüleme
           </p>
         </div>
-        {live.pages.length === 0 ? (
+        {live.pages.length === 0 && live.cities.length === 0 ? (
           <p className="py-6 text-center text-sm text-gray-400">
             Son 30 dakikada sayfa görüntüleme yok
           </p>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="min-w-full text-left text-sm">
-              <thead>
-                <tr className="text-xs text-gray-500">
-                  <th className="pb-2 font-medium">Sayfa</th>
-                  <th className="pb-2 text-right font-medium">Kişi</th>
-                  <th className="pb-2 text-right font-medium">Görüntüleme</th>
-                </tr>
-              </thead>
-              <tbody>
-                {live.pages.map((row) => (
-                  <tr key={row.path} className="border-t border-gray-100">
-                    <td className="py-2 pr-3 font-medium text-gray-800">
-                      {row.label}
-                    </td>
-                    <td className="py-2 text-right tabular-nums text-gray-600">
-                      {row.visitors}
-                    </td>
-                    <td className="py-2 text-right tabular-nums text-gray-600">
-                      {row.views}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <div className="grid gap-6 lg:grid-cols-2">
+            <div className="overflow-x-auto">
+              <p className="mb-2 text-xs font-medium uppercase tracking-wide text-gray-500">
+                Sayfalar
+              </p>
+              {live.pages.length === 0 ? (
+                <p className="text-sm text-gray-400">Veri yok</p>
+              ) : (
+                <table className="min-w-full text-left text-sm">
+                  <thead>
+                    <tr className="text-xs text-gray-500">
+                      <th className="pb-2 font-medium">Sayfa</th>
+                      <th className="pb-2 text-right font-medium">Kişi</th>
+                      <th className="pb-2 text-right font-medium">Görüntüleme</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {live.pages.map((row) => (
+                      <tr key={row.path} className="border-t border-gray-100">
+                        <td className="py-2 pr-3 font-medium text-gray-800">
+                          {row.label}
+                        </td>
+                        <td className="py-2 text-right tabular-nums text-gray-600">
+                          {row.visitors}
+                        </td>
+                        <td className="py-2 text-right tabular-nums text-gray-600">
+                          {row.views}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </div>
+            <div className="overflow-x-auto">
+              <p className="mb-2 text-xs font-medium uppercase tracking-wide text-gray-500">
+                Şehirler
+              </p>
+              {live.cities.length === 0 ? (
+                <p className="text-sm text-gray-400">Veri yok</p>
+              ) : (
+                <table className="min-w-full text-left text-sm">
+                  <thead>
+                    <tr className="text-xs text-gray-500">
+                      <th className="pb-2 font-medium">Şehir</th>
+                      <th className="pb-2 text-right font-medium">Kişi</th>
+                      <th className="pb-2 text-right font-medium">Görüntüleme</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {live.cities.map((row) => (
+                      <tr
+                        key={`${row.city}-${row.country}`}
+                        className="border-t border-gray-100"
+                      >
+                        <td className="py-2 pr-3 font-medium text-gray-800">
+                          {row.city}
+                          <span className="block text-xs font-normal text-gray-400 sm:ml-1 sm:inline sm:text-sm sm:text-gray-500">
+                            {row.country}
+                          </span>
+                        </td>
+                        <td className="py-2 text-right tabular-nums text-gray-600">
+                          {row.visitors}
+                        </td>
+                        <td className="py-2 text-right tabular-nums text-gray-600">
+                          {row.views}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
+            </div>
           </div>
         )}
       </div>
@@ -475,7 +525,7 @@ export function AdminAnalyticsDashboard({ data }: { data: AnalyticsData }) {
               Konum Dağılımı
             </h2>
             <p className="text-sm text-gray-500">
-              Tekil ziyaretçi sayısına göre şehirler
+              Tüm zamanlar · tekil ziyaretçiye göre
             </p>
           </div>
           {data.locations.length === 0 ? (
