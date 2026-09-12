@@ -273,9 +273,14 @@ model AnalyticsSession {
   pageViews   Int       @default(0)
   country     String?
   city        String?
+  landingPath String?
+  exitPath    String?
+  source      String?
+  referrer    String?
 
   @@index([visitorId])
   @@index([startedAt])
+  @@index([source])
 }
 
 model AnalyticsLocation {

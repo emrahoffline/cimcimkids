@@ -35,7 +35,7 @@ export async function POST(request: Request) {
     type: body.type,
     sessionId: String(body.sessionId).slice(0, 80),
     visitorId,
-    path: body.path,
+    path: typeof body.path === "string" ? body.path.slice(0, 240) : undefined,
     productId: body.productId,
     productName: body.productName,
     durationSec:
@@ -43,6 +43,9 @@ export async function POST(request: Request) {
     country: geo.country,
     city: geo.city,
     timezone: body.timezone,
+    source: typeof body.source === "string" ? body.source.slice(0, 40) : undefined,
+    referrer:
+      typeof body.referrer === "string" ? body.referrer.slice(0, 300) : undefined,
   });
 
   return NextResponse.json({ ok: true });

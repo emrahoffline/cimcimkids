@@ -2,6 +2,9 @@
 
 import { useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
+import { classifyTrafficSource } from "@/lib/analytics-traffic";
+
+const TRAFFIC_KEY = "ab_traffic";
 
 function getVisitorId() {
   if (typeof window === "undefined") return "";
@@ -29,6 +32,38 @@ function getSessionId() {
     sessionStorage.setItem("ab_sstart", String(Date.now()));
   }
   return id;
+}
+
+function getLandingTraffic() {
+  if (typeof window === "undefined") {
+    return { source: "direct" as const, referrer: "" };
+  }
+  try {
+    const stored = sessionStorage.getItem(TRAFFIC_KEY);
+    if (stored) {
+      const parsed = JSON.parse(stored) as {
+        source?: string;
+        referrer?: string;
+      };
+      if (parsed.source) {
+        return {
+          source: parsed.source,
+          referrer: parsed.referrer || "",
+        };
+      }
+    }
+  } catch {
+    /* ignore */
+  }
+  const referrer = document.referrer || "";
+  const source = classifyTrafficSource(window.location.search, referrer);
+  const payload = { source, referrer: referrer.slice(0, 300) };
+  try {
+    sessionStorage.setItem(TRAFFIC_KEY, JSON.stringify(payload));
+  } catch {
+    /* private mode */
+  }
+  return payload;
 }
 
 function sendEvent(payload: Record<string, unknown>) {
@@ -78,11 +113,14 @@ export function AnalyticsTracker() {
     const sessionId = getSessionId();
     const visitorId = getVisitorId();
 
+    const traffic = getLandingTraffic();
     sendEvent({
       type: "page_view",
       sessionId,
       visitorId,
       path: pathname,
+      source: traffic.source,
+      referrer: traffic.referrer,
       timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
     });
   }, [pathname]);
@@ -107,6 +145,7 @@ export function AnalyticsTracker() {
           sessionStorage.removeItem("ab_sid");
           sessionStorage.removeItem("ab_sstart");
           sessionStorage.removeItem("ab_sended");
+          sessionStorage.removeItem(TRAFFIC_KEY);
           getSessionId();
         }
       }

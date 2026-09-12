@@ -47,6 +47,28 @@ type AnalyticsData = {
     itemsSold: number;
     updatedAt: string;
   };
+  live?: {
+    activeVisitors: number;
+    viewsLast30m: number;
+    bounceRate: number;
+    bouncedSessions: number;
+    endedSessions: number;
+    pages: { path: string; label: string; views: number; visitors: number }[];
+    exits: { path: string; label: string; count: number }[];
+    sources: {
+      source: string;
+      sessions: number;
+      orders: number;
+      revenue: number;
+    }[];
+    viewedNotSold: {
+      productId: string;
+      name: string;
+      image: string;
+      views: number;
+      sold: number;
+    }[];
+  };
 };
 
 export default function AdminAnalyticsPage() {
@@ -60,7 +82,7 @@ export default function AdminAnalyticsPage() {
         .catch(() => setData(null));
 
     load();
-    const id = setInterval(load, 30000);
+    const id = setInterval(load, 15000);
     return () => clearInterval(id);
   }, []);
 

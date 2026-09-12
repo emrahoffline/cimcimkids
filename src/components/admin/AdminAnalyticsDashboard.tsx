@@ -8,10 +8,12 @@ import {
   Globe2,
   Heart,
   MapPin,
+  Radio,
   ShoppingBag,
   TrendingUp,
 } from "lucide-react";
 import { formatPrice } from "@/lib/products";
+import { trafficSourceLabel } from "@/lib/analytics-traffic";
 
 type AnalyticsData = {
   salesChart: {
@@ -55,6 +57,28 @@ type AnalyticsData = {
     orders: number;
     itemsSold: number;
     updatedAt: string;
+  };
+  live?: {
+    activeVisitors: number;
+    viewsLast30m: number;
+    bounceRate: number;
+    bouncedSessions: number;
+    endedSessions: number;
+    pages: { path: string; label: string; views: number; visitors: number }[];
+    exits: { path: string; label: string; count: number }[];
+    sources: {
+      source: string;
+      sessions: number;
+      orders: number;
+      revenue: number;
+    }[];
+    viewedNotSold: {
+      productId: string;
+      name: string;
+      image: string;
+      views: number;
+      sold: number;
+    }[];
   };
 };
 
@@ -168,6 +192,17 @@ function RankList({
 }
 
 export function AdminAnalyticsDashboard({ data }: { data: AnalyticsData }) {
+  const live = data.live ?? {
+    activeVisitors: 0,
+    viewsLast30m: 0,
+    bounceRate: 0,
+    bouncedSessions: 0,
+    endedSessions: 0,
+    pages: [],
+    exits: [],
+    sources: [],
+    viewedNotSold: [],
+  };
   const kpis = [
     {
       label: "14 Günlük Satış",
@@ -254,6 +289,169 @@ export function AdminAnalyticsDashboard({ data }: { data: AnalyticsData }) {
             </div>
           </div>
         ))}
+      </div>
+
+      <div className="admin-card p-4 sm:p-5">
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+          <div>
+            <h2 className="flex items-center gap-2 text-base font-semibold text-gray-900 sm:text-lg">
+              <Radio className="h-5 w-5 shrink-0 text-olive" />
+              Canlı trafik
+            </h2>
+            <p className="text-sm text-gray-500">
+              Son 30 dakika · 15 sn’de bir yenilenir
+            </p>
+          </div>
+          <p className="text-sm text-gray-600">
+            <span className="font-semibold text-olive">
+              {live.activeVisitors}
+            </span>{" "}
+            aktif · {live.viewsLast30m} görüntüleme
+          </p>
+        </div>
+        {live.pages.length === 0 ? (
+          <p className="py-6 text-center text-sm text-gray-400">
+            Son 30 dakikada sayfa görüntüleme yok
+          </p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="min-w-full text-left text-sm">
+              <thead>
+                <tr className="text-xs text-gray-500">
+                  <th className="pb-2 font-medium">Sayfa</th>
+                  <th className="pb-2 text-right font-medium">Kişi</th>
+                  <th className="pb-2 text-right font-medium">Görüntüleme</th>
+                </tr>
+              </thead>
+              <tbody>
+                {live.pages.map((row) => (
+                  <tr key={row.path} className="border-t border-gray-100">
+                    <td className="py-2 pr-3 font-medium text-gray-800">
+                      {row.label}
+                    </td>
+                    <td className="py-2 text-right tabular-nums text-gray-600">
+                      {row.visitors}
+                    </td>
+                    <td className="py-2 text-right tabular-nums text-gray-600">
+                      {row.views}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
+      <div className="grid gap-4 sm:gap-6 lg:grid-cols-2">
+        <div className="admin-card p-4 sm:p-5">
+          <h2 className="text-base font-semibold text-gray-900 sm:text-lg">
+            Sitede kalma / çıkış
+          </h2>
+          <p className="mt-1 text-sm text-gray-500">Son 7 gün</p>
+          <p className="mt-3 text-2xl font-semibold text-gray-900">
+            %{live.bounceRate}
+          </p>
+          <p className="text-sm text-gray-500">
+            tek sayfada çıkış oranı · {live.bouncedSessions}/
+            {live.endedSessions} oturum
+          </p>
+          {live.exits.length === 0 ? (
+            <p className="mt-6 text-sm text-gray-400">
+              Çıkış sayfası henüz birikmedi
+            </p>
+          ) : (
+            <div className="mt-4 space-y-2">
+              {live.exits.map((row) => (
+                <div
+                  key={row.path}
+                  className="flex items-center justify-between gap-3 text-sm"
+                >
+                  <span className="min-w-0 truncate text-gray-800">
+                    {row.label}
+                  </span>
+                  <span className="shrink-0 tabular-nums text-gray-500">
+                    {row.count}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div className="admin-card p-4 sm:p-5">
+          <h2 className="text-base font-semibold text-gray-900 sm:text-lg">
+            Google’dan gelenler
+          </h2>
+          <p className="mt-1 text-sm text-gray-500">
+            Son 7 gün oturum ve eşleşen sipariş
+          </p>
+          {live.sources.length === 0 ? (
+            <p className="mt-6 text-sm text-gray-400">
+              Kaynak etiketi yeni; Google Alışveriş tıklamaları bundan sonra
+              görünür
+            </p>
+          ) : (
+            <div className="mt-4 space-y-3">
+              {live.sources.map((row) => (
+                <div key={row.source}>
+                  <div className="flex items-center justify-between gap-2 text-sm">
+                    <span className="font-medium text-gray-800">
+                      {trafficSourceLabel(row.source)}
+                    </span>
+                    <span className="text-gray-500">
+                      {row.sessions} oturum · {row.orders} sipariş
+                    </span>
+                  </div>
+                  {row.revenue > 0 ? (
+                    <p className="text-xs text-olive">
+                      {formatPrice(row.revenue, "tr")}
+                    </p>
+                  ) : null}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div className="admin-card p-4 sm:p-5">
+        <h2 className="text-base font-semibold text-gray-900 sm:text-lg">
+          İlgi çeken, satılmayan
+        </h2>
+        <p className="mt-1 text-sm text-gray-500">
+          Son 14 günde bakılan ama siparişe girmeyen ürünler
+        </p>
+        {live.viewedNotSold.length === 0 ? (
+          <p className="py-6 text-sm text-gray-400">
+            Şu an bu listede ürün yok
+          </p>
+        ) : (
+          <div className="mt-4 space-y-3">
+            {live.viewedNotSold.map((item) => (
+              <div key={item.productId} className="flex items-center gap-3">
+                <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-lg bg-gray-100">
+                  {item.image ? (
+                    <Image
+                      src={item.image}
+                      alt={item.name}
+                      fill
+                      className="object-cover"
+                    />
+                  ) : null}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-medium text-gray-900">
+                    {item.name}
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    {item.views} görüntüleme · 0 satış
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       <div className="grid gap-4 sm:gap-6 xl:grid-cols-3">

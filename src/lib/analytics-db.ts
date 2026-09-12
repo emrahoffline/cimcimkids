@@ -2,6 +2,14 @@ import type { AnalyticsEventType as PrismaEventType } from "@prisma/client";
 import type { Order } from "./db";
 import type { Product } from "./types";
 import { prisma, requireDatabaseUrl } from "./prisma";
+import {
+  isTrafficSource,
+  productSlugFromPath,
+  describeStorePath,
+} from "./analytics-traffic";
+import { isGiftCardProductId } from "./gift-cards";
+import { isGiftWrapProductId } from "./gift-wrap";
+import { isShippingProductId } from "./shipping";
 
 /** Keep recent raw events for favorites/detail; totals live in durable tables */
 const MAX_EVENTS = 10000;
@@ -24,6 +32,8 @@ export type AnalyticsEvent = {
   country?: string;
   city?: string;
   timezone?: string;
+  source?: string;
+  referrer?: string;
   createdAt: string;
 };
 
@@ -182,6 +192,9 @@ export async function recordAnalyticsEvent(
   });
 
   if (event.type === "page_view" && visitorId && sessionId) {
+    const landingPath = (event.path || "/").slice(0, 240);
+    const source = isTrafficSource(event.source) ? event.source : null;
+    const referrer = event.referrer?.trim().slice(0, 300) || null;
     await prisma.$transaction(async (tx) => {
       const existingVisitor = await tx.analyticsVisitor.findUnique({
         where: { id: visitorId },
@@ -224,6 +237,10 @@ export async function recordAnalyticsEvent(
             pageViews: 1,
             country,
             city,
+            landingPath,
+            exitPath: landingPath,
+            source,
+            referrer,
           },
         });
         if (!isNewVisitor) {
@@ -235,7 +252,7 @@ export async function recordAnalyticsEvent(
       } else if (!existingSession.endedAt) {
         await tx.analyticsSession.update({
           where: { id: sessionId },
-          data: { pageViews: { increment: 1 } },
+          data: { pageViews: { increment: 1 }, exitPath: landingPath },
         });
       }
 
@@ -485,6 +502,266 @@ async function getLocationStats(limit = 8) {
   }));
 }
 
+function isPaidOrder(order: Order) {
+  return order.status !== "cancelled" && order.status !== "pending_payment";
+}
+
+export type LivePageRow = {
+  path: string;
+  label: string;
+  views: number;
+  visitors: number;
+};
+
+export type LiveExitRow = {
+  path: string;
+  label: string;
+  count: number;
+};
+
+export type LiveSourceRow = {
+  source: string;
+  sessions: number;
+  orders: number;
+  revenue: number;
+};
+
+export type LiveInterestRow = {
+  productId: string;
+  name: string;
+  image: string;
+  views: number;
+  sold: number;
+};
+
+export type LiveInsights = {
+  activeVisitors: number;
+  viewsLast30m: number;
+  pages: LivePageRow[];
+  bounceRate: number;
+  bouncedSessions: number;
+  endedSessions: number;
+  exits: LiveExitRow[];
+  sources: LiveSourceRow[];
+  viewedNotSold: LiveInterestRow[];
+};
+
+async function buildLiveInsights(
+  orders: Order[],
+  products: Product[]
+): Promise<LiveInsights> {
+  requireDatabaseUrl();
+  const now = Date.now();
+  const thirtyMinAgo = new Date(now - 30 * 60 * 1000);
+  const sevenDaysAgo = new Date(now - 7 * 24 * 60 * 60 * 1000);
+  const fourteenDaysAgo = new Date(now - 14 * 24 * 60 * 60 * 1000);
+  const nameBySlug = new Map(products.map((p) => [p.slug, p.nameTr]));
+  const productBySlug = new Map(products.map((p) => [p.slug, p]));
+
+  const [liveViews, weekSessions, productViews] = await Promise.all([
+    prisma.analyticsEvent.findMany({
+      where: { type: "page_view", createdAt: { gte: thirtyMinAgo } },
+      select: { path: true, visitorId: true },
+    }),
+    prisma.analyticsSession.findMany({
+      where: { startedAt: { gte: sevenDaysAgo } },
+      select: {
+        visitorId: true,
+        pageViews: true,
+        endedAt: true,
+        exitPath: true,
+        landingPath: true,
+        source: true,
+        startedAt: true,
+      },
+    }),
+    prisma.analyticsEvent.findMany({
+      where: {
+        type: "page_view",
+        createdAt: { gte: fourteenDaysAgo },
+        path: { contains: "/products/" },
+      },
+      select: { path: true },
+    }),
+  ]);
+
+  const pageMap = new Map<
+    string,
+    { views: number; visitors: Set<string> }
+  >();
+  const liveVisitors = new Set<string>();
+  for (const row of liveViews) {
+    const path = row.path || "/";
+    const bucket = pageMap.get(path) ?? { views: 0, visitors: new Set() };
+    bucket.views += 1;
+    if (row.visitorId) {
+      bucket.visitors.add(row.visitorId);
+      liveVisitors.add(row.visitorId);
+    }
+    pageMap.set(path, bucket);
+  }
+  const pages = [...pageMap.entries()]
+    .map(([path, bucket]) => ({
+      path,
+      label: describeStorePath(path, nameBySlug),
+      views: bucket.views,
+      visitors: bucket.visitors.size,
+    }))
+    .sort((a, b) => b.views - a.views)
+    .slice(0, 8);
+
+  const ended = weekSessions.filter((s) => s.endedAt);
+  const bounced = ended.filter((s) => s.pageViews <= 1);
+  const bounceRate =
+    ended.length > 0 ? Math.round((bounced.length / ended.length) * 100) : 0;
+
+  const exitMap = new Map<string, number>();
+  for (const session of ended) {
+    const path = session.exitPath || session.landingPath;
+    if (!path) continue;
+    exitMap.set(path, (exitMap.get(path) ?? 0) + 1);
+  }
+  const exits = [...exitMap.entries()]
+    .map(([path, count]) => ({
+      path,
+      label: describeStorePath(path, nameBySlug),
+      count,
+    }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 6);
+
+  const sourceSessionCounts = new Map<string, number>();
+  for (const session of weekSessions) {
+    const source = isTrafficSource(session.source) ? session.source : "direct";
+    sourceSessionCounts.set(
+      source,
+      (sourceSessionCounts.get(source) ?? 0) + 1
+    );
+  }
+
+  const paid = orders.filter(
+    (order) => isPaidOrder(order) && new Date(order.createdAt) >= sevenDaysAgo
+  );
+  const emails = [...new Set(paid.map((o) => o.customerEmail.toLowerCase()))];
+  const shoppers =
+    emails.length === 0
+      ? []
+      : await prisma.shopperState.findMany({
+          where: { email: { in: emails } },
+          select: { email: true, visitorId: true },
+        });
+  const visitorByEmail = new Map(
+    shoppers
+      .filter((s) => s.visitorId)
+      .map((s) => [s.email.toLowerCase(), s.visitorId as string])
+  );
+  const googleSessionsByVisitor = new Map<string, string>();
+  for (const session of weekSessions) {
+    if (
+      session.source !== "google_shopping" &&
+      session.source !== "google_organic" &&
+      session.source !== "google_paid"
+    ) {
+      continue;
+    }
+    const prev = googleSessionsByVisitor.get(session.visitorId);
+    if (!prev || session.source === "google_shopping") {
+      googleSessionsByVisitor.set(session.visitorId, session.source);
+    }
+  }
+
+  const sourceOrders = new Map<string, { orders: number; revenue: number }>();
+  for (const order of paid) {
+    const visitorId = visitorByEmail.get(order.customerEmail.toLowerCase());
+    const source = visitorId
+      ? googleSessionsByVisitor.get(visitorId) || "direct"
+      : "direct";
+    const bucket = sourceOrders.get(source) ?? { orders: 0, revenue: 0 };
+    bucket.orders += 1;
+    bucket.revenue += order.total;
+    sourceOrders.set(source, bucket);
+  }
+
+  const sourceKeys = [
+    "google_shopping",
+    "google_organic",
+    "google_paid",
+    "instagram",
+    "direct",
+    "referral",
+  ];
+  const sources = sourceKeys
+    .map((source) => ({
+      source,
+      sessions: sourceSessionCounts.get(source) ?? 0,
+      orders: sourceOrders.get(source)?.orders ?? 0,
+      revenue: sourceOrders.get(source)?.revenue ?? 0,
+    }))
+    .filter((row) => row.sessions > 0 || row.orders > 0);
+
+  const viewCounts = new Map<string, number>();
+  for (const row of productViews) {
+    const slug = productSlugFromPath(row.path || "");
+    if (!slug) continue;
+    viewCounts.set(slug, (viewCounts.get(slug) ?? 0) + 1);
+  }
+  const soldCounts = new Map<string, number>();
+  for (const order of orders.filter(
+    (o) => isPaidOrder(o) && new Date(o.createdAt) >= fourteenDaysAgo
+  )) {
+    for (const item of order.items) {
+      if (
+        isGiftCardProductId(item.productId) ||
+        isGiftWrapProductId(item.productId) ||
+        isShippingProductId(item.productId)
+      ) {
+        continue;
+      }
+      soldCounts.set(
+        item.productId,
+        (soldCounts.get(item.productId) ?? 0) + item.quantity
+      );
+    }
+  }
+
+  const viewedNotSold = [...viewCounts.entries()]
+    .map(([slug, views]) => {
+      const product = productBySlug.get(slug);
+      if (!product) return null;
+      if (
+        isGiftCardProductId(product.id) ||
+        isGiftWrapProductId(product.id) ||
+        isShippingProductId(product.id)
+      ) {
+        return null;
+      }
+      const sold = soldCounts.get(product.id) ?? 0;
+      if (sold > 0) return null;
+      return {
+        productId: product.id,
+        name: product.nameTr,
+        image: product.image ?? "",
+        views,
+        sold,
+      };
+    })
+    .filter((row): row is LiveInterestRow => Boolean(row))
+    .sort((a, b) => b.views - a.views)
+    .slice(0, 8);
+
+  return {
+    activeVisitors: liveVisitors.size,
+    viewsLast30m: liveViews.length,
+    pages,
+    bounceRate,
+    bouncedSessions: bounced.length,
+    endedSessions: ended.length,
+    exits,
+    sources,
+    viewedNotSold,
+  };
+}
+
 /** One-time backfill from legacy event log into durable counters (no new events). */
 async function bootstrapTrafficFromLegacyEvents() {
   requireDatabaseUrl();
@@ -615,6 +892,7 @@ export async function getAdminAnalytics(orders: Order[], products: Product[]) {
   }
 
   const salesChart = buildSalesChart(orders, 14);
+  const live = await buildLiveInsights(orders, products);
 
   return {
     allTime,
@@ -623,6 +901,7 @@ export async function getAdminAnalytics(orders: Order[], products: Product[]) {
     topFavorites: buildTopFavorites(events, products),
     sessionStats,
     locations,
+    live,
     summary: {
       chartRevenueTotal: salesChart.reduce((s, d) => s + d.revenue, 0),
       chartOrdersTotal: salesChart.reduce((s, d) => s + d.orders, 0),
