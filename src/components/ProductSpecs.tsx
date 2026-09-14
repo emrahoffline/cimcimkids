@@ -22,7 +22,7 @@ export function ProductSpecs({
         {specs.map((spec) => (
           <div
             key={spec.label}
-            className="grid grid-cols-[8.5rem_1fr] gap-3 px-4 py-2.5 text-sm sm:grid-cols-[10rem_1fr]"
+            className="grid grid-cols-[9.5rem_1fr] gap-3 px-4 py-2.5 text-sm sm:grid-cols-[12rem_1fr]"
           >
             <dt className="text-slate-500">{spec.label}</dt>
             <dd className="font-medium text-slate-800">{spec.value}</dd>

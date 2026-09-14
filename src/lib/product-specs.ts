@@ -11,6 +11,21 @@ const CARE: LocaleText = {
   tr: "30°C hassas yıkama",
   en: "Machine wash at 30°C, gentle cycle",
 };
+const SOLID_PATTERN: LocaleText = { tr: "Düz", en: "Solid" };
+const MULTICOLOR: LocaleText = { tr: "Çok renkli", en: "Multicolor" };
+const INSEAM: LocaleText = {
+  tr: "Standart (seçilen yaş bedenine göre)",
+  en: "Regular (varies by selected age size)",
+};
+
+/** Google Merchant Center’s exact “add to description” labels, in report order. */
+export const MERCHANT_SPEC_LABELS = {
+  color: { tr: "Renk", en: "Color" },
+  inseam: { tr: "İç Dikiş Boyutu", en: "Inseam Size" },
+  size: { tr: "Beden", en: "Size" },
+  pattern: { tr: "Desen", en: "Pattern" },
+  material: { tr: "Malzeme", en: "Material" },
+} as const;
 
 function loc(locale: string, text: LocaleText) {
   return locale === "en" ? text.en : text.tr;
@@ -152,45 +167,140 @@ export function getProductColorNames(product: Product, locale: string): string[]
   return [];
 }
 
+export function needsInseamSize(product: Product): boolean {
+  const text = haystack(product);
+  if (/elbise|dress|jile|pinafore/.test(text) && !/pantolon|pants|jean|denim/.test(text)) {
+    return false;
+  }
+  if (/tişört|tisort|t-shirt|tshirt|sweatshirt/.test(nameHaystack(product))
+    && !/pantolon|pants|jean|kombin|takım|takim|outfit|set/.test(text)) {
+    return false;
+  }
+  if (/ceket|jacket/.test(nameHaystack(product)) && !/pantolon|pants|jean/.test(text)) {
+    return false;
+  }
+  return (
+    /pantolon|pants|jean|denim|balloon|tek alt|kombin|takım|takim|outfit|set/.test(text) ||
+    product.category === "outfits"
+  );
+}
+
+function compactAges(ages: string[], locale: string): string {
+  if (!ages.length) {
+    return locale === "en" ? "Kids sizes" : "Çocuk bedenleri";
+  }
+  if (ages.length === 1) return ages[0];
+  const nums = ages.flatMap((age) =>
+    [...age.matchAll(/\d+/g)].map((m) => Number(m[0]))
+  );
+  if (nums.length < 2) return ages.join(", ");
+  const min = Math.min(...nums);
+  const max = Math.max(...nums);
+  const joined = ages.join(" ");
+  const unit = /ay/i.test(joined) && !/ya[sş]/i.test(joined) ? "ay" : "yaş";
+  return `${min}-${max} ${unit}`;
+}
+
+function colorValue(product: Product, locale: string): string {
+  const colors = getProductColorNames(product, locale);
+  if (colors.length) return colors.join(", ");
+  return loc(locale, MULTICOLOR);
+}
+
+function patternValue(product: Product, locale: string): string {
+  const pattern = fromName(product, PATTERN_FROM_NAME);
+  return loc(locale, pattern ?? SOLID_PATTERN);
+}
+
+function merchantLabel(
+  locale: string,
+  key: keyof typeof MERCHANT_SPEC_LABELS
+): string {
+  return loc(locale, MERCHANT_SPEC_LABELS[key]);
+}
+
+/** Compact labeled details Google’s pants report looks for. */
+export function getMerchantSearchSpecs(
+  product: Product,
+  locale: string
+): ProductSpec[] {
+  const specs: ProductSpec[] = [
+    { label: merchantLabel(locale, "color"), value: colorValue(product, locale) },
+  ];
+  if (needsInseamSize(product)) {
+    specs.push({
+      label: merchantLabel(locale, "inseam"),
+      value: loc(locale, INSEAM),
+    });
+  }
+  specs.push(
+    {
+      label: merchantLabel(locale, "size"),
+      value: compactAges(getProductAges(product), locale),
+    },
+    {
+      label: merchantLabel(locale, "pattern"),
+      value: patternValue(product, locale),
+    },
+    {
+      label: merchantLabel(locale, "material"),
+      value: loc(locale, inferMaterial(product)),
+    }
+  );
+  return specs;
+}
+
+export function merchantSpecLead(product: Product, locale: string): string {
+  return getMerchantSearchSpecs(product, locale)
+    .map((s) => `${s.label}: ${s.value}.`)
+    .join(" ");
+}
+
 export function getProductSpecs(product: Product, locale: string): ProductSpec[] {
   const en = locale === "en";
   const colors = getProductColorNames(product, locale);
   const ages = getProductAges(product);
-  const pattern = fromName(product, PATTERN_FROM_NAME);
-  const material = inferMaterial(product);
   const fit = inferFit(product);
-  const specs: ProductSpec[] = [];
-
-  if (colors.length) {
-    specs.push({ label: en ? "Color" : "Renk", value: colors.join(", ") });
-  }
-  if (ages.length) {
+  const specs: ProductSpec[] = [
+    {
+      label: merchantLabel(locale, "color"),
+      value: colors.length ? colors.join(", ") : loc(locale, MULTICOLOR),
+    },
+  ];
+  if (needsInseamSize(product)) {
     specs.push({
-      label: en ? "Size / age" : "Beden / yaş",
-      value: ages.join(", "),
+      label: merchantLabel(locale, "inseam"),
+      value: loc(locale, INSEAM),
     });
   }
-  if (
-    /pantolon|pants/i.test(nameHaystack(product)) &&
-    !/kombin|takım|takim|outfit|set/i.test(nameHaystack(product))
-  ) {
-    specs.push({
-      label: en ? "Inseam" : "İç dikiş boyu",
-      value: en
-        ? "Varies by selected age size"
-        : "Seçilen yaş bedenine göre değişir",
-    });
-  }
-  if (pattern) {
-    specs.push({ label: en ? "Pattern" : "Desen", value: loc(locale, pattern) });
-  }
-  specs.push({ label: en ? "Material" : "Malzeme", value: loc(locale, material) });
+  specs.push(
+    {
+      label: merchantLabel(locale, "size"),
+      value: ages.length ? ages.join(", ") : compactAges(ages, locale),
+    },
+    {
+      label: merchantLabel(locale, "pattern"),
+      value: patternValue(product, locale),
+    },
+    {
+      label: merchantLabel(locale, "material"),
+      value: loc(locale, inferMaterial(product)),
+    }
+  );
   if (fit) {
     specs.push({ label: en ? "Fit" : "Kalıp", value: loc(locale, fit) });
   }
   specs.push({ label: en ? "Origin" : "Üretim yeri", value: loc(locale, ORIGIN) });
   specs.push({ label: en ? "Care" : "Bakım", value: loc(locale, CARE) });
   return specs;
+}
+
+export function specValue(
+  specs: ProductSpec[],
+  trLabel: string,
+  enLabel: string
+): string | undefined {
+  return specs.find((s) => s.label === trLabel || s.label === enLabel)?.value;
 }
 
 export function isWeakProductDesc(text: string): boolean {
@@ -222,7 +332,8 @@ function defaultIntro(product: Product, locale: string): string {
       colors.length ? `It comes in ${colors.join(", ")}.` : "",
       pattern ? `Pattern: ${loc(locale, pattern)}.` : "",
       fit ? `Fit: ${loc(locale, fit)}.` : "",
-      ages.length ? `Sizes / ages: ${ages.join(", ")}.` : "",
+      ages.length ? `Size: ${ages.join(", ")}.` : "",
+      needsInseamSize(product) ? "Inseam Size: Regular." : "",
       "Made in Turkey. Machine wash at 30°C on a gentle cycle.",
     ];
     return bits.filter(Boolean).join(" ").replace(/\s+/g, " ").trim();
@@ -239,19 +350,30 @@ function defaultIntro(product: Product, locale: string): string {
   return bits.filter(Boolean).join(" ").replace(/\s+/g, " ").trim();
 }
 
-function specsParagraph(product: Product, locale: string): string {
-  return getProductSpecs(product, locale)
-    .map((s) => `${s.label}: ${s.value}.`)
-    .join(" ");
-}
-
 function alreadyHasSpecs(text: string): boolean {
   const t = text.toLowerCase();
   return (
     t.includes("malzeme:") ||
     t.includes("material:") ||
+    t.includes("iç dikiş boyutu:") ||
+    t.includes("iç dikiş boyu:") ||
+    t.includes("inseam size:") ||
     (t.includes("renk:") && t.includes("beden")) ||
     (t.includes("color:") && t.includes("size"))
+  );
+}
+
+function alreadyHasMerchantLead(text: string, locale: string): boolean {
+  const t = text.toLowerCase();
+  const color = merchantLabel(locale, "color").toLowerCase();
+  const size = merchantLabel(locale, "size").toLowerCase();
+  const material = merchantLabel(locale, "material").toLowerCase();
+  const pattern = merchantLabel(locale, "pattern").toLowerCase();
+  return (
+    t.includes(`${color}:`) &&
+    t.includes(`${size}:`) &&
+    t.includes(`${material}:`) &&
+    t.includes(`${pattern}:`)
   );
 }
 
@@ -264,9 +386,13 @@ export function getStorefrontProductDesc(product: Product, locale: string): stri
   return existing;
 }
 
-/** Description Google Shopping can search: color, size, pattern, material labeled. */
+/** Description Google Shopping can search: Color, Inseam Size, Size, Pattern, Material first. */
 export function getSearchableProductDesc(product: Product, locale: string): string {
+  const lead = merchantSpecLead(product, locale);
   const intro = getStorefrontProductDesc(product, locale);
-  if (alreadyHasSpecs(intro)) return intro;
-  return `${intro} ${specsParagraph(product, locale)}`.replace(/\s+/g, " ").trim();
+  if (alreadyHasMerchantLead(intro, locale)) {
+    if (intro.toLowerCase().startsWith(lead.toLowerCase())) return intro;
+    return `${lead} ${intro}`.replace(/\s+/g, " ").trim();
+  }
+  return `${lead} ${intro}`.replace(/\s+/g, " ").trim();
 }

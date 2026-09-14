@@ -6,4 +6,9 @@ export {
   formatPrice,
   slugify,
 } from "./product-utils";
-export { getSearchableProductDesc, getStorefrontProductDesc, getProductSpecs } from "./product-specs";
+export {
+  getSearchableProductDesc,
+  getStorefrontProductDesc,
+  getProductSpecs,
+  getMerchantSearchSpecs,
+} from "./product-specs";

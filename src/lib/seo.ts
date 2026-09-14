@@ -1,7 +1,12 @@
 import type { Metadata } from "next";
 import type { Category, Product } from "./types";
 import { getProductName } from "./product-utils";
-import { getProductSpecs, getSearchableProductDesc } from "./product-specs";
+import {
+  getProductSpecs,
+  getSearchableProductDesc,
+  MERCHANT_SPEC_LABELS,
+  specValue,
+} from "./product-specs";
 import { getProductImages } from "./types";
 import { STORE_CONFIG } from "./store-config";
 
@@ -317,11 +322,21 @@ export function productJsonLd(input: {
   const images = getProductImages(product).map((src) => absoluteUrl(src));
   const url = canonicalUrl(locale, `/products/${product.slug}`);
   const specs = getProductSpecs(product, locale);
-  const color = specs.find((s) => s.label === "Renk" || s.label === "Color")?.value;
-  const material = specs.find((s) => s.label === "Malzeme" || s.label === "Material")?.value;
-  const size = specs.find(
-    (s) => s.label === "Beden / yaş" || s.label === "Size / age"
-  )?.value;
+  const color = specValue(
+    specs,
+    MERCHANT_SPEC_LABELS.color.tr,
+    MERCHANT_SPEC_LABELS.color.en
+  );
+  const material = specValue(
+    specs,
+    MERCHANT_SPEC_LABELS.material.tr,
+    MERCHANT_SPEC_LABELS.material.en
+  );
+  const size = specValue(
+    specs,
+    MERCHANT_SPEC_LABELS.size.tr,
+    MERCHANT_SPEC_LABELS.size.en
+  );
 
   return {
     "@context": "https://schema.org",
