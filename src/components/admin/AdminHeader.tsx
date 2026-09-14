@@ -10,7 +10,7 @@ export function AdminHeader({ title }: { title: string }) {
   const { openNav } = useAdminNav();
 
   return (
-    <header className="safe-top sticky top-0 z-30 flex min-h-14 items-center justify-between gap-2 border-b border-gray-200 bg-white px-3 py-2 sm:px-6">
+    <header className="safe-top sticky top-0 z-30 flex min-h-14 shrink-0 items-center justify-between gap-2 border-b border-gray-200 bg-white px-3 py-2 sm:px-6">
       <div className="flex min-w-0 items-center gap-2">
         <button
           type="button"

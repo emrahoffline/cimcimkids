@@ -50,7 +50,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
 
   return (
     <AdminNavContext.Provider value={{ open, openNav, closeNav, toggleNav }}>
-      <div className="flex min-h-screen">
+      <div className="flex h-dvh max-h-dvh overflow-hidden">
         {/* Mobile overlay */}
         {open && (
           <button
@@ -62,7 +62,7 @@ export function AdminShell({ children }: { children: ReactNode }) {
         )}
 
         <AdminSidebar />
-        <div className="flex min-h-screen min-w-0 flex-1 flex-col overflow-hidden">
+        <div className="flex h-full min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
           {children}
         </div>
       </div>

@@ -541,11 +541,21 @@ export type LiveCityRow = {
   views: number;
 };
 
+export type TrafficRangeKey = "live" | "day" | "week" | "month";
+
+export type TrafficRangeSnapshot = {
+  visitors: number;
+  views: number;
+  pages: LivePageRow[];
+  cities: LiveCityRow[];
+};
+
 export type LiveInsights = {
   activeVisitors: number;
   viewsLast30m: number;
   pages: LivePageRow[];
   cities: LiveCityRow[];
+  ranges: Record<TrafficRangeKey, TrafficRangeSnapshot>;
   bounceRate: number;
   bouncedSessions: number;
   endedSessions: number;
@@ -554,22 +564,124 @@ export type LiveInsights = {
   viewedNotSold: LiveInterestRow[];
 };
 
+type TrafficAgg = {
+  views: number;
+  visitors: Set<string>;
+  pages: Map<string, { views: number; visitors: Set<string> }>;
+  cities: Map<
+    string,
+    { city: string; country: string; views: number; visitors: Set<string> }
+  >;
+};
+
+function emptyTrafficAgg(): TrafficAgg {
+  return {
+    views: 0,
+    visitors: new Set(),
+    pages: new Map(),
+    cities: new Map(),
+  };
+}
+
+function addTrafficEvent(
+  agg: TrafficAgg,
+  row: {
+    path: string | null;
+    visitorId: string | null;
+    city: string | null;
+    country: string | null;
+  }
+) {
+  agg.views += 1;
+  const path = row.path || "/";
+  const page = agg.pages.get(path) ?? { views: 0, visitors: new Set() };
+  page.views += 1;
+  if (row.visitorId) {
+    agg.visitors.add(row.visitorId);
+    page.visitors.add(row.visitorId);
+  }
+  agg.pages.set(path, page);
+
+  const city = (row.city || "Bilinmiyor").trim() || "Bilinmiyor";
+  const country = (row.country || "Bilinmiyor").trim() || "Bilinmiyor";
+  const key = `${city}|${country}`;
+  const loc =
+    agg.cities.get(key) ?? { city, country, views: 0, visitors: new Set() };
+  loc.views += 1;
+  if (row.visitorId) loc.visitors.add(row.visitorId);
+  agg.cities.set(key, loc);
+}
+
+function finalizeTrafficAgg(
+  agg: TrafficAgg,
+  nameBySlug: Map<string, string>
+): TrafficRangeSnapshot {
+  const pages = [...agg.pages.entries()]
+    .map(([path, bucket]) => ({
+      path,
+      label: describeStorePath(path, nameBySlug),
+      views: bucket.views,
+      visitors: bucket.visitors.size,
+    }))
+    .sort((a, b) => b.views - a.views || b.visitors - a.visitors);
+  const cities = [...agg.cities.values()]
+    .map((bucket) => ({
+      city: bucket.city,
+      country: bucket.country,
+      views: bucket.views,
+      visitors: bucket.visitors.size,
+    }))
+    .sort((a, b) => b.visitors - a.visitors || b.views - a.views);
+  return {
+    visitors: agg.visitors.size,
+    views: agg.views,
+    pages,
+    cities,
+  };
+}
+
+function istanbulStartOfIsoDay(isoDate: string) {
+  return new Date(`${isoDate}T00:00:00+03:00`);
+}
+
+function trafficRangeStarts() {
+  const today = lastNIstanbulDays(1)[0];
+  const weekStart = lastNIstanbulDays(7)[0];
+  const [year, month] = today.split("-");
+  const monthStart = `${year}-${month}-01`;
+  return {
+    live: new Date(Date.now() - 30 * 60 * 1000),
+    day: istanbulStartOfIsoDay(today),
+    week: istanbulStartOfIsoDay(weekStart),
+    month: istanbulStartOfIsoDay(monthStart),
+  };
+}
+
 async function buildLiveInsights(
   orders: Order[],
   products: Product[]
 ): Promise<LiveInsights> {
   requireDatabaseUrl();
   const now = Date.now();
-  const thirtyMinAgo = new Date(now - 30 * 60 * 1000);
   const sevenDaysAgo = new Date(now - 7 * 24 * 60 * 60 * 1000);
   const fourteenDaysAgo = new Date(now - 14 * 24 * 60 * 60 * 1000);
+  const rangeStarts = trafficRangeStarts();
+  const historySince = new Date(
+    Math.min(rangeStarts.week.getTime(), rangeStarts.month.getTime())
+  );
   const nameBySlug = new Map(products.map((p) => [p.slug, p.nameTr]));
   const productBySlug = new Map(products.map((p) => [p.slug, p]));
 
-  const [liveViews, weekSessions, productViews] = await Promise.all([
+  const [historyViews, weekSessions, productViews] = await Promise.all([
     prisma.analyticsEvent.findMany({
-      where: { type: "page_view", createdAt: { gte: thirtyMinAgo } },
-      select: { path: true, visitorId: true, city: true, country: true },
+      where: { type: "page_view", createdAt: { gte: historySince } },
+      select: {
+        path: true,
+        visitorId: true,
+        city: true,
+        country: true,
+        createdAt: true,
+      },
     }),
     prisma.analyticsSession.findMany({
       where: { startedAt: { gte: sevenDaysAgo } },
@@ -593,54 +705,27 @@ async function buildLiveInsights(
     }),
   ]);
 
-  const pageMap = new Map<
-    string,
-    { views: number; visitors: Set<string> }
-  >();
-  const liveVisitors = new Set<string>();
-  for (const row of liveViews) {
-    const path = row.path || "/";
-    const bucket = pageMap.get(path) ?? { views: 0, visitors: new Set() };
-    bucket.views += 1;
-    if (row.visitorId) {
-      bucket.visitors.add(row.visitorId);
-      liveVisitors.add(row.visitorId);
-    }
-    pageMap.set(path, bucket);
+  const rangeAggs: Record<TrafficRangeKey, TrafficAgg> = {
+    live: emptyTrafficAgg(),
+    day: emptyTrafficAgg(),
+    week: emptyTrafficAgg(),
+    month: emptyTrafficAgg(),
+  };
+  for (const row of historyViews) {
+    const at = row.createdAt.getTime();
+    if (at >= rangeStarts.month.getTime()) addTrafficEvent(rangeAggs.month, row);
+    if (at >= rangeStarts.week.getTime()) addTrafficEvent(rangeAggs.week, row);
+    if (at >= rangeStarts.day.getTime()) addTrafficEvent(rangeAggs.day, row);
+    if (at >= rangeStarts.live.getTime()) addTrafficEvent(rangeAggs.live, row);
   }
-  const pages = [...pageMap.entries()]
-    .map(([path, bucket]) => ({
-      path,
-      label: describeStorePath(path, nameBySlug),
-      views: bucket.views,
-      visitors: bucket.visitors.size,
-    }))
-    .sort((a, b) => b.views - a.views)
-    .slice(0, 8);
-
-  const cityMap = new Map<
-    string,
-    { city: string; country: string; views: number; visitors: Set<string> }
-  >();
-  for (const row of liveViews) {
-    const city = (row.city || "Bilinmiyor").trim() || "Bilinmiyor";
-    const country = (row.country || "Bilinmiyor").trim() || "Bilinmiyor";
-    const key = `${city}|${country}`;
-    const bucket =
-      cityMap.get(key) ?? { city, country, views: 0, visitors: new Set() };
-    bucket.views += 1;
-    if (row.visitorId) bucket.visitors.add(row.visitorId);
-    cityMap.set(key, bucket);
-  }
-  const cities = [...cityMap.values()]
-    .map((bucket) => ({
-      city: bucket.city,
-      country: bucket.country,
-      views: bucket.views,
-      visitors: bucket.visitors.size,
-    }))
-    .sort((a, b) => b.visitors - a.visitors || b.views - a.views)
-    .slice(0, 8);
+  const ranges: Record<TrafficRangeKey, TrafficRangeSnapshot> = {
+    live: finalizeTrafficAgg(rangeAggs.live, nameBySlug),
+    day: finalizeTrafficAgg(rangeAggs.day, nameBySlug),
+    week: finalizeTrafficAgg(rangeAggs.week, nameBySlug),
+    month: finalizeTrafficAgg(rangeAggs.month, nameBySlug),
+  };
+  const pages = ranges.live.pages;
+  const cities = ranges.live.cities;
 
   const ended = weekSessions.filter((s) => s.endedAt);
   const bounced = ended.filter((s) => s.pageViews <= 1);
@@ -660,7 +745,7 @@ async function buildLiveInsights(
       count,
     }))
     .sort((a, b) => b.count - a.count)
-    .slice(0, 6);
+    .slice(0, 20);
 
   const sourceSessionCounts = new Map<string, number>();
   for (const session of weekSessions) {
@@ -782,10 +867,11 @@ async function buildLiveInsights(
     .slice(0, 8);
 
   return {
-    activeVisitors: liveVisitors.size,
-    viewsLast30m: liveViews.length,
+    activeVisitors: ranges.live.visitors,
+    viewsLast30m: ranges.live.views,
     pages,
     cities,
+    ranges,
     bounceRate,
     bouncedSessions: bounced.length,
     endedSessions: ended.length,

@@ -55,6 +55,15 @@ type AnalyticsData = {
     endedSessions: number;
     pages: { path: string; label: string; views: number; visitors: number }[];
     cities: { city: string; country: string; visitors: number; views: number }[];
+    ranges?: Record<
+      "live" | "day" | "week" | "month",
+      {
+        visitors: number;
+        views: number;
+        pages: { path: string; label: string; views: number; visitors: number }[];
+        cities: { city: string; country: string; visitors: number; views: number }[];
+      }
+    >;
     exits: { path: string; label: string; count: number }[];
     sources: {
       source: string;

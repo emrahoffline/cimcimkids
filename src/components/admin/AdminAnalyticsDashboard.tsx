@@ -1,5 +1,6 @@
 "use client";
 
+import { useMemo, useState } from "react";
 import Image from "next/image";
 import {
   BarChart3,
@@ -14,6 +15,8 @@ import {
 } from "lucide-react";
 import { formatPrice } from "@/lib/products";
 import { trafficSourceLabel } from "@/lib/analytics-traffic";
+
+type TrafficRangeKey = "live" | "day" | "week" | "month";
 
 type AnalyticsData = {
   salesChart: {
@@ -80,8 +83,112 @@ type AnalyticsData = {
       views: number;
       sold: number;
     }[];
+    ranges?: Record<
+      TrafficRangeKey,
+      {
+        visitors: number;
+        views: number;
+        pages: { path: string; label: string; views: number; visitors: number }[];
+        cities: {
+          city: string;
+          country: string;
+          visitors: number;
+          views: number;
+        }[];
+      }
+    >;
   };
 };
+
+const TRAFFIC_RANGES: {
+  id: TrafficRangeKey;
+  label: string;
+  hint: string;
+}[] = [
+  { id: "live", label: "Canlı", hint: "Son 30 dakika" },
+  { id: "day", label: "Bugün", hint: "Bugün 00:00’dan beri" },
+  { id: "week", label: "7 gün", hint: "Son 7 gün" },
+  { id: "month", label: "Bu ay", hint: "Ayın başından beri" },
+];
+
+const EMPTY_RANGE = {
+  visitors: 0,
+  views: 0,
+  pages: [] as { path: string; label: string; views: number; visitors: number }[],
+  cities: [] as {
+    city: string;
+    country: string;
+    visitors: number;
+    views: number;
+  }[],
+};
+
+function TrafficStatList({
+  title,
+  empty,
+  rows,
+}: {
+  title: string;
+  empty: string;
+  rows: {
+    key: string;
+    label: string;
+    sub?: string;
+    visitors: number;
+    views: number;
+  }[];
+}) {
+  return (
+    <div className="min-w-0">
+      <p className="mb-2 text-xs font-medium uppercase tracking-wide text-gray-500">
+        {title}
+        {rows.length > 0 ? (
+          <span className="ml-1 font-normal normal-case text-gray-400">
+            ({rows.length})
+          </span>
+        ) : null}
+      </p>
+      {rows.length === 0 ? (
+        <p className="text-sm text-gray-400">{empty}</p>
+      ) : (
+        <div className="max-h-72 overflow-y-auto overscroll-contain sm:max-h-80">
+          <div className="hidden grid-cols-[minmax(0,1fr)_4.5rem_5.5rem] gap-2 pb-2 text-xs text-gray-500 sm:grid">
+            <span>{title === "Şehirler" ? "Şehir" : "Sayfa"}</span>
+            <span className="text-right">Kişi</span>
+            <span className="text-right">Görüntüleme</span>
+          </div>
+          <ul className="divide-y divide-gray-100">
+            {rows.map((row) => (
+              <li
+                key={row.key}
+                className="grid grid-cols-1 gap-1 py-2.5 sm:grid-cols-[minmax(0,1fr)_4.5rem_5.5rem] sm:items-start sm:gap-2"
+              >
+                <div className="min-w-0">
+                  <p className="break-words text-sm font-medium leading-snug text-gray-800">
+                    {row.label}
+                  </p>
+                  {row.sub ? (
+                    <p className="break-words text-xs text-gray-400">{row.sub}</p>
+                  ) : null}
+                </div>
+                <div className="flex gap-4 text-xs tabular-nums text-gray-500 sm:contents">
+                  <p className="sm:pt-0.5 sm:text-right sm:text-sm sm:text-gray-600">
+                    <span className="sm:hidden">{row.visitors} kişi</span>
+                    <span className="hidden sm:inline">{row.visitors}</span>
+                  </p>
+                  <p className="sm:pt-0.5 sm:text-right sm:text-sm sm:text-gray-600">
+                    <span className="sm:hidden">{row.views} görünt.</span>
+                    <span className="hidden sm:inline">{row.views}</span>
+                  </p>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </div>
+  );
+}
 
 function formatDuration(seconds: number) {
   if (seconds < 60) return `${seconds} sn`;
@@ -193,6 +300,7 @@ function RankList({
 }
 
 export function AdminAnalyticsDashboard({ data }: { data: AnalyticsData }) {
+  const [trafficRange, setTrafficRange] = useState<TrafficRangeKey>("live");
   const live = data.live ?? {
     activeVisitors: 0,
     viewsLast30m: 0,
@@ -204,7 +312,49 @@ export function AdminAnalyticsDashboard({ data }: { data: AnalyticsData }) {
     exits: [],
     sources: [],
     viewedNotSold: [],
+    ranges: {
+      live: EMPTY_RANGE,
+      day: EMPTY_RANGE,
+      week: EMPTY_RANGE,
+      month: EMPTY_RANGE,
+    },
   };
+  const ranges = live.ranges ?? {
+    live: {
+      visitors: live.activeVisitors,
+      views: live.viewsLast30m,
+      pages: live.pages,
+      cities: live.cities,
+    },
+    day: EMPTY_RANGE,
+    week: EMPTY_RANGE,
+    month: EMPTY_RANGE,
+  };
+  const snapshot = ranges[trafficRange] ?? EMPTY_RANGE;
+  const rangeMeta =
+    TRAFFIC_RANGES.find((item) => item.id === trafficRange) ?? TRAFFIC_RANGES[0];
+  const stayRate = Math.max(0, 100 - live.bounceRate);
+  const pageRows = useMemo(
+    () =>
+      snapshot.pages.map((row) => ({
+        key: row.path,
+        label: row.label,
+        visitors: row.visitors,
+        views: row.views,
+      })),
+    [snapshot.pages]
+  );
+  const cityRows = useMemo(
+    () =>
+      snapshot.cities.map((row) => ({
+        key: `${row.city}-${row.country}`,
+        label: row.city,
+        sub: row.country,
+        visitors: row.visitors,
+        views: row.views,
+      })),
+    [snapshot.cities]
+  );
   const kpis = [
     {
       label: "14 Günlük Satış",
@@ -293,143 +443,122 @@ export function AdminAnalyticsDashboard({ data }: { data: AnalyticsData }) {
         ))}
       </div>
 
-      <div className="admin-card p-4 sm:p-5">
-        <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
-          <div>
-            <h2 className="flex items-center gap-2 text-base font-semibold text-gray-900 sm:text-lg">
-              <Radio className="h-5 w-5 shrink-0 text-olive" />
-              Canlı trafik
-            </h2>
-            <p className="text-sm text-gray-500">
-              Son 30 dakika · 15 sn’de bir yenilenir
+      <div className="admin-card min-w-0 p-4 sm:p-5">
+        <div className="mb-4 flex flex-col gap-3">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+            <div className="min-w-0">
+              <h2 className="flex items-center gap-2 text-base font-semibold text-gray-900 sm:text-lg">
+                <Radio className="h-5 w-5 shrink-0 text-olive" />
+                Canlı trafik
+              </h2>
+              <p className="text-sm text-gray-500">
+                {rangeMeta.hint}
+                {trafficRange === "live" ? " · 15 sn’de bir yenilenir" : ""}
+              </p>
+            </div>
+            <p className="shrink-0 text-sm text-gray-600">
+              <span className="font-semibold text-olive">{snapshot.visitors}</span>{" "}
+              kişi · {snapshot.views} görüntüleme
             </p>
           </div>
-          <p className="text-sm text-gray-600">
-            <span className="font-semibold text-olive">
-              {live.activeVisitors}
-            </span>{" "}
-            aktif · {live.viewsLast30m} görüntüleme
-          </p>
+          <div className="-mx-1 flex gap-1 overflow-x-auto px-1 pb-0.5">
+            {TRAFFIC_RANGES.map((item) => {
+              const active = item.id === trafficRange;
+              return (
+                <button
+                  key={item.id}
+                  type="button"
+                  aria-pressed={active}
+                  onClick={() => setTrafficRange(item.id)}
+                  className={`shrink-0 rounded-full px-3 py-1.5 text-sm font-medium transition ${
+                    active
+                      ? "bg-olive text-white"
+                      : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                  }`}
+                >
+                  {item.label}
+                </button>
+              );
+            })}
+          </div>
         </div>
-        {live.pages.length === 0 && live.cities.length === 0 ? (
+        {snapshot.pages.length === 0 && snapshot.cities.length === 0 ? (
           <p className="py-6 text-center text-sm text-gray-400">
-            Son 30 dakikada sayfa görüntüleme yok
+            Bu dönemde sayfa görüntüleme yok
           </p>
         ) : (
           <div className="grid gap-6 lg:grid-cols-2">
-            <div className="overflow-x-auto">
-              <p className="mb-2 text-xs font-medium uppercase tracking-wide text-gray-500">
-                Sayfalar
-              </p>
-              {live.pages.length === 0 ? (
-                <p className="text-sm text-gray-400">Veri yok</p>
-              ) : (
-                <table className="min-w-full text-left text-sm">
-                  <thead>
-                    <tr className="text-xs text-gray-500">
-                      <th className="pb-2 font-medium">Sayfa</th>
-                      <th className="pb-2 text-right font-medium">Kişi</th>
-                      <th className="pb-2 text-right font-medium">Görüntüleme</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {live.pages.map((row) => (
-                      <tr key={row.path} className="border-t border-gray-100">
-                        <td className="py-2 pr-3 font-medium text-gray-800">
-                          {row.label}
-                        </td>
-                        <td className="py-2 text-right tabular-nums text-gray-600">
-                          {row.visitors}
-                        </td>
-                        <td className="py-2 text-right tabular-nums text-gray-600">
-                          {row.views}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              )}
-            </div>
-            <div className="overflow-x-auto">
-              <p className="mb-2 text-xs font-medium uppercase tracking-wide text-gray-500">
-                Şehirler
-              </p>
-              {live.cities.length === 0 ? (
-                <p className="text-sm text-gray-400">Veri yok</p>
-              ) : (
-                <table className="min-w-full text-left text-sm">
-                  <thead>
-                    <tr className="text-xs text-gray-500">
-                      <th className="pb-2 font-medium">Şehir</th>
-                      <th className="pb-2 text-right font-medium">Kişi</th>
-                      <th className="pb-2 text-right font-medium">Görüntüleme</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {live.cities.map((row) => (
-                      <tr
-                        key={`${row.city}-${row.country}`}
-                        className="border-t border-gray-100"
-                      >
-                        <td className="py-2 pr-3 font-medium text-gray-800">
-                          {row.city}
-                          <span className="block text-xs font-normal text-gray-400 sm:ml-1 sm:inline sm:text-sm sm:text-gray-500">
-                            {row.country}
-                          </span>
-                        </td>
-                        <td className="py-2 text-right tabular-nums text-gray-600">
-                          {row.visitors}
-                        </td>
-                        <td className="py-2 text-right tabular-nums text-gray-600">
-                          {row.views}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              )}
-            </div>
+            <TrafficStatList
+              title="Sayfalar"
+              empty="Sayfa verisi yok"
+              rows={pageRows}
+            />
+            <TrafficStatList
+              title="Şehirler"
+              empty="Şehir verisi yok"
+              rows={cityRows}
+            />
           </div>
         )}
       </div>
 
-      <div className="grid gap-4 sm:gap-6 lg:grid-cols-2">
-        <div className="admin-card p-4 sm:p-5">
+      <div className="grid min-w-0 gap-4 sm:gap-6 lg:grid-cols-2">
+        <div className="admin-card min-w-0 p-4 sm:p-5">
           <h2 className="text-base font-semibold text-gray-900 sm:text-lg">
             Sitede kalma / çıkış
           </h2>
           <p className="mt-1 text-sm text-gray-500">Son 7 gün</p>
-          <p className="mt-3 text-2xl font-semibold text-gray-900">
-            %{live.bounceRate}
-          </p>
-          <p className="text-sm text-gray-500">
-            tek sayfada çıkış oranı · {live.bouncedSessions}/
-            {live.endedSessions} oturum
+          <div className="mt-4 grid grid-cols-2 gap-2 sm:gap-3">
+            <div className="rounded-xl bg-emerald-50 px-3 py-3">
+              <p className="text-[11px] font-medium uppercase tracking-wide text-emerald-700">
+                Sitede kaldı
+              </p>
+              <p className="mt-1 text-2xl font-semibold tabular-nums text-emerald-800">
+                %{stayRate}
+              </p>
+              <p className="mt-1 break-words text-xs leading-snug text-emerald-700/80">
+                {Math.max(0, live.endedSessions - live.bouncedSessions)} oturum
+              </p>
+            </div>
+            <div className="rounded-xl bg-rose-50 px-3 py-3">
+              <p className="text-[11px] font-medium uppercase tracking-wide text-rose-700">
+                Tek sayfada çıktı
+              </p>
+              <p className="mt-1 text-2xl font-semibold tabular-nums text-rose-800">
+                %{live.bounceRate}
+              </p>
+              <p className="mt-1 break-words text-xs leading-snug text-rose-700/80">
+                {live.bouncedSessions}/{live.endedSessions} oturum
+              </p>
+            </div>
+          </div>
+          <p className="mt-4 text-xs font-medium uppercase tracking-wide text-gray-500">
+            Çıkış sayfaları
           </p>
           {live.exits.length === 0 ? (
-            <p className="mt-6 text-sm text-gray-400">
+            <p className="mt-2 text-sm text-gray-400">
               Çıkış sayfası henüz birikmedi
             </p>
           ) : (
-            <div className="mt-4 space-y-2">
+            <ul className="mt-2 divide-y divide-gray-100">
               {live.exits.map((row) => (
-                <div
+                <li
                   key={row.path}
-                  className="flex items-center justify-between gap-3 text-sm"
+                  className="flex items-start justify-between gap-3 py-2.5 text-sm"
                 >
-                  <span className="min-w-0 truncate text-gray-800">
+                  <span className="min-w-0 break-words leading-snug text-gray-800">
                     {row.label}
                   </span>
-                  <span className="shrink-0 tabular-nums text-gray-500">
+                  <span className="shrink-0 pt-0.5 tabular-nums text-gray-500">
                     {row.count}
                   </span>
-                </div>
+                </li>
               ))}
-            </div>
+            </ul>
           )}
         </div>
 
-        <div className="admin-card p-4 sm:p-5">
+        <div className="admin-card min-w-0 p-4 sm:p-5">
           <h2 className="text-base font-semibold text-gray-900 sm:text-lg">
             Google’dan gelenler
           </h2>
@@ -444,12 +573,12 @@ export function AdminAnalyticsDashboard({ data }: { data: AnalyticsData }) {
           ) : (
             <div className="mt-4 space-y-3">
               {live.sources.map((row) => (
-                <div key={row.source}>
-                  <div className="flex items-center justify-between gap-2 text-sm">
-                    <span className="font-medium text-gray-800">
+                <div key={row.source} className="min-w-0">
+                  <div className="flex flex-col gap-0.5 sm:flex-row sm:items-baseline sm:justify-between sm:gap-3">
+                    <span className="break-words font-medium text-gray-800">
                       {trafficSourceLabel(row.source)}
                     </span>
-                    <span className="text-gray-500">
+                    <span className="shrink-0 text-sm text-gray-500">
                       {row.sessions} oturum · {row.orders} sipariş
                     </span>
                   </div>
