@@ -8,7 +8,11 @@ import {
   needsInseamSize,
   specValue,
 } from "./product-specs";
-import { absoluteUrl, canonicalUrl, SITE_NAME, SITE_ORIGIN } from "./seo";
+import { absoluteUrl, SITE_NAME, SITE_ORIGIN } from "./seo";
+import {
+  GOOGLE_MERCHANT_REGION,
+  merchantProductUrl,
+} from "./google-merchant-regions";
 
 function xmlEscape(value: string): string {
   return value
@@ -93,7 +97,7 @@ function itemXml(product: Product): string {
   xml += tag("g:id", product.code || product.id);
   xml += tag("g:title", name);
   xml += tag("g:description", description);
-  xml += tag("g:link", canonicalUrl(locale, `/products/${product.slug}`));
+  xml += tag("g:link", merchantProductUrl(locale, product.slug));
   xml += tag("g:image_link", images[0] || absoluteUrl("/images/hero1.png"));
   for (const src of extraImages) {
     xml += tag("g:additional_image_link", src);
@@ -123,17 +127,48 @@ function itemXml(product: Product): string {
   return xml;
 }
 
-export function buildGoogleMerchantFeed(products: Product[]): string {
-  const items = products.map(itemXml).join("");
+function regionalItemXml(product: Product, regionId: string): string {
+  let xml = "    <item>\n";
+  xml += tag("g:id", product.code || product.id);
+  xml += tag("g:region_id", regionId);
+  xml += tag("g:availability", product.inStock ? "in_stock" : "out_of_stock");
+  if (isOnSale(product) && product.compareAtPrice) {
+    xml += tag("g:price", money(product.compareAtPrice));
+    xml += tag("g:sale_price", money(product.price));
+  } else {
+    xml += tag("g:price", money(product.price));
+  }
+  xml += "    </item>\n";
+  return xml;
+}
+
+function rssFeed(title: string, description: string, items: string): string {
   return (
     `<?xml version="1.0" encoding="UTF-8"?>\n` +
     `<rss version="2.0" xmlns:g="http://base.google.com/ns/1.0">\n` +
     `  <channel>\n` +
-    `    <title>${xmlEscape(SITE_NAME)}</title>\n` +
+    `    <title>${xmlEscape(title)}</title>\n` +
     `    <link>${xmlEscape(SITE_ORIGIN)}</link>\n` +
-    `    <description>${xmlEscape("Cimcim Kids çocuk giyim ürünleri")}</description>\n` +
+    `    <description>${xmlEscape(description)}</description>\n` +
     items +
     `  </channel>\n` +
     `</rss>\n`
+  );
+}
+
+export function buildGoogleMerchantFeed(products: Product[]): string {
+  return rssFeed(
+    SITE_NAME,
+    "Cimcim Kids çocuk giyim ürünleri",
+    products.map(itemXml).join("")
+  );
+}
+
+export function buildGoogleMerchantRegionalFeed(products: Product[]): string {
+  const regionId = GOOGLE_MERCHANT_REGION.id;
+  return rssFeed(
+    `${SITE_NAME} ${GOOGLE_MERCHANT_REGION.name}`,
+    "Cimcim Kids bölgesel stok ve fiyat",
+    products.map((product) => regionalItemXml(product, regionId)).join("")
   );
 }
