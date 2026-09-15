@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 import type { StoryGroup } from "@/lib/stories";
-import { isStoryVideo } from "@/lib/stories";
 import { StoryViewer } from "./StoryViewer";
+import { StoryMediaThumb } from "./StoryMediaThumb";
 
 export function StoriesRail({ groups }: { groups: StoryGroup[] }) {
   const [openId, setOpenId] = useState<string | null>(null);
@@ -27,22 +27,10 @@ export function StoriesRail({ groups }: { groups: StoryGroup[] }) {
               >
                 <span className="rounded-full bg-gradient-to-br from-bamboo to-olive p-[2px]">
                   <span className="block overflow-hidden rounded-full bg-white p-[2px]">
-                    {isStoryVideo(cover.mediaUrl) ? (
-                      <video
-                        src={cover.mediaUrl}
-                        muted
-                        playsInline
-                        preload="metadata"
-                        className="h-14 w-14 rounded-full object-cover"
-                      />
-                    ) : (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={cover.mediaUrl}
-                        alt=""
-                        className="h-14 w-14 rounded-full object-cover"
-                      />
-                    )}
+                    <StoryMediaThumb
+                      src={cover.mediaUrl}
+                      className="h-14 w-14 rounded-full object-cover"
+                    />
                   </span>
                 </span>
                 <span className="w-full truncate text-center text-[11px] font-medium text-slate-600">

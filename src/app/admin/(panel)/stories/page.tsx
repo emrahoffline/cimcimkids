@@ -4,7 +4,8 @@ import { useEffect, useRef, useState } from "react";
 import { Trash2, ArrowUp, ArrowDown, Pencil } from "lucide-react";
 import { AdminHeader } from "@/components/admin/AdminHeader";
 import type { StoryItem } from "@/lib/types";
-import { groupStories, isStoryVideo, type StoryGroup } from "@/lib/stories";
+import { groupStories, type StoryGroup } from "@/lib/stories";
+import { StoryMediaThumb } from "@/components/StoryMediaThumb";
 
 type EditState =
   | { type: "slide"; item: StoryItem }
@@ -342,12 +343,10 @@ export default function AdminStoriesPage() {
                       key={url}
                       className="relative h-20 w-20 overflow-hidden rounded-lg border bg-gray-50"
                     >
-                      {isStoryVideo(url) ? (
-                        <video src={url} className="h-full w-full object-cover" muted />
-                      ) : (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img src={url} alt="" className="h-full w-full object-cover" />
-                      )}
+                      <StoryMediaThumb
+                        src={url}
+                        className="h-full w-full object-cover"
+                      />
                       <button
                         type="button"
                         className="absolute right-1 top-1 rounded bg-red-500 px-1 text-[10px] text-white"
@@ -470,20 +469,10 @@ export default function AdminStoriesPage() {
                 {group.items.map((item) => (
                   <div key={item.id} className="flex gap-3 px-4 py-3">
                     <div className="h-16 w-16 shrink-0 overflow-hidden rounded-lg bg-gray-100">
-                      {isStoryVideo(item.mediaUrl) ? (
-                        <video
-                          src={item.mediaUrl}
-                          className="h-full w-full object-cover"
-                          muted
-                        />
-                      ) : (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
-                          src={item.mediaUrl}
-                          alt=""
-                          className="h-full w-full object-cover"
-                        />
-                      )}
+                      <StoryMediaThumb
+                        src={item.mediaUrl}
+                        className="h-full w-full object-cover"
+                      />
                     </div>
                     <div className="min-w-0 flex-1">
                       <p className="break-all text-xs text-gray-500">
@@ -541,20 +530,10 @@ export default function AdminStoriesPage() {
                       <tr key={item.id}>
                         <td>
                           <div className="h-12 w-12 overflow-hidden rounded-lg bg-gray-100">
-                            {isStoryVideo(item.mediaUrl) ? (
-                              <video
-                                src={item.mediaUrl}
-                                className="h-full w-full object-cover"
-                                muted
-                              />
-                            ) : (
-                              // eslint-disable-next-line @next/next/no-img-element
-                              <img
-                                src={item.mediaUrl}
-                                alt=""
-                                className="h-full w-full object-cover"
-                              />
-                            )}
+                            <StoryMediaThumb
+                              src={item.mediaUrl}
+                              className="h-full w-full object-cover"
+                            />
                           </div>
                         </td>
                         <td className="max-w-[220px] truncate text-xs text-gray-500">

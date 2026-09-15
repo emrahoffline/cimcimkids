@@ -20,7 +20,8 @@ export type StoryGroup = {
 };
 
 export function isStoryVideo(url: string): boolean {
-  return /\.(mp4|webm|mov)(\?|$)/i.test(url);
+  const path = (url || "").split("?")[0].split("#")[0];
+  return /\.(mp4|webm|mov)$/i.test(path) || /\/product-video-/i.test(path);
 }
 
 export function clampStoryDuration(value: unknown): number {

@@ -162,7 +162,9 @@ export function StoryViewer({ groups, startGroupId, onClose }: Props) {
             src={item.mediaUrl}
             className="h-full w-full object-contain"
             autoPlay
+            muted
             playsInline
+            preload="auto"
             onTimeUpdate={(e) => {
               const el = e.currentTarget;
               if (el.duration) setProgress(el.currentTime / el.duration);
