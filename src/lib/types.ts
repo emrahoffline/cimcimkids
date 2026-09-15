@@ -56,6 +56,8 @@ export type Product = {
   /** Available units; storefront uses inStock (= stockQuantity > 0) */
   stockQuantity: number;
   inStock: boolean;
+  /** Storefront / vitrin order; 0 is first */
+  sortOrder?: number;
   createdAt?: string;
   updatedAt?: string;
 };

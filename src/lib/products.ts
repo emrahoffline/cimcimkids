@@ -12,6 +12,8 @@ export {
   isProductSort,
   productAddedAt,
   sortProducts,
+  arrayMove,
+  withProductOrder,
   type ProductSort,
 } from "./product-sort";
 export {

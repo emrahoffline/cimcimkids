@@ -1,10 +1,19 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type PointerEvent } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { AdminHeader } from "@/components/admin/AdminHeader";
-import { Plus, Pencil, Search, Trash2, ArrowUp, ArrowDown, ArrowUpDown } from "lucide-react";
+import {
+  Plus,
+  Pencil,
+  Search,
+  Trash2,
+  ArrowUp,
+  ArrowDown,
+  ArrowUpDown,
+  GripVertical,
+} from "lucide-react";
 import type { Product, Category } from "@/lib/types";
 import { formatPrice } from "@/lib/products";
 import {
@@ -12,6 +21,8 @@ import {
   isProductSort,
   productAddedAt,
   sortProducts,
+  arrayMove,
+  withProductOrder,
   type ProductSort,
 } from "@/lib/product-sort";
 import { isUploadedProductImage } from "@/lib/image-utils";
@@ -41,6 +52,33 @@ function SortGlyph({
   );
 }
 
+function GripHandle({
+  disabled,
+  onPointerDown,
+  onPointerMove,
+  onPointerUp,
+}: {
+  disabled?: boolean;
+  onPointerDown: (event: PointerEvent<HTMLButtonElement>) => void;
+  onPointerMove: (event: PointerEvent<HTMLButtonElement>) => void;
+  onPointerUp: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      disabled={disabled}
+      onPointerDown={onPointerDown}
+      onPointerMove={onPointerMove}
+      onPointerUp={onPointerUp}
+      onPointerCancel={onPointerUp}
+      className="inline-flex min-h-[40px] min-w-[40px] touch-none cursor-grab items-center justify-center rounded-lg text-gray-400 hover:bg-gray-100 hover:text-gray-600 active:cursor-grabbing disabled:cursor-not-allowed disabled:opacity-30"
+      aria-label="Sırayı değiştir"
+    >
+      <GripVertical className="h-5 w-5" />
+    </button>
+  );
+}
+
 function productMatches(
   product: Product,
   query: string,
@@ -66,7 +104,11 @@ export default function AdminProductsPage() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState("");
-  const [sort, setSort] = useState<ProductSort>("newest");
+  const [sort, setSort] = useState<ProductSort>("manual");
+  const [dragId, setDragId] = useState<string | null>(null);
+  const dragIdRef = useRef<string | null>(null);
+  const productsRef = useRef(products);
+  productsRef.current = products;
 
   const load = () => {
     Promise.all([
@@ -89,6 +131,53 @@ export default function AdminProductsPage() {
   }, [products, query, categories]);
 
   const sorted = useMemo(() => sortProducts(filtered, sort), [filtered, sort]);
+  const canReorder = sort === "manual" && !fold(query);
+
+  const persistOrder = async (next: Product[]) => {
+    const ordered = withProductOrder(next);
+    setProducts(ordered);
+    const res = await fetch("/api/admin/products", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ids: ordered.map((p) => p.id) }),
+    });
+    if (!res.ok) load();
+  };
+
+  const moveRow = (from: number, to: number) => {
+    if (!canReorder) return;
+    void persistOrder(arrayMove(products, from, to));
+  };
+
+  const onGripPointerDown = (event: PointerEvent<HTMLButtonElement>, id: string) => {
+    if (!canReorder) return;
+    event.preventDefault();
+    event.currentTarget.setPointerCapture(event.pointerId);
+    dragIdRef.current = id;
+    setDragId(id);
+  };
+
+  const onGripPointerMove = (event: PointerEvent<HTMLButtonElement>) => {
+    const id = dragIdRef.current;
+    if (!id) return;
+    const node = document.elementFromPoint(event.clientX, event.clientY);
+    const row = node?.closest("[data-product-id]") as HTMLElement | null;
+    const overId = row?.dataset.productId;
+    if (!overId || overId === id) return;
+    setProducts((prev) => {
+      const from = prev.findIndex((p) => p.id === id);
+      const to = prev.findIndex((p) => p.id === overId);
+      if (from < 0 || to < 0 || from === to) return prev;
+      return arrayMove(prev, from, to);
+    });
+  };
+
+  const onGripPointerUp = () => {
+    if (!dragIdRef.current) return;
+    dragIdRef.current = null;
+    setDragId(null);
+    void persistOrder(productsRef.current);
+  };
 
   const toggleSort = (primary: ProductSort, secondary: ProductSort) => {
     setSort((current) => (current === primary ? secondary : primary));
@@ -107,7 +196,7 @@ export default function AdminProductsPage() {
   return (
     <>
       <AdminHeader title="Ürünler" />
-      <main className="admin-main">
+      <main className={`admin-main ${dragId ? "select-none" : ""}`}>
         <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <label className="relative min-w-0 flex-1 sm:max-w-md">
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
@@ -144,6 +233,11 @@ export default function AdminProductsPage() {
             </Link>
           </div>
         </div>
+        <p className="mb-3 text-sm text-gray-500">
+          {canReorder
+            ? "Ürünü tutamacından tutup yukarı/aşağı sürükleyerek vitrin sırasını değiştirin."
+            : "Sırayı sürüklemek için aramayı temizleyip “Vitrin sırası”nı seçin."}
+        </p>
 
         <div className="admin-card overflow-hidden">
           {loading ? (
@@ -157,8 +251,20 @@ export default function AdminProductsPage() {
           ) : (
             <>
               <div className="divide-y divide-gray-100 md:hidden">
-                {sorted.map((p) => (
-                  <div key={p.id} className="flex gap-3 px-4 py-3">
+                {sorted.map((p, index) => (
+                  <div
+                    key={p.id}
+                    data-product-id={p.id}
+                    className={`flex gap-3 px-4 py-3 ${
+                      dragId === p.id ? "pointer-events-none bg-olive/5 opacity-60" : ""
+                    }`}
+                  >
+                    <GripHandle
+                      disabled={!canReorder}
+                      onPointerDown={(event) => onGripPointerDown(event, p.id)}
+                      onPointerMove={onGripPointerMove}
+                      onPointerUp={onGripPointerUp}
+                    />
                     <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-lg bg-gray-100">
                       <Image
                         src={p.image}
@@ -201,6 +307,24 @@ export default function AdminProductsPage() {
                           : "Tükendi"}
                       </span>
                       <div className="mt-2 flex items-center gap-1">
+                        <button
+                          type="button"
+                          onClick={() => moveRow(index, index - 1)}
+                          disabled={!canReorder || index === 0}
+                          className="inline-flex min-h-[40px] min-w-[40px] items-center justify-center rounded-lg text-gray-500 hover:bg-gray-100 disabled:opacity-30"
+                          aria-label="Yukarı"
+                        >
+                          <ArrowUp className="h-4 w-4" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => moveRow(index, index + 1)}
+                          disabled={!canReorder || index === sorted.length - 1}
+                          className="inline-flex min-h-[40px] min-w-[40px] items-center justify-center rounded-lg text-gray-500 hover:bg-gray-100 disabled:opacity-30"
+                          aria-label="Aşağı"
+                        >
+                          <ArrowDown className="h-4 w-4" />
+                        </button>
                         <Link
                           href={`/admin/products/${p.id}`}
                           className="inline-flex min-h-[40px] items-center gap-1.5 rounded-lg px-2.5 text-sm font-medium text-olive hover:bg-olive/10"
@@ -224,6 +348,7 @@ export default function AdminProductsPage() {
               <table className="admin-table w-full">
                 <thead>
                   <tr>
+                    <th className="w-12" aria-label="Sıra" />
                     <th>
                       <button
                         type="button"
@@ -283,8 +408,22 @@ export default function AdminProductsPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {sorted.map((p) => (
-                    <tr key={p.id}>
+                  {sorted.map((p, index) => (
+                    <tr
+                      key={p.id}
+                      data-product-id={p.id}
+                      className={
+                        dragId === p.id ? "pointer-events-none bg-olive/5 opacity-60" : ""
+                      }
+                    >
+                      <td>
+                        <GripHandle
+                          disabled={!canReorder}
+                          onPointerDown={(event) => onGripPointerDown(event, p.id)}
+                          onPointerMove={onGripPointerMove}
+                          onPointerUp={onGripPointerUp}
+                        />
+                      </td>
                       <td>
                         <div className="flex items-center gap-3">
                           <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-lg">
@@ -342,6 +481,24 @@ export default function AdminProductsPage() {
                       </td>
                       <td>
                         <div className="flex items-center gap-1">
+                          <button
+                            type="button"
+                            onClick={() => moveRow(index, index - 1)}
+                            disabled={!canReorder || index === 0}
+                            className="inline-flex min-h-[40px] min-w-[40px] items-center justify-center rounded-lg text-gray-500 hover:bg-gray-100 disabled:opacity-30"
+                            aria-label="Yukarı"
+                          >
+                            <ArrowUp className="h-4 w-4" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => moveRow(index, index + 1)}
+                            disabled={!canReorder || index === sorted.length - 1}
+                            className="inline-flex min-h-[40px] min-w-[40px] items-center justify-center rounded-lg text-gray-500 hover:bg-gray-100 disabled:opacity-30"
+                            aria-label="Aşağı"
+                          >
+                            <ArrowDown className="h-4 w-4" />
+                          </button>
                           <Link
                             href={`/admin/products/${p.id}`}
                             className="inline-flex min-h-[40px] items-center gap-1.5 rounded-lg px-2.5 text-sm font-medium text-olive hover:bg-olive/10"

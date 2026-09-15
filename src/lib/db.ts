@@ -157,6 +157,7 @@ function mapProduct(p: DbProduct): Product {
     stockQuantity: p.stockQuantity ?? 0,
     inStock: (p.stockQuantity ?? 0) > 0,
     compareAtPrice: p.compareAtPrice ?? null,
+    sortOrder: p.sortOrder ?? 0,
     createdAt: p.createdAt.toISOString(),
     updatedAt: p.updatedAt.toISOString(),
   };
@@ -299,8 +300,10 @@ export async function getProducts(): Promise<Product[]> {
     if (isNextBuild()) return [];
     requireDatabaseUrl();
   }
-  const rows = await prisma.product.findMany();
-  return sortProducts(rows.map(mapProduct), "newest");
+  const rows = await prisma.product.findMany({
+    orderBy: [{ sortOrder: "asc" }, { createdAt: "desc" }],
+  });
+  return sortProducts(rows.map(mapProduct), "manual");
 }
 
 export async function saveProducts(products: Product[]): Promise<void> {
@@ -317,6 +320,9 @@ export async function saveProducts(products: Product[]): Promise<void> {
       const ages = normalizeProductAges(p.ages, p.ageRange);
       const colors = p.colors ?? [];
       const price = roundedSalePrice(p);
+      const sortOrder = Number.isFinite(p.sortOrder)
+        ? Math.floor(Number(p.sortOrder))
+        : 0;
       await tx.product.upsert({
         where: { id: p.id },
         create: {
@@ -342,6 +348,7 @@ export async function saveProducts(products: Product[]): Promise<void> {
             Number.isFinite(p.compareAtPrice)
               ? p.compareAtPrice
               : null,
+          sortOrder,
         },
         update: {
           code: p.code,
@@ -365,10 +372,25 @@ export async function saveProducts(products: Product[]): Promise<void> {
             Number.isFinite(p.compareAtPrice)
               ? p.compareAtPrice
               : null,
+          sortOrder,
         },
       });
     }
   });
+}
+
+export async function saveProductOrder(ids: string[]): Promise<void> {
+  requireDatabaseUrl();
+  const unique = [...new Set(ids.filter((id) => typeof id === "string" && id))];
+  if (unique.length === 0) return;
+  await prisma.$transaction(
+    unique.map((id, index) =>
+      prisma.product.update({
+        where: { id },
+        data: { sortOrder: index },
+      })
+    )
+  );
 }
 
 export async function getCategories(): Promise<Category[]> {

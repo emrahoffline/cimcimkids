@@ -1,6 +1,7 @@
 import type { Product } from "./types";
 
 export const PRODUCT_SORTS = [
+  { id: "manual", label: "Vitrin sırası" },
   { id: "newest", label: "En yeni" },
   { id: "oldest", label: "En eski" },
   { id: "name-asc", label: "İsim (A-Z)" },
@@ -33,7 +34,7 @@ export function productAddedAt(product: Pick<Product, "id" | "createdAt">) {
 
 export function sortProducts(
   products: Product[],
-  sort: ProductSort = "newest"
+  sort: ProductSort = "manual"
 ): Product[] {
   const list = [...products];
   const name = (p: Product) => p.nameTr || p.nameEn || "";
@@ -54,9 +55,35 @@ export function sortProducts(
       case "stock-desc":
         return (b.stockQuantity ?? 0) - (a.stockQuantity ?? 0);
       case "newest":
-      default:
         return productAddedAt(b) - productAddedAt(a) || b.id.localeCompare(a.id);
+      case "manual":
+      default:
+        return (
+          (a.sortOrder ?? 0) - (b.sortOrder ?? 0) ||
+          productAddedAt(b) - productAddedAt(a) ||
+          a.id.localeCompare(b.id)
+        );
     }
   });
   return list;
+}
+
+export function arrayMove<T>(items: T[], from: number, to: number): T[] {
+  if (
+    from === to ||
+    from < 0 ||
+    to < 0 ||
+    from >= items.length ||
+    to >= items.length
+  ) {
+    return items;
+  }
+  const next = [...items];
+  const [item] = next.splice(from, 1);
+  next.splice(to, 0, item);
+  return next;
+}
+
+export function withProductOrder(products: Product[]): Product[] {
+  return products.map((product, index) => ({ ...product, sortOrder: index }));
 }

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { requireAdminApi } from "@/lib/admin-api";
-import { getProducts, saveProducts } from "@/lib/db";
+import { getProducts, saveProducts, saveProductOrder } from "@/lib/db";
 import type { Product } from "@/lib/types";
 import { generateProductCode } from "@/lib/product-code";
 import { slugify } from "@/lib/product-utils";
@@ -83,9 +83,51 @@ export async function POST(request: Request) {
     inStock: stockQuantity > 0,
     compareAtPrice: null,
     createdAt: new Date().toISOString(),
+    sortOrder: 0,
   };
 
-  products.push(product);
-  await saveProducts(products);
+  const shifted = products.map((p) => ({
+    ...p,
+    sortOrder: (p.sortOrder ?? 0) + 1,
+  }));
+  await saveProducts([product, ...shifted]);
   return NextResponse.json(product, { status: 201 });
+}
+
+export async function PATCH(request: Request) {
+  const { error } = await requireAdminApi();
+  if (error) return error;
+
+  const body = await request.json().catch(() => null);
+  if (!body || typeof body !== "object") {
+    return NextResponse.json({ error: "Geçersiz istek" }, { status: 400 });
+  }
+
+  const ids = Array.isArray((body as { ids?: unknown }).ids)
+    ? ((body as { ids: unknown[] }).ids.filter(
+        (id) => typeof id === "string" && id
+      ) as string[])
+    : [];
+
+  if (ids.length === 0) {
+    return NextResponse.json({ error: "Sıra listesi boş" }, { status: 400 });
+  }
+
+  const products = await getProducts();
+  const known = new Set(products.map((p) => p.id));
+  const ordered = ids.filter((id) => known.has(id));
+  for (const product of products) {
+    if (!ordered.includes(product.id)) ordered.push(product.id);
+  }
+  if (ordered.length === 0) {
+    return NextResponse.json({ error: "Ürün bulunamadı" }, { status: 404 });
+  }
+
+  try {
+    await saveProductOrder(ordered);
+  } catch {
+    return NextResponse.json({ error: "Sıra kaydedilemedi" }, { status: 400 });
+  }
+
+  return NextResponse.json({ ok: true, ids: ordered });
 }
