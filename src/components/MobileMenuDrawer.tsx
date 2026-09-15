@@ -53,7 +53,7 @@ export function MobileMenuDrawer({ open, onClose }: Props) {
         onClick={onClose}
         aria-label="Close menu"
       />
-      <aside className="mobile-drawer absolute bottom-0 left-0 right-0 flex max-h-[85vh] flex-col rounded-t-3xl bg-gradient-to-b from-white to-[#fff3eb] shadow-2xl">
+      <aside className="mobile-drawer absolute bottom-0 left-0 right-0 flex max-h-[85vh] flex-col rounded-t-3xl bg-white shadow-2xl">
         <div className="flex items-center justify-between border-b border-bamboo/10 px-5 py-4">
           <div className="flex items-center gap-3">
             <BrandName className="font-serif text-lg font-extrabold tracking-tight" />

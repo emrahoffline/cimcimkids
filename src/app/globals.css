@@ -2,8 +2,8 @@
 
 @theme {
   /* CimcimKids UI — light, playful, kids-friendly (BrandName keeps rainbow) */
-  --color-cream: #fffaf5;
-  --color-cream-dark: #fff0e6;
+  --color-cream: #ffffff;
+  --color-cream-dark: #f4f4f5;
   --color-olive: #3db8a8;
   --color-olive-light: #4ecfbd;
   --color-bamboo: #ff8a65;
@@ -38,11 +38,7 @@ html {
 }
 
 body {
-  background-color: var(--color-cream);
-  background-image:
-    radial-gradient(ellipse 70% 45% at 100% 0%, rgba(110, 193, 228, 0.18), transparent 55%),
-    radial-gradient(ellipse 55% 40% at 0% 20%, rgba(61, 184, 168, 0.12), transparent 50%),
-    radial-gradient(ellipse 50% 35% at 50% 100%, rgba(255, 138, 101, 0.1), transparent 55%);
+  background-color: #fff;
   color: #4a5568;
   font-family: var(--font-sans);
   -webkit-tap-highlight-color: transparent;
@@ -149,7 +145,7 @@ h3 {
 }
 
 .btn-secondary {
-  @apply inline-flex min-h-[44px] items-center justify-center gap-2 rounded-full border border-bamboo/30 bg-white px-6 py-3 text-sm font-semibold text-bamboo transition duration-200 active:scale-[0.98] hover:border-bamboo/60 hover:bg-[#fff3eb];
+  @apply inline-flex min-h-[44px] items-center justify-center gap-2 rounded-full border border-bamboo/30 bg-white px-6 py-3 text-sm font-semibold text-bamboo transition duration-200 active:scale-[0.98] hover:border-bamboo/60 hover:bg-slate-50;
 }
 
 .input-field {
@@ -244,7 +240,7 @@ h3 {
 }
 
 .mobile-sticky-bar {
-  @apply fixed bottom-[calc(var(--mobile-nav-height)+env(safe-area-inset-bottom,0px))] left-0 right-0 z-30 border-t border-bamboo/15 bg-gradient-to-t from-[#fff3eb] to-white/95 p-4 backdrop-blur-xl;
+  @apply fixed bottom-[calc(var(--mobile-nav-height)+env(safe-area-inset-bottom,0px))] left-0 right-0 z-30 border-t border-bamboo/15 bg-white p-4;
 }
 
 @media (min-width: 1024px) {

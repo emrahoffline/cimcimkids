@@ -3,17 +3,15 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { useTranslations, useLocale } from "next-intl";
-import { ShoppingBag } from "lucide-react";
+import { useLocale } from "next-intl";
 import type { Product } from "@/lib/types";
 import { getProductName, getProductDesc } from "@/lib/products";
 import { isUploadedProductImage } from "@/lib/image-utils";
 import { getProductAges, getProductImages } from "@/lib/types";
-import { useCartStore } from "@/store/cart";
-import { useCartToastStore } from "@/store/cart-toast";
 import { FavoriteButton } from "./FavoriteButton";
 import { ProductPrice } from "./ProductPrice";
 import { ProductRatingBadge } from "./ProductRatingBadge";
+import { AddToCartButton } from "./AddToCartButton";
 
 export function ProductCard({
   product,
@@ -24,10 +22,7 @@ export function ProductCard({
   priority?: boolean;
   rating?: { average: number; count: number } | null;
 }) {
-  const t = useTranslations("products");
   const locale = useLocale();
-  const addItem = useCartStore((s) => s.addItem);
-  const showToast = useCartToastStore((s) => s.show);
   const images = getProductImages(product);
   const [active, setActive] = useState(0);
   const scrollerRef = useRef<HTMLDivElement>(null);
@@ -50,18 +45,6 @@ export function ProductCard({
     el.addEventListener("scroll", onScroll, { passive: true });
     return () => el.removeEventListener("scroll", onScroll);
   }, [images.length]);
-
-  const handleAdd = (e: React.MouseEvent) => {
-    e.preventDefault();
-    addItem({
-      productId: product.id,
-      slug: product.slug,
-      name,
-      price: product.price,
-      image: images[0] || product.image,
-    });
-    showToast(name);
-  };
 
   return (
     <article className="group flex h-full min-w-0 flex-col overflow-hidden rounded-3xl bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-[0_16px_40px_-16px_rgba(61,184,168,0.35)]">
@@ -137,15 +120,12 @@ export function ProductCard({
         </Link>
         <div className="mt-auto min-w-0 px-3.5 pb-3.5 pt-2 sm:px-4 sm:pb-4 sm:pt-3">
           <ProductPrice product={product} compact />
-          <button
-            onClick={handleAdd}
-            className="btn-primary mt-3 w-full text-xs sm:text-sm"
-            disabled={!product.inStock}
-          >
-            <ShoppingBag className="h-4 w-4" />
-            <span className="hidden sm:inline">{t("addToCart")}</span>
-            <span className="sm:hidden">+</span>
-          </button>
+          <AddToCartButton
+            product={product}
+            name={name}
+            className="mt-3 w-full text-xs sm:text-sm"
+            shortLabel="+"
+          />
         </div>
       </div>
     </article>

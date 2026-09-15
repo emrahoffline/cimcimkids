@@ -40,7 +40,7 @@ export function ProductsGrid({
             className={`shrink-0 rounded-full px-4 py-2.5 text-sm font-medium transition ${
               activeCategory === c.key
                 ? "bg-bamboo text-white"
-                : "bg-white text-slate-600 hover:bg-[#fff3eb]"
+                : "bg-white text-slate-600 hover:bg-slate-50"
             }`}
           >
             {c.label}

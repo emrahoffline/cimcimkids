@@ -272,7 +272,7 @@ export default function CartPage() {
         </Link>
       </div>
 
-      <div className="mobile-sticky-bar border-bamboo/15 bg-gradient-to-t from-[#fff3eb] to-white/95 md:hidden">
+      <div className="mobile-sticky-bar md:hidden">
         <div className="flex items-center justify-between gap-4">
           <div>
             <p className="text-xs text-slate-400">{t("total")}</p>

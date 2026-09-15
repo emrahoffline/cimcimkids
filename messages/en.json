@@ -76,6 +76,8 @@
     "productCode": "Product code",
     "age": "Age",
     "color": "Color",
+    "selectSize": "Select size",
+    "selectSizeHint": "Choose a size to add this to your cart",
     "inStock": "In Stock",
     "outOfStock": "Sold Out",
     "details": "Product details",

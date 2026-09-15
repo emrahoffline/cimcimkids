@@ -62,7 +62,7 @@ function ErrorContent() {
 export default function AuthErrorPage() {
   return (
     <html lang="tr">
-      <body className="bg-cream antialiased">
+      <body className="bg-white antialiased">
         <Suspense fallback={<p className="p-20 text-center">Yükleniyor...</p>}>
           <ErrorContent />
         </Suspense>

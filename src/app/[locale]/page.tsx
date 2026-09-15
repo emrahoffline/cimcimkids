@@ -62,7 +62,7 @@ export default async function HomePage({ params }: Props) {
 
       <StoriesRail groups={storyGroups} />
 
-      <section className="relative w-full overflow-hidden bg-[#f7f3ee]">
+      <section className="relative w-full overflow-hidden bg-white">
         <h1 className="sr-only">{tSeo("homeH1")}</h1>
         <HeroCarousel slides={slides} />
         <div className="flex flex-wrap items-center justify-center gap-3 px-4 py-5 sm:py-6">
@@ -101,7 +101,7 @@ export default async function HomePage({ params }: Props) {
         </div>
       </section>
 
-      <section className="border-y border-olive/10 bg-white/60 py-14 sm:py-16">
+      <section className="border-y border-olive/10 bg-white py-14 sm:py-16">
         <div className="mx-auto grid max-w-5xl gap-10 px-4 sm:grid-cols-2 sm:gap-12 sm:px-6 lg:px-8">
           <div className="flex flex-col items-start gap-3">
             <div className="animate-soft-float flex h-11 w-11 items-center justify-center rounded-2xl bg-olive/15 text-olive">

@@ -76,6 +76,8 @@
     "productCode": "Ürün kodu",
     "age": "Yaş",
     "color": "Renk",
+    "selectSize": "Beden seçin",
+    "selectSizeHint": "Sepete eklemek için beden seçin",
     "inStock": "Stokta",
     "outOfStock": "Tükendi",
     "details": "Ürün ayrıntıları",

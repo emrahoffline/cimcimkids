@@ -25,7 +25,7 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 5,
   viewportFit: "cover",
-  themeColor: "#fffaf5",
+  themeColor: "#ffffff",
 };
 
 // Postgres-backed pages must not be statically prerendered at build time.

@@ -16,7 +16,7 @@ export function Footer() {
   const base = `/${locale}`;
 
   return (
-    <footer className="mt-auto border-t border-bamboo/15 bg-gradient-to-br from-[#fff3eb] via-[#ffe8dc] to-[#ffd9c8] pb-[calc(var(--mobile-nav-height)+env(safe-area-inset-bottom,0px))] text-slate-700 md:pb-0">
+    <footer className="mt-auto border-t border-bamboo/15 bg-white pb-[calc(var(--mobile-nav-height)+env(safe-area-inset-bottom,0px))] text-slate-700 md:pb-0">
       <div className="mx-auto max-w-7xl px-4 py-10 sm:px-6 sm:py-12 lg:px-8">
         <div className="grid grid-cols-2 gap-6 sm:grid-cols-2 sm:gap-10 lg:grid-cols-4">
           <div className="col-span-2 sm:col-span-2 lg:col-span-1">

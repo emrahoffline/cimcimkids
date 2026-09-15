@@ -17,7 +17,7 @@ export function Header() {
   const base = `/${locale}`;
 
   return (
-    <header className="border-b border-olive/10 bg-cream/85 backdrop-blur-xl">
+    <header className="border-b border-olive/10 bg-white">
       <div className="mx-auto flex max-w-7xl items-center justify-between gap-2 px-4 py-3 sm:px-6 lg:px-8">
         <Link href={base} className="flex min-w-0 shrink items-center gap-2">
           <BrandName className="font-serif text-lg font-extrabold tracking-tight sm:text-xl" />

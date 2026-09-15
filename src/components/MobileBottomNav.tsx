@@ -52,7 +52,7 @@ export function MobileBottomNav({ onMenuOpen }: Props) {
 
   return (
     <nav
-      className="mobile-bottom-nav fixed bottom-0 left-0 right-0 z-50 border-t border-bamboo/15 bg-gradient-to-t from-[#fff3eb] to-white/95 backdrop-blur-xl md:hidden"
+      className="mobile-bottom-nav fixed bottom-0 left-0 right-0 z-50 border-t border-bamboo/15 bg-white md:hidden"
       aria-label="Mobile navigation"
     >
       <div className="mx-auto flex max-w-lg items-stretch justify-around px-1">

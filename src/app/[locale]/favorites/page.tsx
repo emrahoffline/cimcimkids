@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useTranslations, useLocale } from "next-intl";
@@ -8,15 +9,118 @@ import { useFavoritesStore } from "@/store/favorites";
 import { useCartStore } from "@/store/cart";
 import { useCartToastStore } from "@/store/cart-toast";
 import { formatPrice } from "@/lib/products";
+import type { Product } from "@/lib/types";
+import { getProductAges } from "@/lib/types";
+import { commitProductToCart } from "@/components/AddToCartButton";
+import { AddToCartSizeSheet } from "@/components/AddToCartSizeSheet";
+
+function FavoritesAddButton({
+  itemId,
+  fallback,
+}: {
+  itemId: string;
+  fallback: {
+    slug: string;
+    name: string;
+    price: number;
+    image: string;
+  };
+}) {
+  const tProducts = useTranslations("products");
+  const locale = useLocale();
+  const [product, setProduct] = useState<Product | null>(null);
+  const [open, setOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  const addFallback = () => {
+    useCartStore.getState().addItem({
+      productId: itemId,
+      slug: fallback.slug,
+      name: fallback.name,
+      price: fallback.price,
+      image: fallback.image,
+    });
+    useCartToastStore.getState().show(fallback.name);
+  };
+
+  const handleClick = async () => {
+    if (loading) return;
+    if (product) {
+      if (getProductAges(product).length > 0) {
+        setOpen(true);
+        return;
+      }
+      commitProductToCart(
+        product,
+        fallback.name,
+        locale,
+        null,
+        product.colors?.[0] ?? null
+      );
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const res = await fetch("/api/products");
+      const list = (await res.json()) as Product[];
+      const found = Array.isArray(list)
+        ? list.find((row) => row.id === itemId)
+        : undefined;
+      if (!found) {
+        addFallback();
+        return;
+      }
+      setProduct(found);
+      if (getProductAges(found).length > 0) {
+        setOpen(true);
+        return;
+      }
+      commitProductToCart(
+        found,
+        fallback.name,
+        locale,
+        null,
+        found.colors?.[0] ?? null
+      );
+    } catch {
+      addFallback();
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <>
+      <button
+        type="button"
+        onClick={handleClick}
+        className="btn-primary text-sm"
+        disabled={loading}
+      >
+        <ShoppingBag className="h-4 w-4" />
+        {tProducts("addToCart")}
+      </button>
+      {product ? (
+        <AddToCartSizeSheet
+          product={product}
+          open={open}
+          onClose={() => setOpen(false)}
+          onPick={(age, color) => {
+            commitProductToCart(product, fallback.name, locale, age, color);
+            setOpen(false);
+          }}
+        />
+      ) : null}
+    </>
+  );
+}
 
 export default function FavoritesPage() {
   const t = useTranslations("favorites");
-  const tProducts = useTranslations("products");
   const tItem = useTranslations("productItems");
   const locale = useLocale();
   const { items, remove } = useFavoritesStore();
-  const addItem = useCartStore((s) => s.addItem);
-  const showToast = useCartToastStore((s) => s.show);
   const base = `/${locale}`;
 
   if (items.length === 0) {
@@ -76,22 +180,15 @@ export default function FavoritesPage() {
                     <Trash2 className="h-4 w-4" />
                     <span className="hidden sm:inline">{t("remove")}</span>
                   </button>
-                  <button
-                    onClick={() => {
-                      addItem({
-                        productId: item.id,
-                        slug: item.slug,
-                        name,
-                        price: item.price,
-                        image: item.image,
-                      });
-                      showToast(name);
+                  <FavoritesAddButton
+                    itemId={item.id}
+                    fallback={{
+                      slug: item.slug,
+                      name,
+                      price: item.price,
+                      image: item.image,
                     }}
-                    className="btn-primary text-sm"
-                  >
-                    <ShoppingBag className="h-4 w-4" />
-                    {tProducts("addToCart")}
-                  </button>
+                  />
                 </div>
               </div>
             </li>
