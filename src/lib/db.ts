@@ -31,6 +31,7 @@ import { isShippingProductId } from "./shipping";
 export type { Announcement, HeroSlide, StoryItem };
 import { slugify } from "./product-utils";
 import { roundedSalePrice } from "./product-discount";
+import { sortProducts } from "./product-sort";
 import { syncAllTimeTotals } from "./analytics-db";
 import { prisma, requireDatabaseUrl, hasDatabaseUrl, isNextBuild } from "./prisma";
 import { normalizeProductImages, parseProductColors } from "./product-variants";
@@ -156,6 +157,7 @@ function mapProduct(p: DbProduct): Product {
     stockQuantity: p.stockQuantity ?? 0,
     inStock: (p.stockQuantity ?? 0) > 0,
     compareAtPrice: p.compareAtPrice ?? null,
+    createdAt: p.createdAt.toISOString(),
     updatedAt: p.updatedAt.toISOString(),
   };
 }
@@ -297,8 +299,8 @@ export async function getProducts(): Promise<Product[]> {
     if (isNextBuild()) return [];
     requireDatabaseUrl();
   }
-  const rows = await prisma.product.findMany({ orderBy: { id: "asc" } });
-  return rows.map(mapProduct);
+  const rows = await prisma.product.findMany();
+  return sortProducts(rows.map(mapProduct), "newest");
 }
 
 export async function saveProducts(products: Product[]): Promise<void> {

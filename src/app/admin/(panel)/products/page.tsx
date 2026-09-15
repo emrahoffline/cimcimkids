@@ -4,13 +4,41 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { AdminHeader } from "@/components/admin/AdminHeader";
-import { Plus, Pencil, Search, Trash2 } from "lucide-react";
+import { Plus, Pencil, Search, Trash2, ArrowUp, ArrowDown, ArrowUpDown } from "lucide-react";
 import type { Product, Category } from "@/lib/types";
 import { formatPrice } from "@/lib/products";
+import {
+  PRODUCT_SORTS,
+  isProductSort,
+  productAddedAt,
+  sortProducts,
+  type ProductSort,
+} from "@/lib/product-sort";
 import { isUploadedProductImage } from "@/lib/image-utils";
 
 function fold(value: string) {
   return value.toLocaleLowerCase("tr-TR").trim();
+}
+
+function formatAddedAt(product: Product) {
+  const ms = productAddedAt(product);
+  if (!ms) return "—";
+  return new Date(ms).toLocaleDateString("tr-TR");
+}
+
+function SortGlyph({
+  active,
+  desc,
+}: {
+  active: boolean;
+  desc?: boolean;
+}) {
+  if (!active) return <ArrowUpDown className="h-3.5 w-3.5 text-gray-300" />;
+  return desc ? (
+    <ArrowDown className="h-3.5 w-3.5 text-olive" />
+  ) : (
+    <ArrowUp className="h-3.5 w-3.5 text-olive" />
+  );
 }
 
 function productMatches(
@@ -38,6 +66,7 @@ export default function AdminProductsPage() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState("");
+  const [sort, setSort] = useState<ProductSort>("newest");
 
   const load = () => {
     Promise.all([
@@ -58,6 +87,12 @@ export default function AdminProductsPage() {
     if (!q) return products;
     return products.filter((p) => productMatches(p, q, categoryName(p.category)));
   }, [products, query, categories]);
+
+  const sorted = useMemo(() => sortProducts(filtered, sort), [filtered, sort]);
+
+  const toggleSort = (primary: ProductSort, secondary: ProductSort) => {
+    setSort((current) => (current === primary ? secondary : primary));
+  };
 
   useEffect(() => {
     load();
@@ -85,10 +120,29 @@ export default function AdminProductsPage() {
               autoComplete="off"
             />
           </label>
-          <Link href="/admin/products/new" className="admin-btn-primary shrink-0">
-            <Plus className="h-4 w-4" />
-            Ürün Ekle
-          </Link>
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+            <label className="flex min-w-0 items-center gap-2 sm:w-56">
+              <span className="shrink-0 text-sm text-gray-500">Sırala</span>
+              <select
+                className="admin-input"
+                value={sort}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  if (isProductSort(value)) setSort(value);
+                }}
+              >
+                {PRODUCT_SORTS.map((option) => (
+                  <option key={option.id} value={option.id}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <Link href="/admin/products/new" className="admin-btn-primary shrink-0">
+              <Plus className="h-4 w-4" />
+              Ürün Ekle
+            </Link>
+          </div>
         </div>
 
         <div className="admin-card overflow-hidden">
@@ -103,7 +157,7 @@ export default function AdminProductsPage() {
           ) : (
             <>
               <div className="divide-y divide-gray-100 md:hidden">
-                {filtered.map((p) => (
+                {sorted.map((p) => (
                   <div key={p.id} className="flex gap-3 px-4 py-3">
                     <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-lg bg-gray-100">
                       <Image
@@ -124,6 +178,7 @@ export default function AdminProductsPage() {
                       <p className="mt-0.5 text-xs text-gray-400">
                         {p.code}
                         {p.category ? ` · ${categoryName(p.category)}` : ""}
+                        {` · ${formatAddedAt(p)}`}
                       </p>
                       <p className="mt-1 text-sm font-semibold text-gray-900">
                         {formatPrice(p.price, "tr")}
@@ -169,17 +224,66 @@ export default function AdminProductsPage() {
               <table className="admin-table w-full">
                 <thead>
                   <tr>
-                    <th>Ürün</th>
+                    <th>
+                      <button
+                        type="button"
+                        className="inline-flex items-center gap-1 bg-transparent p-0 font-semibold uppercase tracking-wide text-gray-500"
+                        onClick={() => toggleSort("name-asc", "name-desc")}
+                      >
+                        Ürün
+                        <SortGlyph
+                          active={sort === "name-asc" || sort === "name-desc"}
+                          desc={sort === "name-desc"}
+                        />
+                      </button>
+                    </th>
                     <th>Kod</th>
                     <th>Yaş</th>
-                    <th>Fiyat</th>
+                    <th>
+                      <button
+                        type="button"
+                        className="inline-flex items-center gap-1 bg-transparent p-0 font-semibold uppercase tracking-wide text-gray-500"
+                        onClick={() => toggleSort("price-asc", "price-desc")}
+                      >
+                        Fiyat
+                        <SortGlyph
+                          active={sort === "price-asc" || sort === "price-desc"}
+                          desc={sort === "price-desc"}
+                        />
+                      </button>
+                    </th>
                     <th>Kategori</th>
-                    <th>Stok</th>
+                    <th>
+                      <button
+                        type="button"
+                        className="inline-flex items-center gap-1 bg-transparent p-0 font-semibold uppercase tracking-wide text-gray-500"
+                        onClick={() => toggleSort("stock-desc", "stock-asc")}
+                      >
+                        Stok
+                        <SortGlyph
+                          active={sort === "stock-asc" || sort === "stock-desc"}
+                          desc={sort === "stock-desc"}
+                        />
+                      </button>
+                    </th>
+                    <th>
+                      <button
+                        type="button"
+                        className="inline-flex items-center gap-1 bg-transparent p-0 font-semibold uppercase tracking-wide text-gray-500"
+                        onClick={() => toggleSort("newest", "oldest")}
+                      >
+                        Eklenme
+                        <SortGlyph
+                          active={sort === "newest" || sort === "oldest"}
+                          desc={sort === "newest"}
+                        />
+                      </button>
+                    </th>
                     <th>İşlemler</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {filtered.map((p) => (
+                  {sorted.map((p) => (
                     <tr key={p.id}>
                       <td>
                         <div className="flex items-center gap-3">
@@ -232,6 +336,9 @@ export default function AdminProductsPage() {
                             ? `${p.stockQuantity} adet`
                             : "Tükendi"}
                         </span>
+                      </td>
+                      <td className="whitespace-nowrap text-sm text-gray-500">
+                        {formatAddedAt(p)}
                       </td>
                       <td>
                         <div className="flex items-center gap-1">

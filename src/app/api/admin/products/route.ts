@@ -82,6 +82,7 @@ export async function POST(request: Request) {
     stockQuantity,
     inStock: stockQuantity > 0,
     compareAtPrice: null,
+    createdAt: new Date().toISOString(),
   };
 
   products.push(product);

@@ -8,6 +8,13 @@ export {
   slugify,
 } from "./product-utils";
 export {
+  PRODUCT_SORTS,
+  isProductSort,
+  productAddedAt,
+  sortProducts,
+  type ProductSort,
+} from "./product-sort";
+export {
   getSearchableProductDesc,
   getStorefrontProductDesc,
   getProductSpecs,

@@ -56,6 +56,7 @@ export type Product = {
   /** Available units; storefront uses inStock (= stockQuantity > 0) */
   stockQuantity: number;
   inStock: boolean;
+  createdAt?: string;
   updatedAt?: string;
 };
 
