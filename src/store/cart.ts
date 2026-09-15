@@ -82,6 +82,7 @@ export const useCartStore = create<CartState>()(
                 ...item,
                 id,
                 productId,
+                price: Math.round(item.price),
                 quantity: qty,
               },
             ],
@@ -138,13 +139,13 @@ export const useCartStore = create<CartState>()(
 );
 
 export function cartMerchandiseTotal(items: CartItem[]) {
-  return items.reduce((sum, i) => sum + i.price * i.quantity, 0);
+  return items.reduce((sum, i) => sum + Math.round(i.price) * i.quantity, 0);
 }
 
 export function cartPhysicalTotal(items: CartItem[]) {
   return items
     .filter((i) => !isGiftCardProductId(i.productId))
-    .reduce((sum, i) => sum + i.price * i.quantity, 0);
+    .reduce((sum, i) => sum + Math.round(i.price) * i.quantity, 0);
 }
 
 export function cartShippingFee(items: CartItem[]) {

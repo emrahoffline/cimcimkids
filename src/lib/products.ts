@@ -4,6 +4,7 @@ export {
   getProductName,
   getProductDesc,
   formatPrice,
+  roundLira,
   slugify,
 } from "./product-utils";
 export {

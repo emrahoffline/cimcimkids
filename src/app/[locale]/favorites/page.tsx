@@ -168,7 +168,7 @@ export default function FavoritesPage() {
                     {name}
                   </Link>
                   <p className="font-semibold text-bamboo">
-                    {formatPrice(item.price, locale)}
+                    {formatPrice(Math.round(item.price), locale)}
                   </p>
                 </div>
                 <div className="flex gap-2">

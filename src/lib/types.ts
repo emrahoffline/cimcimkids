@@ -91,5 +91,5 @@ export function getDiscountPercent(product: Product): number | null {
 
 export function getDiscountAmount(product: Product): number | null {
   if (!isOnSale(product) || !product.compareAtPrice) return null;
-  return Math.round((product.compareAtPrice - product.price) * 100) / 100;
+  return Math.round(product.compareAtPrice - product.price);
 }

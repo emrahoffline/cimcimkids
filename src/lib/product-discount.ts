@@ -1,7 +1,18 @@
 import type { Product } from "./types";
+import { roundLira } from "./product-utils";
 
-function roundMoney(n: number) {
-  return Math.round(n * 100) / 100;
+/** Sale price shown and charged after a discount (nearest whole TRY). */
+export function roundedSalePrice(
+  product: Pick<Product, "price" | "compareAtPrice">
+): number {
+  if (
+    typeof product.compareAtPrice === "number" &&
+    Number.isFinite(product.compareAtPrice) &&
+    product.compareAtPrice > product.price
+  ) {
+    return roundLira(product.price);
+  }
+  return product.price;
 }
 
 /** Base price used for discount math (original if already on sale). */
@@ -22,7 +33,7 @@ export function applyPercentDiscount(
 ): Pick<Product, "price" | "compareAtPrice"> {
   const pct = Math.min(100, Math.max(0, percent));
   const base = getDiscountBasePrice(product);
-  const price = roundMoney(base * (1 - pct / 100));
+  const price = roundLira(base * (1 - pct / 100));
   return {
     compareAtPrice: base,
     price: Math.max(0, price),
@@ -37,7 +48,7 @@ export function applyAmountDiscount(
   const base = getDiscountBasePrice(product);
   return {
     compareAtPrice: base,
-    price: Math.max(0, roundMoney(base - cut)),
+    price: Math.max(0, roundLira(base - cut)),
   };
 }
 

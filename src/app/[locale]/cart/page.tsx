@@ -212,7 +212,7 @@ export default function CartPage() {
                       <p className="text-xs text-slate-400">{item.ageLabel}</p>
                     )}
                     <p className="font-semibold text-bamboo">
-                      {formatPrice(item.price, locale)}
+                      {formatPrice(Math.round(item.price), locale)}
                     </p>
                   </div>
                   <button

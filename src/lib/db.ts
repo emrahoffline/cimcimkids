@@ -30,6 +30,7 @@ import { isShippingProductId } from "./shipping";
 
 export type { Announcement, HeroSlide, StoryItem };
 import { slugify } from "./product-utils";
+import { roundedSalePrice } from "./product-discount";
 import { syncAllTimeTotals } from "./analytics-db";
 import { prisma, requireDatabaseUrl, hasDatabaseUrl, isNextBuild } from "./prisma";
 import { normalizeProductImages, parseProductColors } from "./product-variants";
@@ -140,7 +141,10 @@ function mapProduct(p: DbProduct): Product {
     image: images[0] || p.image,
     images,
     colors: parseProductColors(p.colors),
-    price: p.price,
+    price: roundedSalePrice({
+      price: p.price,
+      compareAtPrice: p.compareAtPrice ?? null,
+    }),
     category: p.category,
     ageRange: ages[0] ?? p.ageRange ?? undefined,
     ages,
@@ -310,6 +314,7 @@ export async function saveProducts(products: Product[]): Promise<void> {
       const images = normalizeProductImages(p.images, p.image);
       const ages = normalizeProductAges(p.ages, p.ageRange);
       const colors = p.colors ?? [];
+      const price = roundedSalePrice(p);
       await tx.product.upsert({
         where: { id: p.id },
         create: {
@@ -319,7 +324,7 @@ export async function saveProducts(products: Product[]): Promise<void> {
           image: images[0] || p.image,
           images,
           colors: colors as object[],
-          price: p.price,
+          price,
           category: p.category,
           ageRange: ages[0] ?? null,
           ages,
@@ -342,7 +347,7 @@ export async function saveProducts(products: Product[]): Promise<void> {
           image: images[0] || p.image,
           images,
           colors: colors as object[],
-          price: p.price,
+          price,
           category: p.category,
           ageRange: ages[0] ?? null,
           ages,
@@ -637,7 +642,7 @@ export async function createOrder(
       discountCode = redeemed.code;
     }
 
-    const afterDiscount = Math.max(0, Math.round((subtotal - discountAmount) * 100) / 100);
+    const afterDiscount = Math.max(0, Math.round(subtotal - discountAmount));
 
     const redeemCode = order.redeemGiftCardCode
       ? normalizeGiftCardCode(order.redeemGiftCardCode)

@@ -10,6 +10,12 @@ export function getProductDesc(product: Product, locale: string) {
   return product.descEn?.trim() || product.descTr;
 }
 
+/** Round a TRY amount to the nearest whole lira (no kuruş). */
+export function roundLira(amount: number) {
+  if (!Number.isFinite(amount)) return 0;
+  return Math.max(0, Math.round(amount));
+}
+
 export function formatPrice(price: number, locale: string) {
   return new Intl.NumberFormat(locale === "tr" ? "tr-TR" : "en-US", {
     style: "currency",

@@ -29,20 +29,26 @@ export function roundMoney(n: number) {
   return Math.round((n + Number.EPSILON) * 100) / 100;
 }
 
+function roundLira(n: number) {
+  if (!Number.isFinite(n)) return 0;
+  return Math.max(0, Math.round(n));
+}
+
 export function computeDiscountAmount(
   eligibleSubtotal: number,
   kind: DiscountKind,
   value: number,
   minSubtotal = 0
 ): number {
-  const base = roundMoney(eligibleSubtotal);
+  const base = roundLira(eligibleSubtotal);
   if (base <= 0) return 0;
   if (minSubtotal > 0 && base < minSubtotal) return 0;
-  const amount =
+  const raw =
     kind === "percent"
       ? base * (Math.min(100, Math.max(0, value)) / 100)
       : Math.max(0, value);
-  return Math.min(base, roundMoney(amount));
+  const after = roundLira(base - Math.min(base, raw));
+  return base - after;
 }
 
 export function isDiscountCodeCurrentlyValid(
