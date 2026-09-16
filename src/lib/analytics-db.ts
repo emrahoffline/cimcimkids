@@ -391,6 +391,90 @@ export function buildSalesChart(orders: Order[], days = 14) {
   }));
 }
 
+export function buildWeeklySalesChart(orders: Order[], weeks = 12) {
+  const today = lastNIstanbulDays(1)[0];
+  const todayDate = new Date(`${today}T00:00:00Z`);
+  const day = todayDate.getUTCDay();
+  const currentMonday = new Date(todayDate);
+  currentMonday.setUTCDate(todayDate.getUTCDate() - ((day + 6) % 7));
+
+  const range = Array.from({ length: weeks }, (_, index) => {
+    const start = new Date(currentMonday);
+    start.setUTCDate(currentMonday.getUTCDate() - (weeks - 1 - index) * 7);
+    const end = new Date(start);
+    end.setUTCDate(start.getUTCDate() + 6);
+    const key = start.toISOString().slice(0, 10);
+    return {
+      key,
+      start,
+      label: `${start.toLocaleDateString("tr-TR", {
+        day: "numeric",
+        month: "short",
+        timeZone: "UTC",
+      })}–${end.toLocaleDateString("tr-TR", {
+        day: "numeric",
+        month: "short",
+        timeZone: "UTC",
+      })}`,
+    };
+  });
+  const totals = new Map(range.map(({ key }) => [key, { revenue: 0, orders: 0 }]));
+
+  for (const order of orders) {
+    if (order.status === "cancelled") continue;
+    const orderDate = new Date(`${istanbulDayKey(order.createdAt)}T00:00:00Z`);
+    const orderDay = orderDate.getUTCDay();
+    orderDate.setUTCDate(orderDate.getUTCDate() - ((orderDay + 6) % 7));
+    const bucket = totals.get(orderDate.toISOString().slice(0, 10));
+    if (bucket) {
+      bucket.revenue += order.total;
+      bucket.orders += 1;
+    }
+  }
+
+  return range.map(({ key, label }) => ({
+    date: key,
+    label,
+    revenue: totals.get(key)?.revenue ?? 0,
+    orders: totals.get(key)?.orders ?? 0,
+  }));
+}
+
+export function buildMonthlySalesChart(orders: Order[], months = 12) {
+  const today = lastNIstanbulDays(1)[0];
+  const [year, month] = today.split("-").map(Number);
+  const currentMonth = new Date(Date.UTC(year, month - 1, 1));
+  const range = Array.from({ length: months }, (_, index) => {
+    const date = new Date(currentMonth);
+    date.setUTCMonth(currentMonth.getUTCMonth() - (months - 1 - index));
+    return {
+      key: date.toISOString().slice(0, 7),
+      label: date.toLocaleDateString("tr-TR", {
+        month: "short",
+        year: "2-digit",
+        timeZone: "UTC",
+      }),
+    };
+  });
+  const totals = new Map(range.map(({ key }) => [key, { revenue: 0, orders: 0 }]));
+
+  for (const order of orders) {
+    if (order.status === "cancelled") continue;
+    const bucket = totals.get(istanbulDayKey(order.createdAt).slice(0, 7));
+    if (bucket) {
+      bucket.revenue += order.total;
+      bucket.orders += 1;
+    }
+  }
+
+  return range.map(({ key, label }) => ({
+    date: key,
+    label,
+    revenue: totals.get(key)?.revenue ?? 0,
+    orders: totals.get(key)?.orders ?? 0,
+  }));
+}
+
 export function buildTopSellers(orders: Order[], products: Product[], limit = 5) {
   const counts = new Map<string, { sold: number; revenue: number; name: string }>();
 
@@ -1011,11 +1095,17 @@ export async function getAdminAnalytics(orders: Order[], products: Product[]) {
   }
 
   const salesChart = buildSalesChart(orders, 14);
+  const salesCharts = {
+    daily: salesChart,
+    weekly: buildWeeklySalesChart(orders, 12),
+    monthly: buildMonthlySalesChart(orders, 12),
+  };
   const live = await buildLiveInsights(orders, products);
 
   return {
     allTime,
     salesChart,
+    salesCharts,
     topSellers: buildTopSellers(orders, products),
     topFavorites: buildTopFavorites(events, products),
     sessionStats,

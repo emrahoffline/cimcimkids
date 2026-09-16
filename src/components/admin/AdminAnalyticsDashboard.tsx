@@ -17,6 +17,7 @@ import { formatPrice } from "@/lib/products";
 import { trafficSourceLabel } from "@/lib/analytics-traffic";
 
 type TrafficRangeKey = "live" | "day" | "week" | "month";
+type SalesRangeKey = "daily" | "weekly" | "monthly";
 
 type AnalyticsData = {
   salesChart: {
@@ -25,6 +26,7 @@ type AnalyticsData = {
     revenue: number;
     orders: number;
   }[];
+  salesCharts?: Record<SalesRangeKey, AnalyticsData["salesChart"]>;
   topSellers: {
     productId: string;
     name: string;
@@ -109,6 +111,32 @@ const TRAFFIC_RANGES: {
   { id: "day", label: "Bugün", hint: "Bugün 00:00’dan beri" },
   { id: "week", label: "7 gün", hint: "Son 7 gün" },
   { id: "month", label: "Bu ay", hint: "Ayın başından beri" },
+];
+
+const SALES_RANGES: {
+  id: SalesRangeKey;
+  label: string;
+  hint: string;
+  summaryLabel: string;
+}[] = [
+  {
+    id: "daily",
+    label: "Günlük",
+    hint: "Son 14 gün gelir trendi",
+    summaryLabel: "14 Günlük Satış",
+  },
+  {
+    id: "weekly",
+    label: "Haftalık",
+    hint: "Son 12 hafta gelir trendi",
+    summaryLabel: "12 Haftalık Satış",
+  },
+  {
+    id: "monthly",
+    label: "Aylık",
+    hint: "Son 12 ay gelir trendi",
+    summaryLabel: "12 Aylık Satış",
+  },
 ];
 
 const EMPTY_RANGE = {
@@ -301,6 +329,7 @@ function RankList({
 
 export function AdminAnalyticsDashboard({ data }: { data: AnalyticsData }) {
   const [trafficRange, setTrafficRange] = useState<TrafficRangeKey>("live");
+  const [salesRange, setSalesRange] = useState<SalesRangeKey>("daily");
   const live = data.live ?? {
     activeVisitors: 0,
     viewsLast30m: 0,
@@ -355,11 +384,22 @@ export function AdminAnalyticsDashboard({ data }: { data: AnalyticsData }) {
       })),
     [snapshot.cities]
   );
+  const salesRangeMeta =
+    SALES_RANGES.find((item) => item.id === salesRange) ?? SALES_RANGES[0];
+  const selectedSalesChart =
+    data.salesCharts?.[salesRange] ?? data.salesChart;
+  const selectedSalesTotal = selectedSalesChart.reduce(
+    (totals, item) => ({
+      revenue: totals.revenue + item.revenue,
+      orders: totals.orders + item.orders,
+    }),
+    { revenue: 0, orders: 0 }
+  );
   const kpis = [
     {
-      label: "14 Günlük Satış",
-      value: formatPrice(data.summary.chartRevenueTotal, "tr"),
-      sub: `${data.summary.chartOrdersTotal} sipariş`,
+      label: salesRangeMeta.summaryLabel,
+      value: formatPrice(selectedSalesTotal.revenue, "tr"),
+      sub: `${selectedSalesTotal.orders} sipariş`,
       icon: TrendingUp,
       color: "bg-emerald-50 text-emerald-700",
     },
@@ -640,15 +680,37 @@ export function AdminAnalyticsDashboard({ data }: { data: AnalyticsData }) {
 
       <div className="grid gap-4 sm:gap-6 xl:grid-cols-3">
         <div className="admin-card overflow-x-auto p-4 sm:p-5 xl:col-span-2">
-          <div className="mb-4 sm:mb-5">
-            <h2 className="flex items-center gap-2 text-base font-semibold text-gray-900 sm:text-lg">
-              <BarChart3 className="h-5 w-5 shrink-0 text-olive" />
-              Satış Grafiği
-            </h2>
-            <p className="text-sm text-gray-500">Son 14 gün gelir trendi</p>
+          <div className="mb-4 flex flex-col gap-3 sm:mb-5 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <h2 className="flex items-center gap-2 text-base font-semibold text-gray-900 sm:text-lg">
+                <BarChart3 className="h-5 w-5 shrink-0 text-olive" />
+                Gelir Grafiği
+              </h2>
+              <p className="text-sm text-gray-500">{salesRangeMeta.hint}</p>
+            </div>
+            <div className="flex gap-1">
+              {SALES_RANGES.map((item) => {
+                const active = item.id === salesRange;
+                return (
+                  <button
+                    key={item.id}
+                    type="button"
+                    aria-pressed={active}
+                    onClick={() => setSalesRange(item.id)}
+                    className={`rounded-full px-3 py-1.5 text-sm font-medium transition ${
+                      active
+                        ? "bg-olive text-white"
+                        : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                    }`}
+                  >
+                    {item.label}
+                  </button>
+                );
+              })}
+            </div>
           </div>
-          <div className="min-w-[320px]">
-            <SalesChart data={data.salesChart} />
+          <div className="min-w-[560px]">
+            <SalesChart data={selectedSalesChart} />
           </div>
         </div>
 

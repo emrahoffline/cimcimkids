@@ -11,6 +11,15 @@ type AnalyticsData = {
     revenue: number;
     orders: number;
   }[];
+  salesCharts?: Record<
+    "daily" | "weekly" | "monthly",
+    {
+      date: string;
+      label: string;
+      revenue: number;
+      orders: number;
+    }[]
+  >;
   topSellers: {
     productId: string;
     name: string;
