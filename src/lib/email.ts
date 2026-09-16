@@ -84,10 +84,18 @@ function buildOrderEmailHtml(order: Order) {
             ? order.status === "confirmed"
               ? `Kart ile ödendi${order.lastFourDigits ? ` (**** ${escapeHtml(order.lastFourDigits)})` : ""}`
               : "Kart ödemesi bekleniyor (iyzico)"
-            : "Ödeme bekleniyor (Havale/EFT)"
+            : order.paymentMethod === "cash_on_delivery"
+              ? "Teslimatta nakit tahsil edilecek"
+              : order.paymentMethod === "card_on_delivery"
+                ? "Teslimatta kartla tahsil edilecek"
+                : "Ödeme bekleniyor (Havale/EFT)"
       }</p>
       <hr style="border:none;border-top:1px solid #eee;margin:24px 0" />
-      <p style="font-size:12px;color:#888">IBAN: ${formatIban(STORE_CONFIG.iban)}</p>
+      ${
+        order.paymentMethod === "bank_transfer"
+          ? `<p style="font-size:12px;color:#888">IBAN: ${formatIban(STORE_CONFIG.iban)}</p>`
+          : ""
+      }
     </div>
   `;
 }
@@ -137,6 +145,8 @@ function firstName(fullName: string) {
 function paymentMethodLabel(order: Order) {
   if (order.total <= 0) return "Hediye kartı";
   if (order.paymentMethod === "card") return "Kredi / banka kartı";
+  if (order.paymentMethod === "cash_on_delivery") return "Kapıda nakit";
+  if (order.paymentMethod === "card_on_delivery") return "Kapıda kart";
   return "Havale/EFT";
 }
 
@@ -174,7 +184,13 @@ export async function sendCustomerOrderReceivedEmail(
 
   const from = process.env.SMTP_FROM ?? `CimcimKids <${process.env.SMTP_USER}>`;
   const trackingUrl = `${SITE_ORIGIN}/tr/tracking`;
-  const paid = order.status !== "pending_payment" && order.status !== "cancelled";
+  const cashOnDelivery =
+    order.paymentMethod === "cash_on_delivery" ||
+    order.paymentMethod === "card_on_delivery";
+  const paid =
+    !cashOnDelivery &&
+    order.status !== "pending_payment" &&
+    order.status !== "cancelled";
   const amountLabel = paid ? "Ödenen tutar" : "Ödenecek tutar";
   const invoice = extra?.invoice;
   const kind =
@@ -192,11 +208,16 @@ export async function sendCustomerOrderReceivedEmail(
 
   const invoiceNumber = invoice?.invoiceNumber || order.orderNumber;
   const bankBlock =
-    !paid && order.paymentMethod !== "card"
+    !paid && order.paymentMethod === "bank_transfer"
       ? `<p><strong>Banka:</strong> ${escapeHtml(STORE_CONFIG.bankName)}<br/>
            <strong>Hesap sahibi:</strong> ${escapeHtml(STORE_CONFIG.accountHolder)}<br/>
            <strong>IBAN:</strong> ${escapeHtml(formatIban(STORE_CONFIG.iban))}</p>`
       : "";
+  const codBlock = cashOnDelivery
+    ? `<p>Sipariş tutarı kargo teslimatı sırasında ${
+        order.paymentMethod === "cash_on_delivery" ? "nakit" : "kartla"
+      } tahsil edilecektir.</p>`
+    : "";
 
   await transporter.sendMail({
     from,
@@ -230,6 +251,7 @@ export async function sendCustomerOrderReceivedEmail(
             : ""
         }
         ${bankBlock}
+        ${codBlock}
         ${
           invoice
             ? `<p><strong>Fatura:</strong> ${escapeHtml(kind)}${
@@ -259,6 +281,11 @@ export async function sendCustomerOrderReceivedEmail(
       ),
       "",
       `Teslimat adresi: ${order.shippingAddress ?? "—"}`,
+      cashOnDelivery
+        ? `Sipariş tutarı teslimatta ${
+            order.paymentMethod === "cash_on_delivery" ? "nakit" : "kartla"
+          } tahsil edilecektir.`
+        : "",
       invoice
         ? `Fatura: ${kind}${invoice.invoiceNumber ? ` — ${invoice.invoiceNumber}` : ""}`
         : "",

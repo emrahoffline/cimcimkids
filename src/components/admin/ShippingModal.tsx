@@ -8,6 +8,7 @@ type Carrier = {
   name: string;
   sameDay?: boolean;
   standard?: boolean;
+  cod?: boolean;
 };
 
 type Props = {
@@ -17,6 +18,9 @@ type Props = {
 };
 
 export function ShippingModal({ order, onClose, onDone }: Props) {
+  const isCod =
+    order.paymentMethod === "cash_on_delivery" ||
+    order.paymentMethod === "card_on_delivery";
   const [carriers, setCarriers] = useState<Carrier[]>([]);
   const [configured, setConfigured] = useState(true);
   const [loading, setLoading] = useState(true);
@@ -42,16 +46,20 @@ export function ShippingModal({ order, onClose, onDone }: Props) {
         }
         setConfigured(data.configured !== false);
         const list = Array.isArray(data.carriers) ? data.carriers : [];
-        setCarriers(list);
-        if (list[0]?.id) setCarrierId(list[0].id);
+        const available = isCod ? list.filter((carrier) => carrier.cod) : list;
+        setCarriers(available);
+        if (available[0]?.id) setCarrierId(available[0].id);
         if (data.error) setError(data.error);
         else if (!r.ok) setError(`Navlungo HTTP ${r.status}`);
+        else if (isCod && available.length === 0) {
+          setError("Hesabınızda kapıda ödemeyi destekleyen kargo firması bulunamadı.");
+        }
       })
       .catch((err: unknown) =>
         setError(err instanceof Error ? err.message : "Navlungo bilgisi alınamadı.")
       )
       .finally(() => setLoading(false));
-  }, []);
+  }, [isCod]);
 
   const writePopup = (popup: Window | null, html: string) => {
     if (!popup || popup.closed) return;
@@ -147,6 +155,14 @@ export function ShippingModal({ order, onClose, onDone }: Props) {
         {order.shippingAddress && (
           <p className="mb-4 rounded-lg bg-gray-50 px-3 py-2 text-xs leading-relaxed text-gray-600">
             {order.shippingAddress}
+          </p>
+        )}
+        {isCod && (
+          <p className="mb-4 rounded-lg bg-emerald-50 px-3 py-2 text-xs leading-relaxed text-emerald-800">
+            {order.paymentMethod === "cash_on_delivery"
+              ? "Kapıda nakit tahsilat"
+              : "Kapıda kartla tahsilat"}{" "}
+            · {order.total} TL. Yalnızca destekleyen firmalar listelenir.
           </p>
         )}
 

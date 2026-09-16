@@ -53,7 +53,21 @@ function paymentMethod(order: Order): {
   if (order.paymentMethod === "card") {
     return { method: "KREDIKARTI/BANKAKARTI", name: "Kredi Kartı" };
   }
+  if (order.paymentMethod === "cash_on_delivery") {
+    return { method: "DIGER", name: "Kapıda Nakit" };
+  }
+  if (order.paymentMethod === "card_on_delivery") {
+    return { method: "KREDIKARTI/BANKAKARTI", name: "Kapıda Kart" };
+  }
   return { method: "EFT/HAVALE", name: "Havale/EFT" };
+}
+
+function paymentMeansCode(order: Order): string {
+  if (order.paymentMethod === "cash_on_delivery") return "10";
+  if (order.paymentMethod === "card" || order.paymentMethod === "card_on_delivery") {
+    return "48";
+  }
+  return "42";
 }
 
 export function buildNilveraPayload(
@@ -113,7 +127,11 @@ export function buildNilveraPayload(
     );
   }
   if (order.total > 0) {
-    notes.push(`Havale/EFT: ${order.total} TL — ${STORE_CONFIG.bankName}`);
+    notes.push(
+      order.paymentMethod === "bank_transfer"
+        ? `Havale/EFT: ${order.total} TL — ${STORE_CONFIG.bankName}`
+        : `${pay.name}: ${order.total} TL`
+    );
   }
 
   const companyInfo = seller.taxNumber
@@ -154,8 +172,10 @@ export function buildNilveraPayload(
     CurrencyCode: "TRY",
     OrderReference: { Value: order.orderNumber, IssueDate: now },
     PaymentMeansInfo: {
-      Code: order.paymentMethod === "card" ? "48" : "42",
-      PayeeFinancialAccountID: STORE_CONFIG.iban,
+      Code: paymentMeansCode(order),
+      ...(order.paymentMethod === "bank_transfer"
+        ? { PayeeFinancialAccountID: STORE_CONFIG.iban }
+        : {}),
       Note: pay.name,
     },
     LineExtensionAmount: totals.net,

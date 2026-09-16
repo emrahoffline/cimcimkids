@@ -19,6 +19,24 @@ const statuses = [
   { value: "cancelled", label: "İptal" },
 ];
 
+function paymentMethodLabel(order: Order) {
+  if (order.paymentMethod === "card") {
+    return `Kart${order.lastFourDigits ? ` ****${order.lastFourDigits}` : ""}`;
+  }
+  if (order.paymentMethod === "cash_on_delivery") return "Kapıda nakit";
+  if (order.paymentMethod === "card_on_delivery") return "Kapıda kart";
+  return "Havale/EFT";
+}
+
+function statusLabel(order: Order, value: string, fallback: string) {
+  const isCod =
+    order.paymentMethod === "cash_on_delivery" ||
+    order.paymentMethod === "card_on_delivery";
+  return isCod && value === "pending_payment"
+    ? "Sipariş Onayı Bekliyor"
+    : fallback;
+}
+
 const invoiceStatusLabel: Record<string, string> = {
   pending: "Bekliyor",
   sending: "Gönderiliyor",
@@ -188,9 +206,7 @@ export default function AdminOrdersPage() {
                       : "Bireysel"}
                 </p>
                 <p className="text-xs text-gray-400">
-                  {order.paymentMethod === "card"
-                    ? `Kart${order.lastFourDigits ? ` ****${order.lastFourDigits}` : ""}`
-                    : "Havale/EFT"}
+                  {paymentMethodLabel(order)}
                 </p>
                 {order.discountCode && (order.discountAmount ?? 0) > 0 && (
                   <p className="text-xs font-medium text-olive">
@@ -205,7 +221,7 @@ export default function AdminOrdersPage() {
                   >
                     {statuses.map((s) => (
                       <option key={s.value} value={s.value}>
-                        {s.label}
+                        {statusLabel(order, s.value, s.label)}
                       </option>
                     ))}
                   </select>
@@ -366,9 +382,7 @@ export default function AdminOrdersPage() {
                       <td>
                         {formatPrice(order.total, "tr")}
                         <p className="mt-1 text-xs text-gray-400">
-                          {order.paymentMethod === "card"
-                            ? `Kart${order.lastFourDigits ? ` ****${order.lastFourDigits}` : ""}`
-                            : "Havale/EFT"}
+                          {paymentMethodLabel(order)}
                         </p>
                         {order.discountCode && (order.discountAmount ?? 0) > 0 && (
                           <p className="mt-1 text-xs font-medium text-olive">
@@ -484,7 +498,7 @@ export default function AdminOrdersPage() {
                         >
                           {statuses.map((s) => (
                             <option key={s.value} value={s.value}>
-                              {s.label}
+                              {statusLabel(order, s.value, s.label)}
                             </option>
                           ))}
                         </select>

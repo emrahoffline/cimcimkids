@@ -190,7 +190,22 @@ export function buildUblInvoiceXml(opts: {
       .trim() ||
     order.shippingAddress ||
     "";
-  const paymentCode = order.paymentMethod === "card" ? "48" : "42";
+  const paymentCode =
+    order.paymentMethod === "cash_on_delivery"
+      ? "10"
+      : order.paymentMethod === "card" || order.paymentMethod === "card_on_delivery"
+        ? "48"
+        : "42";
+  const paymentAccount =
+    order.paymentMethod === "bank_transfer"
+      ? `<cac:PayeeFinancialAccount>
+      <cbc:ID>${xmlEscape(STORE_CONFIG.iban)}</cbc:ID>
+      <cbc:CurrencyCode>TRY</cbc:CurrencyCode>
+      <cac:FinancialInstitutionBranch>
+        <cbc:Name>${xmlEscape(STORE_CONFIG.bankName)}</cbc:Name>
+      </cac:FinancialInstitutionBranch>
+    </cac:PayeeFinancialAccount>`
+      : "";
   const notes = [
     amountToWordsTr(totals.gross),
     `Sipariş no: ${order.orderNumber}`,
@@ -314,13 +329,7 @@ export function buildUblInvoiceXml(opts: {
   </cac:AccountingCustomerParty>
   <cac:PaymentMeans>
     <cbc:PaymentMeansCode>${paymentCode}</cbc:PaymentMeansCode>
-    <cac:PayeeFinancialAccount>
-      <cbc:ID>${xmlEscape(STORE_CONFIG.iban)}</cbc:ID>
-      <cbc:CurrencyCode>TRY</cbc:CurrencyCode>
-      <cac:FinancialInstitutionBranch>
-        <cbc:Name>${xmlEscape(STORE_CONFIG.bankName)}</cbc:Name>
-      </cac:FinancialInstitutionBranch>
-    </cac:PayeeFinancialAccount>
+    ${paymentAccount}
   </cac:PaymentMeans>
   <cac:TaxTotal>
     <cbc:TaxAmount currencyID="TRY">${money(totals.vat)}</cbc:TaxAmount>

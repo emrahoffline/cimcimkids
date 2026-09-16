@@ -126,6 +126,12 @@ function internetPayment(order: Order): { type: string; mediator?: string } {
   if (order.paymentMethod === "card") {
     return { type: "KREDIKARTI/BANKAKARTI", mediator: "iyzico" };
   }
+  if (order.paymentMethod === "cash_on_delivery") {
+    return { type: "DIGER", mediator: "Navlungo - Kapıda Nakit" };
+  }
+  if (order.paymentMethod === "card_on_delivery") {
+    return { type: "KREDIKARTI/BANKAKARTI", mediator: "Navlungo" };
+  }
   return { type: "EFT/HAVALE" };
 }
 

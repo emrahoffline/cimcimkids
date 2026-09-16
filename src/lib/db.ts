@@ -87,9 +87,13 @@ export type Order = {
   giftCardCode?: string;
   discountAmount?: number;
   discountCode?: string;
-  /** Amount to pay by card or bank transfer */
+  /** Amount to pay through the selected payment method */
   total: number;
-  paymentMethod?: "bank_transfer" | "card";
+  paymentMethod?:
+    | "bank_transfer"
+    | "card"
+    | "cash_on_delivery"
+    | "card_on_delivery";
   iyzicoPaymentId?: string;
   lastFourDigits?: string;
   cardType?: string;

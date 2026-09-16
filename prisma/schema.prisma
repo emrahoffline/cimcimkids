@@ -44,6 +44,8 @@ enum GiftCardStatus {
 enum PaymentMethod {
   bank_transfer
   card
+  cash_on_delivery
+  card_on_delivery
 }
 
 enum DiscountCodeKind {

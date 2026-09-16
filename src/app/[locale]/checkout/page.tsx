@@ -42,8 +42,13 @@ import {
   saveGaPurchase,
   trackGaPurchase,
 } from "@/lib/google-analytics";
+import { isGiftCardProductId } from "@/lib/gift-cards";
 
-type PayMethod = "card" | "bank_transfer";
+type PayMethod =
+  | "card"
+  | "bank_transfer"
+  | "cash_on_delivery"
+  | "card_on_delivery";
 
 function FloatField({
   label,
@@ -115,6 +120,9 @@ export default function CheckoutPage() {
     discountApplied
   );
   const payable = cartPayable(items, giftCardBalance, discountApplied);
+  const hasGiftCardPurchase = items.some((item) =>
+    isGiftCardProductId(item.productId || item.id)
+  );
   const freeShip = isFreeShipping(physical);
   const remaining = amountUntilFreeShipping(physical);
   const base = `/${locale}`;
@@ -348,7 +356,9 @@ export default function CheckoutPage() {
   }
 
   if (done) {
-    const noTransfer = paidTotal <= 0;
+    const fullyPaid = paidTotal <= 0;
+    const isCod =
+      payMethod === "cash_on_delivery" || payMethod === "card_on_delivery";
     return (
       <div className="mx-auto max-w-lg px-4 py-20">
         {gcrOptIn ? (
@@ -366,14 +376,16 @@ export default function CheckoutPage() {
             </p>
           )}
           <p className="text-sm text-olive/70">
-            {noTransfer
+            {fullyPaid
               ? t("successGiftCardPaid")
               : paidByCard
                 ? t("successCardPaid")
-                : t("successNote")}
+                : isCod
+                  ? t("successCashOnDelivery")
+                  : t("successNote")}
           </p>
 
-          {!noTransfer && !paidByCard && (
+          {!fullyPaid && !paidByCard && payMethod === "bank_transfer" && (
             <div className="rounded-lg bg-bamboo/10 p-4 text-left text-sm">
               <p className="mb-2 font-semibold text-olive">{t("paymentInfo")}</p>
               <p className="mb-2 font-medium text-bamboo">
@@ -419,7 +431,11 @@ export default function CheckoutPage() {
           ? t("giftCardCoversAll")
           : payMethod === "card"
             ? t("cardPaymentInfo")
-            : t("bankTransferInfo")}
+            : payMethod === "bank_transfer"
+              ? t("bankTransferInfo")
+              : payMethod === "cash_on_delivery"
+                ? t("cashOnDeliveryInfo")
+                : t("cardOnDeliveryInfo")}
       </p>
 
       {error && (
@@ -682,6 +698,30 @@ export default function CheckoutPage() {
                     />
                     {t("payWithTransfer")}
                   </label>
+                  {!hasGiftCardPurchase && (
+                    <>
+                      <label className="flex min-h-[44px] cursor-pointer items-center gap-2 text-sm font-medium text-slate-700">
+                        <input
+                          type="radio"
+                          name="payMethod"
+                          className="h-4 w-4 accent-olive"
+                          checked={payMethod === "cash_on_delivery"}
+                          onChange={() => setPayMethod("cash_on_delivery")}
+                        />
+                        {t("payCashOnDelivery")}
+                      </label>
+                      <label className="flex min-h-[44px] cursor-pointer items-center gap-2 text-sm font-medium text-slate-700">
+                        <input
+                          type="radio"
+                          name="payMethod"
+                          className="h-4 w-4 accent-olive"
+                          checked={payMethod === "card_on_delivery"}
+                          onChange={() => setPayMethod("card_on_delivery")}
+                        />
+                        {t("payCardOnDelivery")}
+                      </label>
+                    </>
+                  )}
                 </div>
                 {cardEnabled === false && (
                   <p className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm leading-relaxed text-amber-800">
@@ -694,7 +734,7 @@ export default function CheckoutPage() {
                     <PaymentLogos />
                     <p className="text-xs text-olive/50">{t("cardSecureNote")}</p>
                   </div>
-                ) : (
+                ) : payMethod === "bank_transfer" ? (
                   <>
                     <p className="text-sm text-olive/70">{t("bankTransferInfo")}</p>
                     <div className="rounded-xl bg-bamboo/10 p-3 text-sm">
@@ -712,6 +752,12 @@ export default function CheckoutPage() {
                       </p>
                     </div>
                   </>
+                ) : (
+                  <p className="rounded-lg bg-emerald-50 p-3 text-sm leading-relaxed text-emerald-800">
+                    {payMethod === "cash_on_delivery"
+                      ? t("cashOnDeliveryInfo")
+                      : t("cardOnDeliveryInfo")}
+                  </p>
                 )}
               </section>
             )}

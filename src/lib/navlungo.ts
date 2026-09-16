@@ -42,6 +42,7 @@ export type NavlungoCarrier = {
   trackingUrl?: string;
   sameDay: boolean;
   standard: boolean;
+  cod: boolean;
 };
 
 export type NavlungoSender = {
@@ -256,6 +257,7 @@ export async function listNavlungoCarriers(): Promise<NavlungoCarrier[]> {
       name: String(c.carrier_name || c.name || `Kargo #${id}`),
       sameDay: types.includes(1),
       standard: types.includes(2) || types.length === 0,
+      cod: Number(c.cod) === 1 || c.cod === true,
     };
     if (typeof c.short_name === "string") carrier.shortName = c.short_name;
     if (typeof c.tracking_url === "string") carrier.trackingUrl = c.tracking_url;
@@ -308,6 +310,8 @@ export async function createNavlungoShipment(input: {
   referenceId: string;
   carrierId: number;
   postType?: 1 | 2;
+  codPaymentType?: 1 | 2;
+  collectionAmount?: number;
   recipient: {
     name: string;
     phone: string;
@@ -325,6 +329,12 @@ export async function createNavlungoShipment(input: {
   if (!phone) {
     throw new NavlungoError("Alıcı telefonu kargo için gerekli.", 400);
   }
+  if (
+    input.codPaymentType &&
+    (!Number.isFinite(input.collectionAmount) || (input.collectionAmount ?? 0) <= 0)
+  ) {
+    throw new NavlungoError("Kapıda ödeme tahsilat tutarı geçersiz.", 400);
+  }
   const { json } = await navlungoFetch("/post/create", {
     method: "POST",
     body: JSON.stringify({
@@ -334,7 +344,7 @@ export async function createNavlungoShipment(input: {
           reference_id: input.referenceId,
           carrier_id: input.carrierId,
           post_type: input.postType ?? 2,
-          cod_payment_type: "",
+          cod_payment_type: input.codPaymentType ?? "",
           sender: { addressId: senderAddressId },
           recipient: {
             name: input.recipient.name,
@@ -349,7 +359,7 @@ export async function createNavlungoShipment(input: {
           post: {
             desi: input.desi,
             package_count: input.packageCount ?? 1,
-            price: "",
+            price: input.codPaymentType ? input.collectionAmount : "",
             note: input.note || "",
           },
           barcode_format: "pdf-A6",

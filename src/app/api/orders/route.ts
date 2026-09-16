@@ -280,11 +280,25 @@ export async function POST(request: Request) {
     (body as { paymentMethod?: unknown }).paymentMethod ?? "bank_transfer"
   );
   const paymentMethod =
-    paymentMethodRaw === "card" ? ("card" as const) : ("bank_transfer" as const);
+    paymentMethodRaw === "card" ||
+    paymentMethodRaw === "cash_on_delivery" ||
+    paymentMethodRaw === "card_on_delivery"
+      ? paymentMethodRaw
+      : ("bank_transfer" as const);
 
   if (paymentMethod === "card" && !isIyzicoConfigured()) {
     return NextResponse.json(
       { error: "Kart ile ödeme şu an kullanılamıyor. Havale/EFT seçin." },
+      { status: 400 }
+    );
+  }
+  if (
+    (paymentMethod === "cash_on_delivery" ||
+      paymentMethod === "card_on_delivery") &&
+    validatedItems.some((item) => isGiftCardProductId(item.productId))
+  ) {
+    return NextResponse.json(
+      { error: "Hediye kartları kapıda ödeme ile satın alınamaz." },
       { status: 400 }
     );
   }

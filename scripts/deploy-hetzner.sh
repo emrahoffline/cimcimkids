@@ -42,6 +42,7 @@ rsync -az --delete \
   --exclude '.env*' \
   --exclude 'tsconfig.tsbuildinfo' \
   --exclude 'assets' \
+  --exclude 'backups' \
   "$ROOT/" "$SERVER:$REMOTE_DIR/"
 
 # Gitignore'daki runtime JSON'ları varsa gönder (sipariş/müşteri taşınsın)

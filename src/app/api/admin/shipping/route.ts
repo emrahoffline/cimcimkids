@@ -37,6 +37,7 @@ export async function GET() {
           name: "Navlungo otomatik (kapsama göre)",
           sameDay: false,
           standard: true,
+          cod: false,
         },
         ...carriers.filter((c) => c.id !== 1),
       ],
@@ -123,10 +124,28 @@ export async function POST(request: Request) {
   }
 
   try {
+    const codPaymentType =
+      order.paymentMethod === "cash_on_delivery"
+        ? 1
+        : order.paymentMethod === "card_on_delivery"
+          ? 2
+          : undefined;
+    if (codPaymentType) {
+      const carriers = await listNavlungoCarriers();
+      const carrier = carriers.find((item) => item.id === carrierId);
+      if (!carrier?.cod) {
+        return NextResponse.json(
+          { error: "Seçilen kargo firması kapıda ödemeyi desteklemiyor." },
+          { status: 400 }
+        );
+      }
+    }
     const shipment = await createNavlungoShipment({
       referenceId: order.orderNumber,
       carrierId,
       postType,
+      codPaymentType,
+      collectionAmount: codPaymentType ? order.total : undefined,
       recipient: {
         name: order.customerName,
         phone: order.customerPhone,
