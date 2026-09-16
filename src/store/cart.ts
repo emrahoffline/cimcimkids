@@ -22,6 +22,7 @@ export type CartItem = {
   colorId?: string;
   colorLabel?: string;
   ageLabel?: string;
+  stockAvailable?: number;
 };
 
 type CartState = {
@@ -68,13 +69,39 @@ export const useCartStore = create<CartState>()(
         const productId = item.productId || item.id || "";
         const id = lineId(productId, item.colorId, item.ageLabel);
         const existing = get().items.find((i) => i.id === id);
+        const limit =
+          typeof item.stockAvailable === "number"
+            ? Math.max(0, Math.floor(item.stockAvailable))
+            : undefined;
+        const usedByOtherLines = get().items
+          .filter(
+            (line) =>
+              line.id !== id &&
+              line.productId === productId &&
+              (line.ageLabel ?? "") === (item.ageLabel ?? "")
+          )
+          .reduce((total, line) => total + line.quantity, 0);
         if (existing) {
+          const quantity =
+            limit == null
+              ? existing.quantity + qty
+              : Math.min(
+                  Math.max(0, limit - usedByOtherLines),
+                  existing.quantity + qty
+                );
           set({
             items: get().items.map((i) =>
-              i.id === id ? { ...i, quantity: i.quantity + qty } : i
+              i.id === id
+                ? { ...i, quantity, stockAvailable: limit ?? i.stockAvailable }
+                : i
             ),
           });
         } else {
+          const quantity =
+            limit == null
+              ? qty
+              : Math.min(Math.max(0, limit - usedByOtherLines), qty);
+          if (quantity <= 0) return;
           set({
             items: [
               ...get().items,
@@ -83,7 +110,7 @@ export const useCartStore = create<CartState>()(
                 id,
                 productId,
                 price: Math.round(item.price),
-                quantity: qty,
+                quantity,
               },
             ],
           });
@@ -96,10 +123,28 @@ export const useCartStore = create<CartState>()(
           get().removeItem(id);
           return;
         }
+        const current = get().items.find((item) => item.id === id);
+        if (!current) return;
+        const usedByOtherLines = get().items
+          .filter(
+            (item) =>
+              item.id !== id &&
+              item.productId === current.productId &&
+              (item.ageLabel ?? "") === (current.ageLabel ?? "")
+          )
+          .reduce((total, item) => total + item.quantity, 0);
         set({
-          items: get().items.map((i) =>
-            i.id === id ? { ...i, quantity } : i
-          ),
+          items: get().items.map((i) => {
+            if (i.id !== id) return i;
+            const next =
+              typeof i.stockAvailable === "number"
+                ? Math.min(
+                    Math.max(0, i.stockAvailable - usedByOtherLines),
+                    quantity
+                  )
+                : quantity;
+            return { ...i, quantity: next };
+          }),
         });
       },
       clearCart: () =>

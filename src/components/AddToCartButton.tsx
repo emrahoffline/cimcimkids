@@ -8,6 +8,7 @@ import { getColorLabel, getProductAges, getProductImages } from "@/lib/types";
 import { useCartStore } from "@/store/cart";
 import { useCartToastStore } from "@/store/cart-toast";
 import { AddToCartSizeSheet } from "./AddToCartSizeSheet";
+import { stockForAge } from "@/lib/product-stock";
 
 type Props = {
   product: Product;
@@ -33,6 +34,7 @@ export function commitProductToCart(
     colorId: color?.id,
     colorLabel: color ? getColorLabel(color, locale) : undefined,
     ageLabel: ageLabel || undefined,
+    stockAvailable: stockForAge(product, ageLabel),
   });
   useCartToastStore.getState().show(name);
 }

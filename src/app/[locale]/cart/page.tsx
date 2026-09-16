@@ -241,7 +241,18 @@ export default function CartPage() {
                     onClick={() =>
                       updateQuantity(item.id, item.quantity + 1)
                     }
-                    className="touch-target rounded-full border border-bamboo/20 text-slate-600"
+                    disabled={
+                      typeof item.stockAvailable === "number" &&
+                      items
+                        .filter(
+                          (line) =>
+                            line.productId === item.productId &&
+                            (line.ageLabel ?? "") === (item.ageLabel ?? "")
+                        )
+                        .reduce((sum, line) => sum + line.quantity, 0) >=
+                        item.stockAvailable
+                    }
+                    className="touch-target rounded-full border border-bamboo/20 text-slate-600 disabled:cursor-not-allowed disabled:opacity-35"
                     aria-label="+"
                   >
                     <Plus className="h-4 w-4" />

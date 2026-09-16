@@ -29,6 +29,9 @@ import { upsertShopperState } from "@/lib/shopper-db";
 import { isGiftWrapProductId } from "@/lib/gift-wrap";
 import { getShippingFee } from "@/lib/store-config";
 import { isShippingProductId, shippingLine } from "@/lib/shipping";
+import { getProductAges } from "@/lib/types";
+import { agesMatch, canonicalizeAge } from "@/lib/product-ages";
+import { stockForAge } from "@/lib/product-stock";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -166,8 +169,9 @@ export async function POST(request: Request) {
     price: number;
     quantity: number;
     image: string;
+    ageLabel?: string;
   }> = [];
-  const requestedQuantityByProduct = new Map<string, number>();
+  const requestedQuantityByVariant = new Map<string, number>();
 
   for (const item of itemsRaw) {
     if (!item || typeof item !== "object") {
@@ -222,17 +226,35 @@ export async function POST(request: Request) {
         { status: 400 }
       );
     }
+    const rawAgeLabel =
+      typeof row.ageLabel === "string" && row.ageLabel.trim()
+        ? row.ageLabel.trim().slice(0, 40)
+        : "";
+    const productAges = getProductAges(product);
+    const ageLabel =
+      productAges.find((age) => agesMatch(age, rawAgeLabel)) ??
+      (productAges.length === 0 ? canonicalizeAge(rawAgeLabel) ?? "" : "");
+    if (productAges.length > 0 && !ageLabel) {
+      return NextResponse.json(
+        { error: `"${product.nameTr}" için geçerli bir beden seçin.` },
+        { status: 400 }
+      );
+    }
+    const availableStock = stockForAge(product, ageLabel);
+    const stockKey = `${product.id}::${ageLabel || "-"}`;
     const requestedQuantity =
-      (requestedQuantityByProduct.get(product.id) ?? 0) + quantity;
-    if (requestedQuantity > product.stockQuantity) {
+      (requestedQuantityByVariant.get(stockKey) ?? 0) + quantity;
+    if (requestedQuantity > availableStock) {
       return NextResponse.json(
         {
-          error: `"${product.nameTr}" için yalnızca ${product.stockQuantity} adet stok var.`,
+          error: `"${product.nameTr}"${
+            ageLabel ? ` (${ageLabel})` : ""
+          } için yalnızca ${availableStock} adet stok var.`,
         },
         { status: 400 }
       );
     }
-    requestedQuantityByProduct.set(product.id, requestedQuantity);
+    requestedQuantityByVariant.set(stockKey, requestedQuantity);
     if (!Number.isFinite(product.price) || product.price < 0) {
       return NextResponse.json({ error: "Geçersiz tutar." }, { status: 400 });
     }
@@ -242,10 +264,6 @@ export async function POST(request: Request) {
       typeof row.colorLabel === "string" && row.colorLabel.trim()
         ? row.colorLabel.trim().slice(0, 40)
         : "";
-    const ageLabel =
-      typeof row.ageLabel === "string" && row.ageLabel.trim()
-        ? row.ageLabel.trim().slice(0, 40)
-        : "";
     const baseName = product.nameTr || product.nameEn;
     const extras = [ageLabel, colorLabel].filter(Boolean).join(", ");
     validatedItems.push({
@@ -254,6 +272,7 @@ export async function POST(request: Request) {
       price: product.price,
       quantity,
       image: product.image,
+      ageLabel: ageLabel || undefined,
     });
   }
 

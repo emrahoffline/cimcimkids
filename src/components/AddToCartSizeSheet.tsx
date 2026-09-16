@@ -5,6 +5,7 @@ import { X } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import type { Product, ProductColor } from "@/lib/types";
 import { getColorLabel, getProductAges } from "@/lib/types";
+import { stockForAge } from "@/lib/product-stock";
 
 type Props = {
   product: Product;
@@ -111,16 +112,22 @@ export function AddToCartSizeSheet({ product, open, onClose, onPick }: Props) {
 
         <div className="mt-4">
           <div className="flex flex-wrap gap-2">
-            {ages.map((age) => (
-              <button
-                key={age}
-                type="button"
-                onClick={() => onPick(age, color)}
-                className="rounded-full border border-slate-200 bg-white px-3.5 py-2 text-sm font-medium text-slate-700 transition hover:border-bamboo hover:bg-bamboo hover:text-white"
-              >
-                {age}
-              </button>
-            ))}
+            {ages.map((age) => {
+              const stock = stockForAge(product, age);
+              const soldOut = stock <= 0;
+              return (
+                <button
+                  key={age}
+                  type="button"
+                  disabled={soldOut}
+                  onClick={() => onPick(age, color)}
+                  className="rounded-full border border-slate-200 bg-white px-3.5 py-2 text-sm font-medium text-slate-700 transition hover:border-bamboo hover:bg-bamboo hover:text-white disabled:cursor-not-allowed disabled:border-slate-100 disabled:bg-slate-100 disabled:text-slate-400"
+                >
+                  {age}
+                  {soldOut ? ` · ${t("outOfStock")}` : ""}
+                </button>
+              );
+            })}
           </div>
         </div>
       </div>

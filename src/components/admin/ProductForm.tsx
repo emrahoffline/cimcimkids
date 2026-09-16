@@ -10,6 +10,7 @@ import { AgeOptionsEditor } from "./AgeOptionsEditor";
 import { CategorySelect } from "./CategorySelect";
 import { parseProductColors } from "@/lib/product-variants";
 import { normalizeProductAges } from "@/lib/product-ages";
+import { normalizeSizeStock, sizeStockTotal } from "@/lib/product-stock";
 
 type Props = {
   product?: Product;
@@ -33,8 +34,31 @@ export function ProductForm({ product }: Props) {
     images: product ? getProductImages(product) : ([] as string[]),
     colors: (product?.colors ?? []) as ProductColor[],
     stockQuantity: product?.stockQuantity ?? 0,
+    sizeStock: product?.sizeStock ?? ({} as Record<string, number>),
     slug: product?.slug ?? "",
   });
+
+  const setAges = (ages: string[]) => {
+    const sizeStock = normalizeSizeStock(form.sizeStock, ages);
+    setForm({
+      ...form,
+      ages,
+      sizeStock,
+      stockQuantity: sizeStockTotal(sizeStock),
+    });
+  };
+
+  const setAgeStock = (age: string, value: number) => {
+    const sizeStock = {
+      ...form.sizeStock,
+      [age]: Math.max(0, Math.floor(value || 0)),
+    };
+    setForm({
+      ...form,
+      sizeStock,
+      stockQuantity: sizeStockTotal(sizeStock),
+    });
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -173,25 +197,17 @@ export function ProductForm({ product }: Props) {
           />
         </div>
         <div>
-          <label className="mb-1 block text-sm font-medium">Stok adedi</label>
+          <label className="mb-1 block text-sm font-medium">Toplam stok</label>
           <input
             type="number"
-            required
-            min={0}
-            step={1}
-            className="admin-input"
+            readOnly
+            className="admin-input bg-gray-50"
             value={form.stockQuantity}
-            onChange={(e) =>
-              setForm({
-                ...form,
-                stockQuantity: Math.max(0, Math.floor(Number(e.target.value) || 0)),
-              })
-            }
           />
           <p className="mt-1 text-xs text-gray-400">
             {form.stockQuantity > 0
-              ? `Stokta ${form.stockQuantity} adet`
-              : "Stok 0 — ürün tükendi olarak görünür"}
+              ? `Bedenlerin toplamı ${form.stockQuantity} adet`
+              : "Tüm bedenlerin stoku 0"}
           </p>
         </div>
       </div>
@@ -203,8 +219,36 @@ export function ProductForm({ product }: Props) {
 
       <AgeOptionsEditor
         value={form.ages}
-        onChange={(ages) => setForm({ ...form, ages })}
+        onChange={setAges}
       />
+
+      {form.ages.length > 0 && (
+        <div>
+          <p className="mb-2 text-sm font-medium">Beden bazlı stok</p>
+          <div className="grid gap-3 sm:grid-cols-2">
+            {form.ages.map((age) => (
+              <label
+                key={age}
+                className="flex items-center justify-between gap-3 rounded-xl border border-gray-200 px-3 py-2"
+              >
+                <span className="text-sm font-medium text-gray-700">{age}</span>
+                <input
+                  type="number"
+                  min={0}
+                  step={1}
+                  required
+                  className="admin-input w-24"
+                  value={form.sizeStock[age] ?? 0}
+                  onChange={(event) =>
+                    setAgeStock(age, Number(event.target.value))
+                  }
+                  aria-label={`${age} stok adedi`}
+                />
+              </label>
+            ))}
+          </div>
+        </div>
+      )}
 
       <ColorOptionsEditor
         value={form.colors}

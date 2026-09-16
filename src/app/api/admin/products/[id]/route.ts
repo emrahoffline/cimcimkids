@@ -7,6 +7,7 @@ import {
   parseProductColors,
 } from "@/lib/product-variants";
 import { normalizeProductAges } from "@/lib/product-ages";
+import { normalizeSizeStock, sizeStockTotal } from "@/lib/product-stock";
 
 export async function GET(
   _request: Request,
@@ -84,13 +85,11 @@ export async function PUT(
       ? String(body.nameEn).trim() || nameTr
       : products[index].nameEn || nameTr;
 
-  const stockQuantity =
-    body.stockQuantity !== undefined || body.stock !== undefined
-      ? Math.max(
-          0,
-          Math.floor(Number(body.stockQuantity ?? body.stock ?? 0))
-        )
-      : products[index].stockQuantity ?? 0;
+  const sizeStock = normalizeSizeStock(
+    body.sizeStock ?? products[index].sizeStock,
+    ages
+  );
+  const stockQuantity = sizeStockTotal(sizeStock);
 
   products[index] = {
     ...products[index],
@@ -109,6 +108,7 @@ export async function PUT(
     descTr: body.descTr ?? products[index].descTr,
     descEn: body.descEn ?? products[index].descEn,
     stockQuantity,
+    sizeStock,
     inStock: stockQuantity > 0,
   };
 

@@ -55,6 +55,8 @@ export type Product = {
   descEn: string;
   /** Available units; storefront uses inStock (= stockQuantity > 0) */
   stockQuantity: number;
+  /** Available units per age/size label. Empty means legacy pooled stock. */
+  sizeStock?: Record<string, number>;
   inStock: boolean;
   /** Storefront / vitrin order; 0 is first */
   sortOrder?: number;

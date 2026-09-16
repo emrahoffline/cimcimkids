@@ -5,6 +5,7 @@ import type {
   OrderItem as DbOrderItem,
   Invoice as DbInvoice,
   Product as DbProduct,
+  ProductSizeStock as DbProductSizeStock,
   Category as DbCategory,
   Subscriber as DbSubscriber,
   Announcement as DbAnnouncement,
@@ -15,7 +16,7 @@ import type {
   UserRole,
   SubscriberSource,
 } from "@prisma/client";
-import { randomBytes } from "crypto";
+import { createHash, randomBytes } from "crypto";
 import type { Product, Category, Announcement, HeroSlide, StoryItem } from "./types";
 import {
   giftCardAppliedAmount,
@@ -38,6 +39,10 @@ import { normalizeProductImages, parseProductColors } from "./product-variants";
 import { normalizeProductAges } from "./product-ages";
 import { parseStatusHistory } from "./order-status";
 import { clampStoryDuration, groupStories } from "./stories";
+import {
+  normalizeSizeStock,
+  sizeStockTotal,
+} from "./product-stock";
 
 export type Customer = {
   id: string;
@@ -55,6 +60,7 @@ export type Customer = {
 export type OrderItem = {
   productId: string;
   name: string;
+  ageLabel?: string;
   price: number;
   quantity: number;
   image: string;
@@ -136,9 +142,21 @@ export type NewsletterSubscriber = {
   source?: "newsletter" | "checkout";
 };
 
-function mapProduct(p: DbProduct): Product {
+function mapProduct(
+  p: DbProduct & { sizeStocks?: DbProductSizeStock[] }
+): Product {
   const images = normalizeProductImages(p.images, p.image);
   const ages = normalizeProductAges(p.ages, p.ageRange);
+  const sizeStock = Object.fromEntries(
+    (p.sizeStocks ?? []).map((row) => [
+      row.ageLabel,
+      Math.max(0, row.stockQuantity),
+    ])
+  );
+  const stockQuantity =
+    Object.keys(sizeStock).length > 0
+      ? sizeStockTotal(sizeStock)
+      : Math.max(0, p.stockQuantity ?? 0);
   return {
     id: p.id,
     code: p.code,
@@ -158,8 +176,9 @@ function mapProduct(p: DbProduct): Product {
     nameEn: p.nameEn,
     descTr: p.descTr,
     descEn: p.descEn,
-    stockQuantity: p.stockQuantity ?? 0,
-    inStock: (p.stockQuantity ?? 0) > 0,
+    stockQuantity,
+    sizeStock,
+    inStock: stockQuantity > 0,
     compareAtPrice: p.compareAtPrice ?? null,
     sortOrder: p.sortOrder ?? 0,
     createdAt: p.createdAt.toISOString(),
@@ -219,6 +238,7 @@ function mapOrder(
     items: o.items.map((i) => ({
       productId: i.productId,
       name: i.name,
+      ageLabel: i.ageLabel ?? undefined,
       price: i.price,
       quantity: i.quantity,
       image: i.image,
@@ -305,6 +325,7 @@ export async function getProducts(): Promise<Product[]> {
     requireDatabaseUrl();
   }
   const rows = await prisma.product.findMany({
+    include: { sizeStocks: true },
     orderBy: [{ sortOrder: "asc" }, { createdAt: "desc" }],
   });
   return sortProducts(rows.map(mapProduct), "manual");
@@ -323,6 +344,11 @@ export async function saveProducts(products: Product[]): Promise<void> {
       const images = normalizeProductImages(p.images, p.image);
       const ages = normalizeProductAges(p.ages, p.ageRange);
       const colors = p.colors ?? [];
+      const sizeStock = normalizeSizeStock(p.sizeStock, ages);
+      const hasPerSizeStock = Object.keys(sizeStock).length > 0;
+      const stockQuantity = hasPerSizeStock
+        ? sizeStockTotal(sizeStock)
+        : Math.max(0, Math.floor(p.stockQuantity ?? 0));
       const price = roundedSalePrice(p);
       const sortOrder = Number.isFinite(p.sortOrder)
         ? Math.floor(Number(p.sortOrder))
@@ -345,8 +371,8 @@ export async function saveProducts(products: Product[]): Promise<void> {
           nameEn: p.nameEn,
           descTr: p.descTr,
           descEn: p.descEn,
-          stockQuantity: Math.max(0, Math.floor(p.stockQuantity ?? 0)),
-          inStock: (p.stockQuantity ?? 0) > 0,
+          stockQuantity,
+          inStock: stockQuantity > 0,
           compareAtPrice:
             typeof p.compareAtPrice === "number" &&
             Number.isFinite(p.compareAtPrice)
@@ -369,8 +395,8 @@ export async function saveProducts(products: Product[]): Promise<void> {
           nameEn: p.nameEn,
           descTr: p.descTr,
           descEn: p.descEn,
-          stockQuantity: Math.max(0, Math.floor(p.stockQuantity ?? 0)),
-          inStock: (p.stockQuantity ?? 0) > 0,
+          stockQuantity,
+          inStock: stockQuantity > 0,
           compareAtPrice:
             typeof p.compareAtPrice === "number" &&
             Number.isFinite(p.compareAtPrice)
@@ -379,6 +405,20 @@ export async function saveProducts(products: Product[]): Promise<void> {
           sortOrder,
         },
       });
+      await tx.productSizeStock.deleteMany({ where: { productId: p.id } });
+      if (hasPerSizeStock) {
+        await tx.productSizeStock.createMany({
+          data: Object.entries(sizeStock).map(([ageLabel, quantity]) => ({
+            id: `${p.id}::${createHash("sha256")
+              .update(ageLabel)
+              .digest("hex")
+              .slice(0, 16)}`,
+            productId: p.id,
+            ageLabel,
+            stockQuantity: quantity,
+          })),
+        });
+      }
     }
   });
 }
@@ -766,6 +806,7 @@ export async function createOrder(
           create: order.items.map((item) => ({
             productId: item.productId,
             name: item.name,
+            ageLabel: item.ageLabel ?? null,
             price: item.price,
             quantity: item.quantity,
             image: item.image,

@@ -1,4 +1,5 @@
 import "server-only";
+import type { Prisma } from "@prisma/client";
 import { isGiftCardProductId } from "./gift-cards";
 import { isGiftWrapProductId } from "./gift-wrap";
 import { prisma, requireDatabaseUrl } from "./prisma";
@@ -23,17 +24,40 @@ function isPhysicalProduct(productId: string) {
 }
 
 function quantitiesByProduct(
-  items: { productId: string; quantity: number }[]
+  items: { productId: string; ageLabel: string | null; quantity: number }[]
 ) {
-  const quantities = new Map<string, number>();
+  const quantities = new Map<
+    string,
+    { productId: string; ageLabel: string | null; quantity: number }
+  >();
   for (const item of items) {
     if (!isPhysicalProduct(item.productId)) continue;
-    quantities.set(
-      item.productId,
-      (quantities.get(item.productId) ?? 0) + item.quantity
-    );
+    const key = `${item.productId}::${item.ageLabel ?? "-"}`;
+    const current = quantities.get(key);
+    quantities.set(key, {
+      productId: item.productId,
+      ageLabel: item.ageLabel,
+      quantity: (current?.quantity ?? 0) + item.quantity,
+    });
   }
-  return quantities;
+  return [...quantities.values()];
+}
+
+async function syncProductTotal(
+  tx: Prisma.TransactionClient,
+  productId: string
+) {
+  const aggregate = await tx.productSizeStock.aggregate({
+    where: { productId },
+    _sum: { stockQuantity: true },
+    _count: true,
+  });
+  if (aggregate._count === 0) return;
+  const total = aggregate._sum.stockQuantity ?? 0;
+  await tx.product.update({
+    where: { id: productId },
+    data: { stockQuantity: total, inStock: total > 0 },
+  });
 }
 
 /** Deduct each order's stock once, even if a payment callback is repeated. */
@@ -48,10 +72,36 @@ export async function deductOrderStock(orderId: string): Promise<boolean> {
 
     const items = await tx.orderItem.findMany({
       where: { orderId },
-      select: { productId: true, quantity: true },
+      select: { productId: true, ageLabel: true, quantity: true },
     });
 
-    for (const [productId, quantity] of quantitiesByProduct(items)) {
+    for (const { productId, ageLabel, quantity } of quantitiesByProduct(items)) {
+      const sizeRow = ageLabel
+        ? await tx.productSizeStock.findUnique({
+            where: { productId_ageLabel: { productId, ageLabel } },
+            select: { id: true },
+          })
+        : null;
+      if (sizeRow) {
+        const updatedSize = await tx.productSizeStock.updateMany({
+          where: { id: sizeRow.id, stockQuantity: { gte: quantity } },
+          data: { stockQuantity: { decrement: quantity } },
+        });
+        if (updatedSize.count === 0) {
+          const product = await tx.product.findUnique({
+            where: { id: productId },
+            select: { nameTr: true },
+          });
+          throw new OrderStockError(
+            product
+              ? `"${product.nameTr}" (${ageLabel}) için yeterli stok kalmadı.`
+              : "Siparişteki ürün artık bulunamıyor.",
+            productId
+          );
+        }
+        await syncProductTotal(tx, productId);
+        continue;
+      }
       const updated = await tx.product.updateMany({
         where: { id: productId, stockQuantity: { gte: quantity } },
         data: { stockQuantity: { decrement: quantity } },
@@ -94,9 +144,23 @@ export async function restoreOrderStock(orderId: string): Promise<boolean> {
 
     const items = await tx.orderItem.findMany({
       where: { orderId },
-      select: { productId: true, quantity: true },
+      select: { productId: true, ageLabel: true, quantity: true },
     });
-    for (const [productId, quantity] of quantitiesByProduct(items)) {
+    for (const { productId, ageLabel, quantity } of quantitiesByProduct(items)) {
+      const sizeRow = ageLabel
+        ? await tx.productSizeStock.findUnique({
+            where: { productId_ageLabel: { productId, ageLabel } },
+            select: { id: true },
+          })
+        : null;
+      if (sizeRow) {
+        await tx.productSizeStock.update({
+          where: { id: sizeRow.id },
+          data: { stockQuantity: { increment: quantity } },
+        });
+        await syncProductTotal(tx, productId);
+        continue;
+      }
       await tx.product.updateMany({
         where: { id: productId },
         data: {
