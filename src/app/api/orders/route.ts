@@ -167,6 +167,7 @@ export async function POST(request: Request) {
     quantity: number;
     image: string;
   }> = [];
+  const requestedQuantityByProduct = new Map<string, number>();
 
   for (const item of itemsRaw) {
     if (!item || typeof item !== "object") {
@@ -221,6 +222,17 @@ export async function POST(request: Request) {
         { status: 400 }
       );
     }
+    const requestedQuantity =
+      (requestedQuantityByProduct.get(product.id) ?? 0) + quantity;
+    if (requestedQuantity > product.stockQuantity) {
+      return NextResponse.json(
+        {
+          error: `"${product.nameTr}" için yalnızca ${product.stockQuantity} adet stok var.`,
+        },
+        { status: 400 }
+      );
+    }
+    requestedQuantityByProduct.set(product.id, requestedQuantity);
     if (!Number.isFinite(product.price) || product.price < 0) {
       return NextResponse.json({ error: "Geçersiz tutar." }, { status: 400 });
     }

@@ -12,6 +12,11 @@ import { refundDiscountForOrder } from "@/lib/discount-codes-db";
 import { sendGiftCardCodesEmail } from "@/lib/email";
 import { tryAutoIssueInvoice } from "@/lib/invoices-db";
 import { shouldAutoIssueInvoice } from "@/lib/invoice-config";
+import {
+  deductOrderStock,
+  OrderStockError,
+  restoreOrderStock,
+} from "@/lib/order-stock";
 
 const PAID_STATUSES: OrderStatus[] = [
   "pending",
@@ -53,6 +58,26 @@ export async function PATCH(request: Request) {
   }
 
   const prevStatus = order.status;
+  try {
+    if (
+      PAID_STATUSES.includes(status) &&
+      !PAID_STATUSES.includes(prevStatus)
+    ) {
+      await deductOrderStock(order.id);
+    } else if (status === "cancelled" && prevStatus !== "cancelled") {
+      await restoreOrderStock(order.id);
+    }
+  } catch (err) {
+    if (err instanceof OrderStockError) {
+      return NextResponse.json({ error: err.message }, { status: 409 });
+    }
+    console.error("[orders] stock update failed:", err);
+    return NextResponse.json(
+      { error: "Stok güncellenemedi. Sipariş durumu değiştirilmedi." },
+      { status: 500 }
+    );
+  }
+
   order.status = status;
   order.statusHistory = appendStatusHistory(
     order.statusHistory ?? [],

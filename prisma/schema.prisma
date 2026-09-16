@@ -157,6 +157,7 @@ model Order {
   cargoBarcodeUrl  String?
   cargoDesi        Float?
   cargoCost        Float?
+  stockDeductedAt  DateTime?
   createdAt        DateTime         @default(now())
   updatedAt        DateTime         @updatedAt
   items            OrderItem[]

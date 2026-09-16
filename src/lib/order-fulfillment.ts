@@ -9,6 +9,7 @@ import {
 import { sendGiftCardCodesEmail, sendCustomerOrderReceivedEmail, sendOrderNotificationEmail } from "@/lib/email";
 import { tryAutoIssueInvoice } from "@/lib/invoices-db";
 import { shouldAutoIssueInvoice } from "@/lib/invoice-config";
+import { deductOrderStock } from "@/lib/order-stock";
 
 export async function finalizePaidOrder(
   orderId: string,
@@ -38,6 +39,9 @@ export async function finalizePaidOrder(
   if (extra?.lastFourDigits) order.lastFourDigits = extra.lastFourDigits;
   if (extra?.cardType) order.cardType = extra.cardType;
 
+  if (wasPending) {
+    await deductOrderStock(order.id);
+  }
   await saveOrders(orders);
 
   if (wasPending) {
