@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { useLocale } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import type { Product } from "@/lib/types";
 import { getProductName, getProductDesc } from "@/lib/products";
 import { isUploadedProductImage } from "@/lib/image-utils";
@@ -23,6 +23,7 @@ export function ProductCard({
   rating?: { average: number; count: number } | null;
 }) {
   const locale = useLocale();
+  const t = useTranslations("products");
   const images = getProductImages(product);
   const [active, setActive] = useState(0);
   const scrollerRef = useRef<HTMLDivElement>(null);
@@ -104,7 +105,7 @@ export function ProductCard({
               <ProductRatingBadge summary={rating} compact />
             </div>
           ) : null}
-          <div className="mt-1.5 flex h-3 gap-1">
+          <div className="mt-1.5 flex h-3 items-center gap-1">
             {product.colors?.slice(0, 5).map((c) => (
               <span
                 key={c.id}
@@ -113,6 +114,11 @@ export function ProductCard({
                 title={locale === "tr" ? c.labelTr : c.labelEn}
               />
             ))}
+            {!product.inStock && (
+              <span className="ml-1 whitespace-nowrap text-[10px] font-semibold leading-none text-red-500">
+                {t("outOfStock")}
+              </span>
+            )}
           </div>
           <p className="mt-1 hidden line-clamp-2 min-h-[2.25rem] text-xs leading-relaxed text-slate-400 sm:block">
             {desc || "\u00a0"}

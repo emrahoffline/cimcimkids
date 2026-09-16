@@ -81,6 +81,7 @@
     "inStock": "Stokta",
     "outOfStock": "Tükendi",
     "notifyMe": "Stok gelince haber ver",
+    "notifyShort": "Haber ver",
     "notifyTitle": "{size} bedeni için haber ver",
     "notifyHint": "Bu beden yeniden stoklara girdiğinde size bir kez e-posta göndeririz.",
     "notifyEmail": "E-posta adresiniz",

@@ -76,7 +76,12 @@ export function AddToCartButton({
       >
         <ShoppingBag className="h-4 w-4" />
         {!product.inStock && ages.length > 0 ? (
-          t("notifyMe")
+          <>
+            <span className="hidden sm:inline">{t("notifyMe")}</span>
+            <span className="whitespace-nowrap text-[11px] sm:hidden">
+              {t("notifyShort")}
+            </span>
+          </>
         ) : shortLabel ? (
           <>
             <span className="hidden sm:inline">{t("addToCart")}</span>

@@ -81,6 +81,7 @@
     "inStock": "In Stock",
     "outOfStock": "Sold Out",
     "notifyMe": "Notify me when available",
+    "notifyShort": "Notify me",
     "notifyTitle": "Notify me about size {size}",
     "notifyHint": "We will send you one email when this size is back in stock.",
     "notifyEmail": "Your email address",
