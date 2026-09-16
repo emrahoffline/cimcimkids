@@ -20,8 +20,12 @@ export class IyzicoError extends Error {
 }
 
 export function isIyzicoConfigured(): boolean {
+  const cardEnabled =
+    process.env.IYZICO_CARD_ENABLED?.trim().toLowerCase() !== "false";
   return Boolean(
-    process.env.IYZICO_API_KEY?.trim() && process.env.IYZICO_SECRET_KEY?.trim()
+    cardEnabled &&
+      process.env.IYZICO_API_KEY?.trim() &&
+      process.env.IYZICO_SECRET_KEY?.trim()
   );
 }
 

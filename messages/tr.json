@@ -328,6 +328,7 @@
     "payWithTransfer": "Havale / EFT",
     "cardPaymentInfo": "Kart bilgilerinizi iyzico’nun güvenli 3D Secure sayfasında girersiniz. Visa, Mastercard ve Troy kabul edilir.",
     "cardSecureNote": "Kart numarası sitemizde saklanmaz.",
+    "cardTemporarilyUnavailable": "Ödeme altyapısındaki teknik yoğunluk nedeniyle kartla ödeme geçici olarak devre dışıdır. Bu süreçte havale/EFT ile sipariş verebilirsiniz.",
     "cardPaymentFailed": "Kart ödemesi tamamlanamadı. Tekrar deneyebilir veya havale/EFT seçebilirsiniz.",
     "redirectingToCard": "Güvenli ödeme sayfasına yönlendiriliyorsunuz…",
     "successCardPaid": "Ödemeniz alındı. Siparişiniz hazırlığa alınacaktır.",

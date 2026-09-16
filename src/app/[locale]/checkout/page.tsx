@@ -97,8 +97,8 @@ export default function CheckoutPage() {
   } | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [payMethod, setPayMethod] = useState<PayMethod>("card");
-  const [cardEnabled, setCardEnabled] = useState(true);
+  const [payMethod, setPayMethod] = useState<PayMethod>("bank_transfer");
+  const [cardEnabled, setCardEnabled] = useState<boolean | null>(null);
   const [checkoutFormHtml, setCheckoutFormHtml] = useState("");
   const merchandise = cartMerchandiseTotal(items);
   const physical = cartPhysicalTotal(items);
@@ -142,7 +142,7 @@ export default function CheckoutPage() {
       .then((data) => {
         const enabled = Boolean(data.enabled);
         setCardEnabled(enabled);
-        if (!enabled) setPayMethod("bank_transfer");
+        setPayMethod(enabled ? "card" : "bank_transfer");
       })
       .catch(() => {
         setCardEnabled(false);
@@ -660,7 +660,7 @@ export default function CheckoutPage() {
                   {t("paymentInfo")}
                 </h2>
                 <div className="flex flex-wrap gap-6">
-                  {cardEnabled && (
+                  {cardEnabled === true && (
                     <label className="flex min-h-[44px] cursor-pointer items-center gap-2 text-sm font-medium text-slate-700">
                       <input
                         type="radio"
@@ -683,6 +683,11 @@ export default function CheckoutPage() {
                     {t("payWithTransfer")}
                   </label>
                 </div>
+                {cardEnabled === false && (
+                  <p className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm leading-relaxed text-amber-800">
+                    {t("cardTemporarilyUnavailable")}
+                  </p>
+                )}
                 {payMethod === "card" ? (
                   <div className="space-y-3">
                     <p className="text-sm text-olive/70">{t("cardPaymentInfo")}</p>

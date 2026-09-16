@@ -328,6 +328,7 @@
     "payWithTransfer": "Bank transfer",
     "cardPaymentInfo": "You enter card details on iyzico’s secure 3D Secure page. Visa, Mastercard and Troy are accepted.",
     "cardSecureNote": "We do not store card numbers on our site.",
+    "cardTemporarilyUnavailable": "Card payments are temporarily unavailable due to technical load on the payment infrastructure. You can place your order by bank transfer in the meantime.",
     "cardPaymentFailed": "Card payment could not be completed. You can try again or choose bank transfer.",
     "redirectingToCard": "Redirecting to the secure payment page…",
     "successCardPaid": "Payment received. Your order will be prepared.",
