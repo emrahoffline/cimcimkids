@@ -664,11 +664,11 @@ export function AdminAnalyticsDashboard({ data }: { data: AnalyticsData }) {
             Müşteri sepetlerinde ürün yok
           </p>
         ) : (
-          <div className="grid gap-3 sm:grid-cols-2">
+          <div className="grid min-w-0 gap-3 sm:grid-cols-2">
             {data.cartProducts.map((item) => (
               <div
                 key={item.productId}
-                className="flex items-center gap-3 rounded-xl border border-gray-100 p-3"
+                className="flex min-w-0 items-center gap-3 overflow-hidden rounded-xl border border-gray-100 p-3"
               >
                 <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-lg bg-gray-100">
                   {item.image ? (
@@ -681,13 +681,13 @@ export function AdminAnalyticsDashboard({ data }: { data: AnalyticsData }) {
                   ) : null}
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-medium text-gray-900">
+                  <p className="line-clamp-2 break-words text-sm font-medium leading-snug text-gray-900">
                     {item.name}
                   </p>
-                  <p className="mt-0.5 text-sm font-semibold text-olive">
+                  <p className="mt-0.5 break-words text-sm font-semibold text-olive">
                     {item.quantity} adet · {item.carts} sepette
                   </p>
-                  <p className="text-xs text-gray-400">
+                  <p className="break-words text-xs text-gray-400">
                     Toplam {formatPrice(item.value, "tr")}
                   </p>
                 </div>
