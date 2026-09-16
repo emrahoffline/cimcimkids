@@ -650,21 +650,27 @@ export function AdminAnalyticsDashboard({ data }: { data: AnalyticsData }) {
       </div>
 
       <div className="admin-card p-4 sm:p-5">
-        <h2 className="text-base font-semibold text-gray-900 sm:text-lg">
-          İlgi çeken, satılmayan
-        </h2>
-        <p className="mt-1 text-sm text-gray-500">
-          Son 14 günde bakılan ama siparişe girmeyen ürünler
-        </p>
-        {live.viewedNotSold.length === 0 ? (
-          <p className="py-6 text-sm text-gray-400">
-            Şu an bu listede ürün yok
+        <div className="mb-4 sm:mb-5">
+          <h2 className="flex items-center gap-2 text-base font-semibold text-gray-900 sm:text-lg">
+            <ShoppingCart className="h-5 w-5 shrink-0 text-bamboo" />
+            Sepetlerdeki Ürünler
+          </h2>
+          <p className="text-sm text-gray-500">
+            Kayıtlı müşterilerin güncel sepetleri · 15 sn’de bir yenilenir
+          </p>
+        </div>
+        {data.cartProducts.length === 0 ? (
+          <p className="py-8 text-center text-sm text-gray-400">
+            Müşteri sepetlerinde ürün yok
           </p>
         ) : (
-          <div className="mt-4 space-y-3">
-            {live.viewedNotSold.map((item) => (
-              <div key={item.productId} className="flex items-center gap-3">
-                <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-lg bg-gray-100">
+          <div className="grid gap-3 sm:grid-cols-2">
+            {data.cartProducts.map((item) => (
+              <div
+                key={item.productId}
+                className="flex items-center gap-3 rounded-xl border border-gray-100 p-3"
+              >
+                <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-lg bg-gray-100">
                   {item.image ? (
                     <Image
                       src={item.image}
@@ -678,8 +684,11 @@ export function AdminAnalyticsDashboard({ data }: { data: AnalyticsData }) {
                   <p className="truncate text-sm font-medium text-gray-900">
                     {item.name}
                   </p>
-                  <p className="text-xs text-gray-500">
-                    {item.views} görüntüleme · 0 satış
+                  <p className="mt-0.5 text-sm font-semibold text-olive">
+                    {item.quantity} adet · {item.carts} sepette
+                  </p>
+                  <p className="text-xs text-gray-400">
+                    Toplam {formatPrice(item.value, "tr")}
                   </p>
                 </div>
               </div>
@@ -764,27 +773,21 @@ export function AdminAnalyticsDashboard({ data }: { data: AnalyticsData }) {
       </div>
 
       <div className="admin-card p-4 sm:p-5">
-        <div className="mb-4 sm:mb-5">
-          <h2 className="flex items-center gap-2 text-base font-semibold text-gray-900 sm:text-lg">
-            <ShoppingCart className="h-5 w-5 shrink-0 text-bamboo" />
-            Sepetlerdeki Ürünler
-          </h2>
-          <p className="text-sm text-gray-500">
-            Kayıtlı müşterilerin güncel sepetleri · 15 sn’de bir yenilenir
-          </p>
-        </div>
-        {data.cartProducts.length === 0 ? (
-          <p className="py-8 text-center text-sm text-gray-400">
-            Müşteri sepetlerinde ürün yok
+        <h2 className="text-base font-semibold text-gray-900 sm:text-lg">
+          İlgi çeken, satılmayan
+        </h2>
+        <p className="mt-1 text-sm text-gray-500">
+          Son 14 günde bakılan ama siparişe girmeyen ürünler
+        </p>
+        {live.viewedNotSold.length === 0 ? (
+          <p className="py-6 text-sm text-gray-400">
+            Şu an bu listede ürün yok
           </p>
         ) : (
-          <div className="grid gap-3 sm:grid-cols-2">
-            {data.cartProducts.map((item) => (
-              <div
-                key={item.productId}
-                className="flex items-center gap-3 rounded-xl border border-gray-100 p-3"
-              >
-                <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-lg bg-gray-100">
+          <div className="mt-4 space-y-3">
+            {live.viewedNotSold.map((item) => (
+              <div key={item.productId} className="flex items-center gap-3">
+                <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-lg bg-gray-100">
                   {item.image ? (
                     <Image
                       src={item.image}
@@ -798,11 +801,8 @@ export function AdminAnalyticsDashboard({ data }: { data: AnalyticsData }) {
                   <p className="truncate text-sm font-medium text-gray-900">
                     {item.name}
                   </p>
-                  <p className="mt-0.5 text-sm font-semibold text-olive">
-                    {item.quantity} adet · {item.carts} sepette
-                  </p>
-                  <p className="text-xs text-gray-400">
-                    Toplam {formatPrice(item.value, "tr")}
+                  <p className="text-xs text-gray-500">
+                    {item.views} görüntüleme · 0 satış
                   </p>
                 </div>
               </div>
