@@ -388,7 +388,12 @@ export function AdminAnalyticsDashboard({ data }: { data: AnalyticsData }) {
 
   return (
     <div className="space-y-4 sm:space-y-6">
-      <div className="admin-card overflow-hidden bg-gradient-to-br from-[#1a1f1a] to-olive p-4 text-white sm:p-6">
+      <div
+        className="admin-card overflow-hidden p-4 text-white sm:p-6"
+        style={{
+          background: "linear-gradient(135deg, #1a1f1a 0%, #3db8a8 100%)",
+        }}
+      >
         <div className="mb-4 flex items-center gap-2 text-bamboo-light">
           <ShoppingBag className="h-5 w-5 shrink-0" />
           <p className="text-sm font-medium uppercase tracking-wider text-white/80">
