@@ -426,17 +426,11 @@ export default function CheckoutPage() {
   return (
     <div className="mx-auto max-w-4xl px-4 py-8 pb-36 sm:py-12 sm:pb-12 lg:pb-12">
       <h1 className="page-title mb-6 sm:mb-8">{t("title")}</h1>
-      <p className="mb-6 rounded-lg bg-bamboo/10 p-3 text-sm text-olive/70">
-        {payable <= 0
-          ? t("giftCardCoversAll")
-          : payMethod === "card"
-            ? t("cardPaymentInfo")
-            : payMethod === "bank_transfer"
-              ? t("bankTransferInfo")
-              : payMethod === "cash_on_delivery"
-                ? t("cashOnDeliveryInfo")
-                : t("cardOnDeliveryInfo")}
-      </p>
+      {cardEnabled === false && payable > 0 && (
+        <p className="mb-6 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm leading-relaxed text-amber-800">
+          {t("cardTemporarilyUnavailable")}
+        </p>
+      )}
 
       {error && (
         <p className="mb-4 rounded-lg bg-red-50 p-3 text-sm text-red-600">
@@ -723,11 +717,6 @@ export default function CheckoutPage() {
                     </>
                   )}
                 </div>
-                {cardEnabled === false && (
-                  <p className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm leading-relaxed text-amber-800">
-                    {t("cardTemporarilyUnavailable")}
-                  </p>
-                )}
                 {payMethod === "card" ? (
                   <div className="space-y-3">
                     <p className="text-sm text-olive/70">{t("cardPaymentInfo")}</p>
