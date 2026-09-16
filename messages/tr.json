@@ -332,7 +332,7 @@
     "cashOnDeliveryInfo": "Sipariş tutarını kargonuzu teslim alırken nakit olarak ödeyebilirsiniz. Ek hizmet bedeli alınmaz.",
     "cardOnDeliveryInfo": "Sipariş tutarını kargonuzu teslim alırken kargo görevlisinin POS cihazıyla kartla ödeyebilirsiniz. Ek hizmet bedeli alınmaz.",
     "cardSecureNote": "Kart numarası sitemizde saklanmaz.",
-    "cardTemporarilyUnavailable": "Ödeme altyapısındaki teknik yoğunluk nedeniyle kartla ödeme geçici olarak devre dışıdır. Bu süreçte havale/EFT ile sipariş verebilirsiniz.",
+    "cardTemporarilyUnavailable": "Ödeme altyapısındaki teknik yoğunluk nedeniyle internetten kartla ödeme geçici olarak devre dışıdır. Bu süreçte havale/EFT veya kapıda ödeme ile sipariş verebilirsiniz.",
     "cardPaymentFailed": "Kart ödemesi tamamlanamadı. Tekrar deneyebilir veya havale/EFT seçebilirsiniz.",
     "redirectingToCard": "Güvenli ödeme sayfasına yönlendiriliyorsunuz…",
     "successCardPaid": "Ödemeniz alındı. Siparişiniz hazırlığa alınacaktır.",

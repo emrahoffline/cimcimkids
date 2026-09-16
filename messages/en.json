@@ -332,7 +332,7 @@
     "cashOnDeliveryInfo": "You can pay the order total in cash when your parcel is delivered. There is no additional service fee.",
     "cardOnDeliveryInfo": "You can pay the order total by card using the courier’s POS terminal when your parcel is delivered. There is no additional service fee.",
     "cardSecureNote": "We do not store card numbers on our site.",
-    "cardTemporarilyUnavailable": "Card payments are temporarily unavailable due to technical load on the payment infrastructure. You can place your order by bank transfer in the meantime.",
+    "cardTemporarilyUnavailable": "Online card payments are temporarily unavailable due to technical load on the payment infrastructure. You can place your order by bank transfer or pay on delivery in the meantime.",
     "cardPaymentFailed": "Card payment could not be completed. You can try again or choose bank transfer.",
     "redirectingToCard": "Redirecting to the secure payment page…",
     "successCardPaid": "Payment received. Your order will be prepared.",
