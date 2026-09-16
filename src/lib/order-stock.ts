@@ -4,6 +4,7 @@ import { isGiftCardProductId } from "./gift-cards";
 import { isGiftWrapProductId } from "./gift-wrap";
 import { prisma, requireDatabaseUrl } from "./prisma";
 import { isShippingProductId } from "./shipping";
+import { sendPendingStockNotifications } from "./stock-notifications";
 
 export class OrderStockError extends Error {
   constructor(
@@ -135,12 +136,14 @@ export async function deductOrderStock(orderId: string): Promise<boolean> {
 /** Restore stock once when an order whose stock was deducted is cancelled. */
 export async function restoreOrderStock(orderId: string): Promise<boolean> {
   requireDatabaseUrl();
-  return prisma.$transaction(async (tx) => {
+  const result = await prisma.$transaction(async (tx) => {
     const claimed = await tx.order.updateMany({
       where: { id: orderId, stockDeductedAt: { not: null } },
       data: { stockDeductedAt: null },
     });
-    if (claimed.count === 0) return false;
+    if (claimed.count === 0) {
+      return { restored: false, productIds: [] as string[] };
+    }
 
     const items = await tx.orderItem.findMany({
       where: { orderId },
@@ -170,6 +173,23 @@ export async function restoreOrderStock(orderId: string): Promise<boolean> {
       });
     }
 
-    return true;
+    return {
+      restored: true,
+      productIds: [
+        ...new Set(
+          items
+            .filter((item) => isPhysicalProduct(item.productId))
+            .map((item) => item.productId)
+        ),
+      ],
+    };
   });
+  await Promise.all(
+    result.productIds.map((productId) =>
+      sendPendingStockNotifications(productId).catch((err) => {
+        console.error("[stock-notifications] iade bildirimi gönderilemedi:", err);
+      })
+    )
+  );
+  return result.restored;
 }

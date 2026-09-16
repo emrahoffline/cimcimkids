@@ -20,10 +20,17 @@ export function AddToCartSizeSheet({ product, open, onClose, onPick }: Props) {
   const ages = getProductAges(product);
   const colors = product.colors ?? [];
   const [color, setColor] = useState<ProductColor | null>(colors[0] ?? null);
+  const [notifyAge, setNotifyAge] = useState<string | null>(null);
+  const [email, setEmail] = useState("");
+  const [notifyState, setNotifyState] = useState<
+    "idle" | "loading" | "success" | "error"
+  >("idle");
 
   useEffect(() => {
     if (!open) return;
     setColor(product.colors?.[0] ?? null);
+    setNotifyAge(null);
+    setNotifyState("idle");
     const prev = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     const onKey = (event: KeyboardEvent) => {
@@ -37,6 +44,23 @@ export function AddToCartSizeSheet({ product, open, onClose, onPick }: Props) {
   }, [open, onClose, product.id]);
 
   if (!open || ages.length === 0) return null;
+
+  const subscribe = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!notifyAge || !email.trim()) return;
+    setNotifyState("loading");
+    const response = await fetch("/api/stock-notifications", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        productId: product.id,
+        ageLabel: notifyAge,
+        email,
+        locale,
+      }),
+    }).catch(() => null);
+    setNotifyState(response?.ok ? "success" : "error");
+  };
 
   return (
     <div className="fixed inset-0 z-[80] flex items-end justify-center sm:items-center">
@@ -119,9 +143,22 @@ export function AddToCartSizeSheet({ product, open, onClose, onPick }: Props) {
                 <button
                   key={age}
                   type="button"
-                  disabled={soldOut}
-                  onClick={() => onPick(age, color)}
-                  className="rounded-full border border-slate-200 bg-white px-3.5 py-2 text-sm font-medium text-slate-700 transition hover:border-bamboo hover:bg-bamboo hover:text-white disabled:cursor-not-allowed disabled:border-red-100 disabled:bg-red-50 disabled:text-slate-400"
+                  onClick={() => {
+                    if (soldOut) {
+                      setNotifyAge(age);
+                      setNotifyState("idle");
+                      return;
+                    }
+                    onPick(age, color);
+                  }}
+                  aria-disabled={soldOut}
+                  className={`rounded-full border px-3.5 py-2 text-sm font-medium transition ${
+                    soldOut
+                      ? notifyAge === age
+                        ? "border-red-300 bg-red-50 text-slate-400 ring-2 ring-red-100"
+                        : "border-red-100 bg-red-50 text-slate-400 hover:border-red-300"
+                      : "border-slate-200 bg-white text-slate-700 hover:border-bamboo hover:bg-bamboo hover:text-white"
+                  }`}
                 >
                   <span className={soldOut ? "line-through decoration-red-400" : ""}>
                     {age}
@@ -136,6 +173,51 @@ export function AddToCartSizeSheet({ product, open, onClose, onPick }: Props) {
             })}
           </div>
         </div>
+
+        {notifyAge && (
+          <form
+            onSubmit={subscribe}
+            className="mt-4 rounded-2xl border border-bamboo/15 bg-bamboo/5 p-3"
+          >
+            <p className="text-sm font-semibold text-slate-700">
+              {t("notifyTitle", { size: notifyAge })}
+            </p>
+            <p className="mt-1 text-xs text-slate-500">{t("notifyHint")}</p>
+            {notifyState === "success" ? (
+              <p className="mt-3 rounded-lg bg-emerald-50 px-3 py-2 text-sm font-medium text-emerald-700">
+                {t("notifySuccess")}
+              </p>
+            ) : (
+              <>
+                <div className="mt-3 flex gap-2">
+                  <input
+                    required
+                    type="email"
+                    autoComplete="email"
+                    value={email}
+                    onChange={(event) => setEmail(event.target.value)}
+                    placeholder={t("notifyEmail")}
+                    className="min-w-0 flex-1 rounded-xl border border-slate-200 bg-white px-3 text-sm outline-none focus:border-bamboo"
+                  />
+                  <button
+                    type="submit"
+                    disabled={notifyState === "loading"}
+                    className="rounded-xl bg-bamboo px-4 py-2 text-sm font-semibold text-white disabled:opacity-50"
+                  >
+                    {notifyState === "loading"
+                      ? t("notifySending")
+                      : t("notifyButton")}
+                  </button>
+                </div>
+                {notifyState === "error" && (
+                  <p className="mt-2 text-xs font-medium text-red-600">
+                    {t("notifyError")}
+                  </p>
+                )}
+              </>
+            )}
+          </form>
+        )}
       </div>
     </div>
   );

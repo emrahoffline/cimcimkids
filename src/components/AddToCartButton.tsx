@@ -50,7 +50,7 @@ export function AddToCartButton({
   const locale = useLocale();
   const [open, setOpen] = useState(false);
   const ages = getProductAges(product);
-  const isDisabled = disabled ?? !product.inStock;
+  const isDisabled = disabled ?? (!product.inStock && ages.length === 0);
 
   const commit = (ageLabel?: string | null, color?: ProductColor | null) => {
     commitProductToCart(product, name, locale, ageLabel, color);
@@ -75,7 +75,9 @@ export function AddToCartButton({
         disabled={isDisabled}
       >
         <ShoppingBag className="h-4 w-4" />
-        {shortLabel ? (
+        {!product.inStock && ages.length > 0 ? (
+          t("notifyMe")
+        ) : shortLabel ? (
           <>
             <span className="hidden sm:inline">{t("addToCart")}</span>
             <span className="sm:hidden">{shortLabel}</span>

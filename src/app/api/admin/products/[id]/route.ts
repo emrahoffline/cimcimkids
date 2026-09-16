@@ -8,6 +8,7 @@ import {
 } from "@/lib/product-variants";
 import { normalizeProductAges } from "@/lib/product-ages";
 import { normalizeSizeStock, sizeStockTotal } from "@/lib/product-stock";
+import { sendPendingStockNotifications } from "@/lib/stock-notifications";
 
 export async function GET(
   _request: Request,
@@ -113,6 +114,9 @@ export async function PUT(
   };
 
   await saveProducts(products);
+  await sendPendingStockNotifications(id).catch((err) => {
+    console.error("[stock-notifications] bildirim gönderimi başarısız:", err);
+  });
   return NextResponse.json(products[index]);
 }
 

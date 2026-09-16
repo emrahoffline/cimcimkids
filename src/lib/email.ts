@@ -509,3 +509,48 @@ export async function sendInvoiceEmail(data: {
 
   return true;
 }
+
+export async function sendBackInStockEmail(data: {
+  email: string;
+  locale: "tr" | "en";
+  productName: string;
+  ageLabel: string;
+  slug: string;
+}) {
+  const transporter = getTransporter();
+  if (!transporter) {
+    console.warn("[email] SMTP yapılandırılmamış — stok e-postası gönderilmedi.");
+    return false;
+  }
+
+  const from = process.env.SMTP_FROM ?? `CimcimKids <${process.env.SMTP_USER}>`;
+  const productUrl = `${SITE_ORIGIN}/${data.locale}/products/${encodeURIComponent(data.slug)}`;
+  const english = data.locale === "en";
+  const subject = english
+    ? `Back in stock: ${data.productName} (${data.ageLabel})`
+    : `Yeniden stokta: ${data.productName} (${data.ageLabel})`;
+  const intro = english
+    ? `The ${data.ageLabel} size of ${data.productName} is back in stock.`
+    : `${data.productName} ürününün ${data.ageLabel} bedeni yeniden stokta.`;
+  const action = english ? "View product" : "Ürünü incele";
+
+  await transporter.sendMail({
+    from,
+    to: data.email,
+    subject: subject.replaceAll(/[\r\n]+/g, " "),
+    html: `
+      <div style="font-family:sans-serif;max-width:600px;margin:0 auto;color:#334155">
+        <h2 style="color:#4a6741">CimcimKids</h2>
+        <p>${escapeHtml(intro)}</p>
+        <p>${english ? "Stocks may sell out quickly." : "Stoklar kısa sürede tükenebilir."}</p>
+        <p>
+          <a href="${escapeHtml(productUrl)}" style="display:inline-block;background:#4a6741;color:#fff;padding:12px 18px;border-radius:10px;text-decoration:none">
+            ${action}
+          </a>
+        </p>
+      </div>
+    `,
+    text: `${intro}\n${action}: ${productUrl}`,
+  });
+  return true;
+}
