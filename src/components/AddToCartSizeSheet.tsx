@@ -121,10 +121,16 @@ export function AddToCartSizeSheet({ product, open, onClose, onPick }: Props) {
                   type="button"
                   disabled={soldOut}
                   onClick={() => onPick(age, color)}
-                  className="rounded-full border border-slate-200 bg-white px-3.5 py-2 text-sm font-medium text-slate-700 transition hover:border-bamboo hover:bg-bamboo hover:text-white disabled:cursor-not-allowed disabled:border-slate-100 disabled:bg-slate-100 disabled:text-slate-400"
+                  className="rounded-full border border-slate-200 bg-white px-3.5 py-2 text-sm font-medium text-slate-700 transition hover:border-bamboo hover:bg-bamboo hover:text-white disabled:cursor-not-allowed disabled:border-red-100 disabled:bg-red-50 disabled:text-slate-400"
                 >
-                  {age}
-                  {soldOut ? ` · ${t("outOfStock")}` : ""}
+                  <span className={soldOut ? "line-through decoration-red-400" : ""}>
+                    {age}
+                  </span>
+                  {soldOut ? (
+                    <span className="ml-1.5 text-xs font-semibold text-red-500 no-underline">
+                      {t("outOfStock")}
+                    </span>
+                  ) : null}
                 </button>
               );
             })}
