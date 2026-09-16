@@ -10,6 +10,7 @@ import {
 import { isGiftCardProductId } from "./gift-cards";
 import { isGiftWrapProductId } from "./gift-wrap";
 import { isShippingProductId } from "./shipping";
+import { sanitizeShopperCart } from "./shopper-db";
 
 /** Keep recent raw events for favorites/detail; totals live in durable tables */
 const MAX_EVENTS = 10000;
@@ -505,6 +506,66 @@ export function buildTopSellers(orders: Order[], products: Product[], limit = 5)
     })
     .sort((a, b) => b.sold - a.sold)
     .slice(0, limit);
+}
+
+async function buildCurrentCartProducts(products: Product[]) {
+  const shopperStates = await prisma.shopperState.findMany({
+    select: { cart: true, updatedAt: true },
+  });
+  const productById = new Map(products.map((product) => [product.id, product]));
+  const totals = new Map<
+    string,
+    {
+      productId: string;
+      name: string;
+      image: string;
+      quantity: number;
+      carts: number;
+      value: number;
+      lastUpdatedAt: Date;
+    }
+  >();
+
+  for (const shopper of shopperStates) {
+    const cart = sanitizeShopperCart(shopper.cart).filter(
+      (item) =>
+        !isGiftCardProductId(item.productId) &&
+        !isGiftWrapProductId(item.productId) &&
+        !isShippingProductId(item.productId)
+    );
+    const seenProducts = new Set<string>();
+
+    for (const item of cart) {
+      const product = productById.get(item.productId);
+      const existing = totals.get(item.productId) ?? {
+        productId: item.productId,
+        name: product?.nameTr || item.name || item.productId,
+        image: product?.image || item.image || "",
+        quantity: 0,
+        carts: 0,
+        value: 0,
+        lastUpdatedAt: shopper.updatedAt,
+      };
+      existing.quantity += item.quantity;
+      existing.value += item.price * item.quantity;
+      if (!seenProducts.has(item.productId)) {
+        existing.carts += 1;
+        seenProducts.add(item.productId);
+      }
+      if (shopper.updatedAt > existing.lastUpdatedAt) {
+        existing.lastUpdatedAt = shopper.updatedAt;
+      }
+      totals.set(item.productId, existing);
+    }
+  }
+
+  return [...totals.values()]
+    .sort((a, b) => b.carts - a.carts || b.quantity - a.quantity)
+    .slice(0, 20)
+    .map((item) => ({
+      ...item,
+      lastUpdatedAt: item.lastUpdatedAt.toISOString(),
+    }));
 }
 
 export function buildTopFavorites(
@@ -1100,12 +1161,16 @@ export async function getAdminAnalytics(orders: Order[], products: Product[]) {
     weekly: buildWeeklySalesChart(orders, 12),
     monthly: buildMonthlySalesChart(orders, 12),
   };
-  const live = await buildLiveInsights(orders, products);
+  const [live, cartProducts] = await Promise.all([
+    buildLiveInsights(orders, products),
+    buildCurrentCartProducts(products),
+  ]);
 
   return {
     allTime,
     salesChart,
     salesCharts,
+    cartProducts,
     topSellers: buildTopSellers(orders, products),
     topFavorites: buildTopFavorites(events, products),
     sessionStats,

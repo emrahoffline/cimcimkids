@@ -11,6 +11,7 @@ import {
   MapPin,
   Radio,
   ShoppingBag,
+  ShoppingCart,
   TrendingUp,
 } from "lucide-react";
 import { formatPrice } from "@/lib/products";
@@ -39,6 +40,15 @@ type AnalyticsData = {
     name: string;
     image: string;
     count: number;
+  }[];
+  cartProducts: {
+    productId: string;
+    name: string;
+    image: string;
+    quantity: number;
+    carts: number;
+    value: number;
+    lastUpdatedAt: string;
   }[];
   sessionStats: {
     avgDurationSec: number;
@@ -751,6 +761,54 @@ export function AdminAnalyticsDashboard({ data }: { data: AnalyticsData }) {
             </div>
           )}
         </div>
+      </div>
+
+      <div className="admin-card p-4 sm:p-5">
+        <div className="mb-4 sm:mb-5">
+          <h2 className="flex items-center gap-2 text-base font-semibold text-gray-900 sm:text-lg">
+            <ShoppingCart className="h-5 w-5 shrink-0 text-bamboo" />
+            Sepetlerdeki Ürünler
+          </h2>
+          <p className="text-sm text-gray-500">
+            Kayıtlı müşterilerin güncel sepetleri · 15 sn’de bir yenilenir
+          </p>
+        </div>
+        {data.cartProducts.length === 0 ? (
+          <p className="py-8 text-center text-sm text-gray-400">
+            Müşteri sepetlerinde ürün yok
+          </p>
+        ) : (
+          <div className="grid gap-3 sm:grid-cols-2">
+            {data.cartProducts.map((item) => (
+              <div
+                key={item.productId}
+                className="flex items-center gap-3 rounded-xl border border-gray-100 p-3"
+              >
+                <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-lg bg-gray-100">
+                  {item.image ? (
+                    <Image
+                      src={item.image}
+                      alt={item.name}
+                      fill
+                      className="object-cover"
+                    />
+                  ) : null}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="truncate text-sm font-medium text-gray-900">
+                    {item.name}
+                  </p>
+                  <p className="mt-0.5 text-sm font-semibold text-olive">
+                    {item.quantity} adet · {item.carts} sepette
+                  </p>
+                  <p className="text-xs text-gray-400">
+                    Toplam {formatPrice(item.value, "tr")}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       <div className="grid gap-4 sm:gap-6 lg:grid-cols-2">

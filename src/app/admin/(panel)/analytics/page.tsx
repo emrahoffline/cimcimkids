@@ -33,6 +33,15 @@ type AnalyticsData = {
     image: string;
     count: number;
   }[];
+  cartProducts: {
+    productId: string;
+    name: string;
+    image: string;
+    quantity: number;
+    carts: number;
+    value: number;
+    lastUpdatedAt: string;
+  }[];
   sessionStats: {
     avgDurationSec: number;
     totalSessions: number;
