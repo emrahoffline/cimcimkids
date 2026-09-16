@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { X } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import type { Product, ProductColor } from "@/lib/types";
@@ -43,7 +44,7 @@ export function AddToCartSizeSheet({ product, open, onClose, onPick }: Props) {
     };
   }, [open, onClose, product.id]);
 
-  if (!open || ages.length === 0) return null;
+  if (!open || ages.length === 0 || typeof document === "undefined") return null;
 
   const subscribe = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -62,8 +63,8 @@ export function AddToCartSizeSheet({ product, open, onClose, onPick }: Props) {
     setNotifyState(response?.ok ? "success" : "error");
   };
 
-  return (
-    <div className="fixed inset-0 z-[80] flex items-end justify-center sm:items-center">
+  return createPortal(
+    <div className="fixed inset-0 z-[100] flex items-end justify-center sm:items-center">
       <button
         type="button"
         className="absolute inset-0 bg-black/40"
@@ -74,7 +75,7 @@ export function AddToCartSizeSheet({ product, open, onClose, onPick }: Props) {
         role="dialog"
         aria-modal="true"
         aria-labelledby="add-to-cart-size-title"
-        className="relative z-10 w-full max-w-md rounded-t-3xl bg-white p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] shadow-2xl sm:rounded-3xl sm:p-6"
+        className="relative z-10 max-h-[calc(100dvh-0.75rem)] w-full max-w-md overflow-y-auto overscroll-contain rounded-t-3xl bg-white p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] shadow-2xl sm:max-h-[calc(100dvh-2rem)] sm:rounded-3xl sm:p-6"
       >
         <div className="flex items-start justify-between gap-3">
           <div>
@@ -219,6 +220,7 @@ export function AddToCartSizeSheet({ product, open, onClose, onPick }: Props) {
           </form>
         )}
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 }
