@@ -24,7 +24,6 @@ export default function AdminDiscountsPage() {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [mode, setMode] = useState<Mode>("percent");
   const [value, setValue] = useState<string>("10");
-  const [showDiscountBadge, setShowDiscountBadge] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
 
@@ -113,7 +112,6 @@ export default function AdminDiscountsPage() {
               productIds: [...selected],
               mode,
               value: numericValue,
-              showDiscountBadge,
             }
       ),
     });
@@ -131,9 +129,43 @@ export default function AdminDiscountsPage() {
         ? `${data.updated} ürünün indirimi kaldırıldı`
         : `${data.updated} ürüne indirim uygulandı`
     );
-    setSelected(new Set());
     load();
   };
+
+  const updateBadge = async (show: boolean) => {
+    if (selected.size === 0) return;
+    setSaving(true);
+    setError("");
+    setMessage("");
+
+    const res = await fetch("/api/admin/discounts", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        productIds: [...selected],
+        mode: show ? "badge_on" : "badge_off",
+      }),
+    });
+    const data = await res.json().catch(() => ({}));
+    setSaving(false);
+    if (!res.ok) {
+      setError(data.error || "Etiket işlemi başarısız");
+      return;
+    }
+    setMessage(
+      show
+        ? `${data.updated} ürüne indirim etiketi eklendi`
+        : `${data.updated} üründen indirim etiketi kaldırıldı`
+    );
+    load();
+  };
+
+  const canAddBadge = selectedProducts.some(
+    (product) => isOnSale(product) && !product.showDiscountBadge
+  );
+  const canRemoveBadge = selectedProducts.some(
+    (product) => product.showDiscountBadge
+  );
 
   return (
     <>
@@ -172,7 +204,8 @@ export default function AdminDiscountsPage() {
           <p className="text-sm text-gray-600">
             Seçili ürünlere yüzde veya tutar indirimi uygulayın. Yüzde
             seçildiğinde yeni fiyat otomatik hesaplanır; isterseniz indirim
-            tutarını TL olarak da girebilirsiniz.
+            tutarını TL olarak da girebilirsiniz. Görsel etiketini ayrı
+            düğmelerle ekleyip kaldırabilirsiniz.
           </p>
 
           <div className="flex flex-wrap gap-2">
@@ -215,23 +248,6 @@ export default function AdminDiscountsPage() {
             />
           </div>
 
-          <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-gray-200 bg-gray-50 p-3">
-            <input
-              type="checkbox"
-              checked={showDiscountBadge}
-              onChange={(event) => setShowDiscountBadge(event.target.checked)}
-              className="mt-0.5 h-4 w-4 accent-olive"
-            />
-            <span>
-              <span className="block text-sm font-medium text-gray-800">
-                Ürün görsellerine otomatik indirim etiketi ekle
-              </span>
-              <span className="mt-0.5 block text-xs text-gray-500">
-                Etiket yüzdesi liste ve satış fiyatına göre otomatik hesaplanır.
-              </span>
-            </span>
-          </label>
-
           {preview.length > 0 && (
             <div className="rounded-lg bg-gray-50 p-3 text-sm text-gray-700">
               <p className="mb-2 font-medium">Önizleme (ilk {preview.length})</p>
@@ -271,6 +287,26 @@ export default function AdminDiscountsPage() {
             >
               İndirimi kaldır
             </button>
+            {canAddBadge ? (
+              <button
+                type="button"
+                disabled={saving}
+                onClick={() => updateBadge(true)}
+                className="rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-50"
+              >
+                Etiket ekle
+              </button>
+            ) : null}
+            {canRemoveBadge ? (
+              <button
+                type="button"
+                disabled={saving}
+                onClick={() => updateBadge(false)}
+                className="rounded-lg border border-red-200 bg-white px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50 disabled:opacity-50"
+              >
+                Etiketi kaldır
+              </button>
+            ) : null}
           </div>
 
           {error && (

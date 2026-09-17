@@ -6,6 +6,7 @@ import {
   applyPercentDiscount,
   clearDiscount,
 } from "@/lib/product-discount";
+import { isOnSale } from "@/lib/types";
 
 export async function GET() {
   const { error } = await requireAdminApi();
@@ -37,14 +38,18 @@ export async function PATCH(request: Request) {
   }
 
   const mode = (body as { mode?: unknown }).mode;
-  const showDiscountBadge =
-    (body as { showDiscountBadge?: unknown }).showDiscountBadge === true;
-  if (mode !== "percent" && mode !== "amount" && mode !== "clear") {
+  if (
+    mode !== "percent" &&
+    mode !== "amount" &&
+    mode !== "clear" &&
+    mode !== "badge_on" &&
+    mode !== "badge_off"
+  ) {
     return NextResponse.json({ error: "Geçersiz indirim tipi" }, { status: 400 });
   }
 
   const value = Number((body as { value?: unknown }).value ?? 0);
-  if (mode !== "clear") {
+  if (mode === "percent" || mode === "amount") {
     if (!Number.isFinite(value) || value < 0) {
       return NextResponse.json({ error: "Geçersiz indirim değeri" }, { status: 400 });
     }
@@ -63,6 +68,18 @@ export async function PATCH(request: Request) {
     const index = products.findIndex((p) => p.id === id);
     if (index === -1) continue;
 
+    if (mode === "badge_on") {
+      if (!isOnSale(products[index])) continue;
+      products[index] = { ...products[index], showDiscountBadge: true };
+      updated += 1;
+      continue;
+    }
+    if (mode === "badge_off") {
+      products[index] = { ...products[index], showDiscountBadge: false };
+      updated += 1;
+      continue;
+    }
+
     const patch =
       mode === "clear"
         ? clearDiscount(products[index])
@@ -73,13 +90,22 @@ export async function PATCH(request: Request) {
     products[index] = {
       ...products[index],
       ...patch,
-      showDiscountBadge: mode === "clear" ? false : showDiscountBadge,
+      showDiscountBadge:
+        mode === "clear" ? false : products[index].showDiscountBadge,
     };
     updated += 1;
   }
 
   if (updated === 0) {
-    return NextResponse.json({ error: "Ürün bulunamadı" }, { status: 404 });
+    return NextResponse.json(
+      {
+        error:
+          mode === "badge_on"
+            ? "Etiket eklemek için indirimli bir ürün seçin"
+            : "Ürün bulunamadı",
+      },
+      { status: 404 }
+    );
   }
 
   await saveProducts(products);
