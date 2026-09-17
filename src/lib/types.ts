@@ -44,6 +44,8 @@ export type Product = {
   price: number;
   /** Original price when discounted; null/undefined = no discount */
   compareAtPrice?: number | null;
+  /** Show an automatically calculated discount badge over product images. */
+  showDiscountBadge?: boolean;
   category: string;
   /** @deprecated use ages — kept as display helper / first age */
   ageRange?: string;

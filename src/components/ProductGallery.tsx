@@ -4,13 +4,15 @@ import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { isUploadedProductImage } from "@/lib/image-utils";
+import { DiscountImageBadge } from "./DiscountImageBadge";
 
 type Props = {
   images: string[];
   alt: string;
+  discountPercent?: number | null;
 };
 
-export function ProductGallery({ images, alt }: Props) {
+export function ProductGallery({ images, alt, discountPercent }: Props) {
   const list = images.length > 0 ? images : [];
   const [active, setActive] = useState(0);
   const scrollerRef = useRef<HTMLDivElement>(null);
@@ -47,6 +49,7 @@ export function ProductGallery({ images, alt }: Props) {
   return (
     <div className="space-y-3">
       <div className="relative">
+        <DiscountImageBadge percent={discountPercent ?? null} />
         <div
           ref={scrollerRef}
           className="flex aspect-square snap-x snap-mandatory overflow-x-auto rounded-3xl bg-cream-dark scrollbar-none"

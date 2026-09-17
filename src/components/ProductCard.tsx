@@ -7,11 +7,16 @@ import { useLocale, useTranslations } from "next-intl";
 import type { Product } from "@/lib/types";
 import { getProductName, getProductDesc } from "@/lib/products";
 import { isUploadedProductImage } from "@/lib/image-utils";
-import { getProductAges, getProductImages } from "@/lib/types";
+import {
+  getDiscountPercent,
+  getProductAges,
+  getProductImages,
+} from "@/lib/types";
 import { FavoriteButton } from "./FavoriteButton";
 import { ProductPrice } from "./ProductPrice";
 import { ProductRatingBadge } from "./ProductRatingBadge";
 import { AddToCartButton } from "./AddToCartButton";
+import { DiscountImageBadge } from "./DiscountImageBadge";
 
 export function ProductCard({
   product,
@@ -50,6 +55,9 @@ export function ProductCard({
   return (
     <article className="group flex h-full min-w-0 flex-col overflow-hidden rounded-3xl bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-[0_16px_40px_-16px_rgba(61,184,168,0.35)]">
       <div className="relative aspect-[4/5] w-full shrink-0 overflow-hidden bg-cream-dark">
+        {product.showDiscountBadge ? (
+          <DiscountImageBadge percent={getDiscountPercent(product)} compact />
+        ) : null}
         <FavoriteButton product={product} variant="overlay" />
         <div
           ref={scrollerRef}

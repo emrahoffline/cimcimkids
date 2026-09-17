@@ -24,6 +24,7 @@ export default function AdminDiscountsPage() {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [mode, setMode] = useState<Mode>("percent");
   const [value, setValue] = useState<string>("10");
+  const [showDiscountBadge, setShowDiscountBadge] = useState(false);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
 
@@ -112,6 +113,7 @@ export default function AdminDiscountsPage() {
               productIds: [...selected],
               mode,
               value: numericValue,
+              showDiscountBadge,
             }
       ),
     });
@@ -212,6 +214,23 @@ export default function AdminDiscountsPage() {
               onChange={(e) => setValue(e.target.value)}
             />
           </div>
+
+          <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-gray-200 bg-gray-50 p-3">
+            <input
+              type="checkbox"
+              checked={showDiscountBadge}
+              onChange={(event) => setShowDiscountBadge(event.target.checked)}
+              className="mt-0.5 h-4 w-4 accent-olive"
+            />
+            <span>
+              <span className="block text-sm font-medium text-gray-800">
+                Ürün görsellerine otomatik indirim etiketi ekle
+              </span>
+              <span className="mt-0.5 block text-xs text-gray-500">
+                Etiket yüzdesi liste ve satış fiyatına göre otomatik hesaplanır.
+              </span>
+            </span>
+          </label>
 
           {preview.length > 0 && (
             <div className="rounded-lg bg-gray-50 p-3 text-sm text-gray-700">
@@ -330,9 +349,16 @@ export default function AdminDiscountsPage() {
                         </td>
                         <td>
                           {onSale ? (
-                            <span className="rounded-full bg-bamboo/15 px-2 py-0.5 text-xs text-bamboo">
-                              İndirimde
-                            </span>
+                            <div className="flex flex-wrap gap-1">
+                              <span className="rounded-full bg-bamboo/15 px-2 py-0.5 text-xs text-bamboo">
+                                İndirimde
+                              </span>
+                              {p.showDiscountBadge ? (
+                                <span className="rounded-full bg-red-50 px-2 py-0.5 text-xs text-red-600">
+                                  Etiket açık
+                                </span>
+                              ) : null}
+                            </div>
                           ) : (
                             <span className="text-xs text-gray-400">—</span>
                           )}

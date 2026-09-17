@@ -80,6 +80,7 @@ model Product {
   colors         Json?
   price          Float
   compareAtPrice Float?
+  showDiscountBadge Boolean @default(false)
   category       String
   ageRange       String?
   ages           String[] @default([])

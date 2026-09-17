@@ -186,6 +186,7 @@ function mapProduct(
     sizeStock,
     inStock: stockQuantity > 0,
     compareAtPrice: p.compareAtPrice ?? null,
+    showDiscountBadge: p.showDiscountBadge,
     sortOrder: p.sortOrder ?? 0,
     createdAt: p.createdAt.toISOString(),
     updatedAt: p.updatedAt.toISOString(),
@@ -384,6 +385,7 @@ export async function saveProducts(products: Product[]): Promise<void> {
             Number.isFinite(p.compareAtPrice)
               ? p.compareAtPrice
               : null,
+          showDiscountBadge: p.showDiscountBadge === true,
           sortOrder,
         },
         update: {
@@ -408,6 +410,7 @@ export async function saveProducts(products: Product[]): Promise<void> {
             Number.isFinite(p.compareAtPrice)
               ? p.compareAtPrice
               : null,
+          showDiscountBadge: p.showDiscountBadge === true,
           sortOrder,
         },
       });

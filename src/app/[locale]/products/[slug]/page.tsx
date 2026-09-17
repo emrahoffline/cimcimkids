@@ -5,7 +5,11 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { getProductBySlug } from "@/lib/products-server";
 import { getAllCategories, getCategoryLabel } from "@/lib/categories-server";
 import { getProductName, getStorefrontProductDesc } from "@/lib/products";
-import { getProductImages, getProductAges } from "@/lib/types";
+import {
+  getDiscountPercent,
+  getProductImages,
+  getProductAges,
+} from "@/lib/types";
 import { ProductGallery } from "@/components/ProductGallery";
 import { ProductDetailActions } from "@/components/ProductDetailActions";
 import { ProductPrice } from "@/components/ProductPrice";
@@ -109,7 +113,13 @@ export default async function ProductDetailPage({ params }: Props) {
         {t("title")}
       </Link>
       <div className="grid gap-10 lg:grid-cols-2">
-        <ProductGallery images={images} alt={name} />
+        <ProductGallery
+          images={images}
+          alt={name}
+          discountPercent={
+            product.showDiscountBadge ? getDiscountPercent(product) : null
+          }
+        />
         <div>
           <p className="text-sm font-medium uppercase tracking-wider text-bamboo">
             <Link href={categoryHref} className="hover:underline">

@@ -37,6 +37,8 @@ export async function PATCH(request: Request) {
   }
 
   const mode = (body as { mode?: unknown }).mode;
+  const showDiscountBadge =
+    (body as { showDiscountBadge?: unknown }).showDiscountBadge === true;
   if (mode !== "percent" && mode !== "amount" && mode !== "clear") {
     return NextResponse.json({ error: "Geçersiz indirim tipi" }, { status: 400 });
   }
@@ -68,7 +70,11 @@ export async function PATCH(request: Request) {
           ? applyPercentDiscount(products[index], value)
           : applyAmountDiscount(products[index], value);
 
-    products[index] = { ...products[index], ...patch };
+    products[index] = {
+      ...products[index],
+      ...patch,
+      showDiscountBadge: mode === "clear" ? false : showDiscountBadge,
+    };
     updated += 1;
   }
 
