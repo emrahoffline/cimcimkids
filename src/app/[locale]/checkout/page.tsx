@@ -43,6 +43,11 @@ import {
   trackGaPurchase,
 } from "@/lib/google-analytics";
 import { isGiftCardProductId } from "@/lib/gift-cards";
+import {
+  calculateCodFee,
+  hasCodFee,
+  totalWithCodFee,
+} from "@/lib/cod-fee";
 
 type PayMethod =
   | "card"
@@ -120,6 +125,8 @@ export default function CheckoutPage() {
     discountApplied
   );
   const payable = cartPayable(items, giftCardBalance, discountApplied);
+  const codFee = hasCodFee(payMethod) ? calculateCodFee(payable) : 0;
+  const checkoutTotal = totalWithCodFee(payable, payMethod);
   const hasGiftCardPurchase = items.some((item) =>
     isGiftCardProductId(item.productId || item.id)
   );
@@ -304,7 +311,7 @@ export default function CheckoutPage() {
     if (order.orderNumber) {
       saveGaPurchase({
         orderId: String(order.orderNumber),
-        value: typeof order.total === "number" ? order.total : payable,
+        value: typeof order.total === "number" ? order.total : checkoutTotal,
         items: orderItems.map((item) => ({
           item_id: String(item.productId),
           item_name: String(item.name),
@@ -339,7 +346,7 @@ export default function CheckoutPage() {
     }
 
     setOrderNumber(order.orderNumber);
-    setPaidTotal(typeof order.total === "number" ? order.total : payable);
+    setPaidTotal(typeof order.total === "number" ? order.total : checkoutTotal);
     setPaidByCard(false);
     clearCart();
     setDone(true);
@@ -822,8 +829,14 @@ export default function CheckoutPage() {
               <span>−{formatPrice(giftApplied, locale)}</span>
             </div>
           )}
+          {codFee > 0 && (
+            <div className="flex justify-between text-sm text-slate-600">
+              <span>{t("codFee")}</span>
+              <span>{formatPrice(codFee, locale)}</span>
+            </div>
+          )}
           <p className="text-2xl font-semibold text-bamboo">
-            {formatPrice(payable, locale)}
+            {formatPrice(checkoutTotal, locale)}
           </p>
           <p className="mb-2 text-xs text-olive/70">
             {physical <= 0
@@ -850,11 +863,16 @@ export default function CheckoutPage() {
           <div>
             <p className="text-xs text-olive/60">{tCart("total")}</p>
             <p className="text-xl font-semibold text-bamboo">
-              {formatPrice(payable, locale)}
+              {formatPrice(checkoutTotal, locale)}
             </p>
             {shippingFee > 0 && (
               <p className="text-[10px] text-olive/70">
                 {tCart("shipping")}: {formatPrice(shippingFee, locale)}
+              </p>
+            )}
+            {codFee > 0 && (
+              <p className="text-[10px] text-olive/70">
+                {t("codFee")}: {formatPrice(codFee, locale)}
               </p>
             )}
           </div>

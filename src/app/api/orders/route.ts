@@ -29,6 +29,7 @@ import { upsertShopperState } from "@/lib/shopper-db";
 import { isGiftWrapProductId } from "@/lib/gift-wrap";
 import { getShippingFee } from "@/lib/store-config";
 import { isShippingProductId, shippingLine } from "@/lib/shipping";
+import { isCodFeeProductId } from "@/lib/cod-fee";
 import { getProductAges } from "@/lib/types";
 import { agesMatch, canonicalizeAge } from "@/lib/product-ages";
 import { stockForAge } from "@/lib/product-stock";
@@ -186,7 +187,11 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Geçersiz adet." }, { status: 400 });
     }
 
-    if (isGiftWrapProductId(row.productId) || isShippingProductId(row.productId)) {
+    if (
+      isGiftWrapProductId(row.productId) ||
+      isShippingProductId(row.productId) ||
+      isCodFeeProductId(row.productId)
+    ) {
       continue;
     }
 
@@ -355,6 +360,7 @@ export async function POST(request: Request) {
       invoiceDistrict,
       invoiceCity,
       paymentMethod,
+      locale,
       redeemGiftCardCode: giftCardCodeRaw || undefined,
       redeemDiscountCode: discountCodeRaw || undefined,
     });

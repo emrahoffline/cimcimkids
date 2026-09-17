@@ -1,6 +1,7 @@
 import { isGiftCardProductId } from "./gift-cards";
 import { isGiftWrapProductId } from "./gift-wrap";
 import { isShippingProductId } from "./shipping";
+import { isCodFeeProductId } from "./cod-fee";
 
 export const REVIEW_COMMENT_MAX = 800;
 export const REVIEW_COMMENT_MIN = 10;
@@ -46,7 +47,8 @@ export function isReviewableProductId(productId: string): boolean {
     Boolean(productId) &&
     !isGiftCardProductId(productId) &&
     !isShippingProductId(productId) &&
-    !isGiftWrapProductId(productId)
+    !isGiftWrapProductId(productId) &&
+    !isCodFeeProductId(productId)
   );
 }
 

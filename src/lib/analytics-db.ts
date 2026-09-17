@@ -10,6 +10,7 @@ import {
 import { isGiftCardProductId } from "./gift-cards";
 import { isGiftWrapProductId } from "./gift-wrap";
 import { isShippingProductId } from "./shipping";
+import { isCodFeeProductId } from "./cod-fee";
 import { sanitizeShopperCart } from "./shopper-db";
 
 /** Keep recent raw events for favorites/detail; totals live in durable tables */
@@ -531,7 +532,8 @@ async function buildCurrentCartProducts(products: Product[]) {
       (item) =>
         !isGiftCardProductId(item.productId) &&
         !isGiftWrapProductId(item.productId) &&
-        !isShippingProductId(item.productId)
+        !isShippingProductId(item.productId) &&
+        !isCodFeeProductId(item.productId)
     );
     const seenProducts = new Set<string>();
 
@@ -975,7 +977,8 @@ async function buildLiveInsights(
       if (
         isGiftCardProductId(item.productId) ||
         isGiftWrapProductId(item.productId) ||
-        isShippingProductId(item.productId)
+        isShippingProductId(item.productId) ||
+        isCodFeeProductId(item.productId)
       ) {
         continue;
       }
@@ -993,7 +996,8 @@ async function buildLiveInsights(
       if (
         isGiftCardProductId(product.id) ||
         isGiftWrapProductId(product.id) ||
-        isShippingProductId(product.id)
+        isShippingProductId(product.id) ||
+        isCodFeeProductId(product.id)
       ) {
         return null;
       }

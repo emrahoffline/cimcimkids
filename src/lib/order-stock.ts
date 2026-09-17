@@ -4,6 +4,7 @@ import { isGiftCardProductId } from "./gift-cards";
 import { isGiftWrapProductId } from "./gift-wrap";
 import { prisma, requireDatabaseUrl } from "./prisma";
 import { isShippingProductId } from "./shipping";
+import { isCodFeeProductId } from "./cod-fee";
 import { sendPendingStockNotifications } from "./stock-notifications";
 
 export class OrderStockError extends Error {
@@ -20,7 +21,8 @@ function isPhysicalProduct(productId: string) {
   return (
     !isGiftCardProductId(productId) &&
     !isGiftWrapProductId(productId) &&
-    !isShippingProductId(productId)
+    !isShippingProductId(productId) &&
+    !isCodFeeProductId(productId)
   );
 }
 

@@ -28,6 +28,12 @@ import {
 import { generateGiftCardCode } from "./gift-cards-db";
 import { redeemDiscountCodeInTx } from "./discount-codes-db";
 import { isShippingProductId } from "./shipping";
+import {
+  calculateCodFee,
+  codFeeLine,
+  hasCodFee,
+  isCodFeeProductId,
+} from "./cod-fee";
 
 export type { Announcement, HeroSlide, StoryItem };
 import { slugify } from "./product-utils";
@@ -678,6 +684,7 @@ export async function createOrder(
     /** Redeem code applied at checkout (validated + debited in this transaction) */
     redeemGiftCardCode?: string;
     redeemDiscountCode?: string;
+    locale?: string;
   }
 ): Promise<Order> {
   requireDatabaseUrl();
@@ -695,7 +702,9 @@ export async function createOrder(
     const eligibleSubtotal = order.items
       .filter(
         (i) =>
-          !isGiftCardProductId(i.productId) && !isShippingProductId(i.productId)
+          !isGiftCardProductId(i.productId) &&
+          !isShippingProductId(i.productId) &&
+          !isCodFeeProductId(i.productId)
       )
       .reduce((sum, i) => sum + i.price * i.quantity, 0);
 
@@ -756,10 +765,18 @@ export async function createOrder(
       giftCardCode = card.code;
     }
 
-    const total =
+    const baseTotal =
       order.total != null && !order.redeemDiscountCode && !order.redeemGiftCardCode
         ? order.total
         : payableTotal(afterDiscount, giftCardAmount);
+    const codFee = hasCodFee(order.paymentMethod)
+      ? calculateCodFee(baseTotal)
+      : 0;
+    const total = Math.round((baseTotal + codFee) * 100) / 100;
+    const orderItems =
+      codFee > 0
+        ? [...order.items, codFeeLine(order.locale ?? "tr", codFee)]
+        : order.items;
 
     if (order.status === "confirmed") {
       await tx.customer.updateMany({
@@ -803,7 +820,7 @@ export async function createOrder(
         giftNote: order.giftNote?.trim() ? order.giftNote.trim() : null,
         adminSeen: false,
         items: {
-          create: order.items.map((item) => ({
+          create: orderItems.map((item) => ({
             productId: item.productId,
             name: item.name,
             ageLabel: item.ageLabel ?? null,

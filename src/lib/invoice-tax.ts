@@ -1,5 +1,6 @@
 import { isGiftCardProductId } from "./gift-cards";
 import { isShippingProductId } from "./shipping";
+import { isCodFeeProductId } from "./cod-fee";
 import { getDefaultKdvRate, getGiftCardKdvRate } from "./invoice-config";
 
 export function moneyRound(value: number, digits = 2): number {
@@ -8,6 +9,7 @@ export function moneyRound(value: number, digits = 2): number {
 }
 
 export function kdvRateForProductId(productId: string): number {
+  if (isCodFeeProductId(productId)) return 20;
   if (isGiftCardProductId(productId) || isShippingProductId(productId)) {
     return getGiftCardKdvRate();
   }
@@ -53,6 +55,7 @@ export function applyDiscountToInvoiceItems<
     if (
       !isGiftCardProductId(item.productId) &&
       !isShippingProductId(item.productId) &&
+      !isCodFeeProductId(item.productId) &&
       gross > 0
     ) {
       eligibleIdx.push(i);
