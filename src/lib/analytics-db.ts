@@ -12,6 +12,7 @@ import { isGiftWrapProductId } from "./gift-wrap";
 import { isShippingProductId } from "./shipping";
 import { isCodFeeProductId } from "./cod-fee";
 import { sanitizeShopperCart } from "./shopper-db";
+import { stockForAge } from "./product-stock";
 
 /** Keep recent raw events for favorites/detail; totals live in durable tables */
 const MAX_EVENTS = 10000;
@@ -539,6 +540,13 @@ async function buildCurrentCartProducts(products: Product[]) {
 
     for (const item of cart) {
       const product = productById.get(item.productId);
+      if (
+        !product ||
+        !product.inStock ||
+        stockForAge(product, item.ageLabel) < 1
+      ) {
+        continue;
+      }
       const existing = totals.get(item.productId) ?? {
         productId: item.productId,
         name: product?.nameTr || item.name || item.productId,
