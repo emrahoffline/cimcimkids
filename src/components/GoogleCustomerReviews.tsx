@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { GOOGLE_MERCHANT_ID } from "@/lib/google-customer-reviews";
 
 type Gapi = {
@@ -15,13 +15,21 @@ type Gapi = {
       opt_in_style?: string;
     }) => void;
   };
+  ratingbadge?: {
+    render: (
+      el: HTMLElement,
+      cfg: { merchant_id: number; position: string }
+    ) => void;
+  };
 };
 
 type MerchantWidget = {
   start: (cfg: {
-    merchant_id: number;
+    merchant_id?: number;
     position?: string;
     region?: string;
+    language?: string;
+    enabledDevices?: string;
     sideMargin?: number;
     bottomMargin?: number;
     mobileSideMargin?: number;
@@ -127,35 +135,66 @@ function loadMerchantWidget(onReady: () => void) {
 }
 
 export function GoogleRatingBadge() {
+  const hostRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
     if (!GOOGLE_MERCHANT_ID) return;
     let cancelled = false;
     let tries = 0;
-    const start = () => {
+    const desktop = window.matchMedia("(min-width: 768px)").matches;
+
+    const startFloating = () => {
       if (cancelled) return;
       const widget = googleStoreWidget();
       if (!widget?.start) {
         if (tries < 20) {
           tries += 1;
-          window.setTimeout(start, 250);
+          window.setTimeout(startFloating, 250);
         }
         return;
       }
-      widget.start({
-        merchant_id: GOOGLE_MERCHANT_ID,
-        position: "LEFT_BOTTOM",
-        region: "TR",
-        sideMargin: 16,
-        bottomMargin: 24,
-        mobileSideMargin: 12,
-        mobileBottomMargin: 88,
-      });
+      try {
+        widget.start({
+          merchant_id: GOOGLE_MERCHANT_ID,
+          position: desktop ? "LEFT_BOTTOM" : "RIGHT_BOTTOM",
+          language: "tr",
+          enabledDevices: "MOBILE,TABLET,DESKTOP",
+          sideMargin: 16,
+          bottomMargin: 24,
+          mobileSideMargin: 16,
+          mobileBottomMargin: 96,
+        });
+      } catch {
+        /* already rendered */
+      }
     };
-    loadMerchantWidget(start);
+
+    loadMerchantWidget(startFloating);
+
+    const host = hostRef.current;
+    if (host && !desktop) {
+      loadPlatform(() => {
+        if (cancelled || !window.gapi?.load || !host) return;
+        window.gapi.load("ratingbadge", () => {
+          if (cancelled || !host) return;
+          window.gapi?.ratingbadge?.render(host, {
+            merchant_id: GOOGLE_MERCHANT_ID,
+            position: "INLINE",
+          });
+        });
+      });
+    }
+
     return () => {
       cancelled = true;
     };
   }, []);
 
-  return null;
+  return (
+    <div
+      id="gcr-badge"
+      ref={hostRef}
+      className="flex min-h-[52px] justify-center md:hidden"
+    />
+  );
 }
