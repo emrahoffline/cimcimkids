@@ -54,12 +54,14 @@ export default async function LocaleLayout({
       <head>
         <GoogleTag />
       </head>
-      <body className="flex min-h-screen flex-col antialiased">
-        <NextIntlClientProvider messages={messages}>
-          <Providers>
-            <MobileShell>{children}</MobileShell>
-          </Providers>
-        </NextIntlClientProvider>
+      <body className="antialiased">
+        <div className="flex min-h-screen flex-col">
+          <NextIntlClientProvider messages={messages}>
+            <Providers>
+              <MobileShell>{children}</MobileShell>
+            </Providers>
+          </NextIntlClientProvider>
+        </div>
       </body>
     </html>
   );

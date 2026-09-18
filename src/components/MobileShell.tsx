@@ -11,6 +11,7 @@ import { ShopperSync } from "./ShopperSync";
 import { SiteChatbot } from "./SiteChatbot";
 import { FreeShippingBanner } from "./FreeShippingBanner";
 import { CartAddedToast } from "./CartAddedToast";
+import { GoogleRatingBadge } from "./GoogleCustomerReviews";
 
 export function MobileShell({ children }: { children: React.ReactNode }) {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -20,6 +21,7 @@ export function MobileShell({ children }: { children: React.ReactNode }) {
       <GoogleAnalytics />
       <AnalyticsTracker />
       <ShopperSync />
+      <GoogleRatingBadge />
       <div className="sticky top-0 z-40 safe-top">
         <FreeShippingBanner />
         <Header />

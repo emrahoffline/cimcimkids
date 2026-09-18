@@ -6,7 +6,6 @@ import { Instagram, ShoppingBag, Facebook } from "lucide-react";
 import { BrandName } from "./BrandName";
 import { STORE_CONFIG } from "@/lib/store-config";
 import { PaymentLogos } from "./PaymentLogos";
-import { GoogleRatingBadge } from "./GoogleCustomerReviews";
 
 export function Footer() {
   const t = useTranslations("footer");
@@ -176,9 +175,8 @@ export function Footer() {
         </div>
 
         <div className="mt-10 border-t border-bamboo/20 pt-6">
-          <div className="mb-4 flex w-full flex-col items-center gap-4">
+          <div className="mb-4 flex justify-center">
             <PaymentLogos compact />
-            <GoogleRatingBadge />
           </div>
           <p className="text-center text-xs text-slate-400">
             © {new Date().getFullYear()} CimcimKids. {t("rights")}
