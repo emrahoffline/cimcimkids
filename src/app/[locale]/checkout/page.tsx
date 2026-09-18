@@ -182,8 +182,6 @@ export default function CheckoutPage() {
 
   useEffect(() => {
     if (!done || !orderNumber) return;
-    const paidForGoogle = paidByCard || paidTotal <= 0;
-    if (!paidForGoogle) return;
     const stored = readGcrOptIn(orderNumber);
     const email = stored?.email || readRememberedShopperEmail();
     if (email) {
@@ -194,6 +192,9 @@ export default function CheckoutPage() {
           stored?.estimatedDeliveryDate || estimatedDeliveryDate(),
       });
     }
+
+    const paidForGoogle = paidByCard || paidTotal <= 0;
+    if (!paidForGoogle) return;
     const purchase = readGaPurchase(orderNumber);
     trackGaPurchase({
       orderId: orderNumber,
