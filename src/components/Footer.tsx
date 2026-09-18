@@ -176,7 +176,7 @@ export function Footer() {
         </div>
 
         <div className="mt-10 border-t border-bamboo/20 pt-6">
-          <div className="mb-4 flex flex-col items-center gap-4">
+          <div className="mb-4 flex w-full flex-col items-center gap-4">
             <PaymentLogos compact />
             <GoogleRatingBadge />
           </div>

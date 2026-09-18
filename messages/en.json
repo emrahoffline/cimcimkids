@@ -448,7 +448,9 @@
     "hepsiburada": "Hepsiburada",
     "visitHepsiburada": "Visit our Hepsiburada store",
     "facebook": "Facebook",
-    "visitFacebook": "Visit our Facebook page"
+    "visitFacebook": "Visit our Facebook page",
+    "googleReviews": "Google Customer Reviews",
+    "googleReviewsHint": "See our store rating on Google"
   },
   "chatbot": {
     "open": "Open chat",

@@ -448,7 +448,9 @@
     "hepsiburada": "Hepsiburada",
     "visitHepsiburada": "Hepsiburada mağazamızı ziyaret edin",
     "facebook": "Facebook",
-    "visitFacebook": "Facebook sayfamızı ziyaret edin"
+    "visitFacebook": "Facebook sayfamızı ziyaret edin",
+    "googleReviews": "Google Müşteri Yorumları",
+    "googleReviewsHint": "Mağaza puanını Google'da gör"
   },
   "chatbot": {
     "open": "Sohbeti aç",

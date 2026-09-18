@@ -67,7 +67,7 @@ const nextConfig: NextConfig = {
           "font-src 'self' data: https:",
           "style-src 'self' 'unsafe-inline'",
           "script-src 'self' 'unsafe-inline' https://*.iyzipay.com https://*.iyzico.com https://www.googletagmanager.com https://www.google-analytics.com https://apis.google.com https://www.gstatic.com",
-          "frame-src 'self' https://*.iyzipay.com https://*.iyzico.com https://www.google.com https://www.googletagmanager.com https://apis.google.com",
+          "frame-src 'self' https://*.iyzipay.com https://*.iyzico.com https://www.google.com https://*.google.com https://www.google.com.tr https://*.google.com.tr https://www.gstatic.com https://www.googletagmanager.com https://apis.google.com",
           "worker-src 'self'",
           "media-src 'self' data:",
           "connect-src 'self' https:",
