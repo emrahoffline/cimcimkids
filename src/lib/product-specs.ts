@@ -386,13 +386,29 @@ export function getStorefrontProductDesc(product: Product, locale: string): stri
   return existing;
 }
 
+function merchantSearchDetails(product: Product, locale: string): string {
+  const ages = getProductAges(product);
+  const colors = getProductColorNames(product, locale);
+  const sizeText =
+    ages.join(", ") || (locale === "en" ? "Kids sizes" : "Çocuk bedenleri");
+  const colorText =
+    colors.join(", ") || (locale === "en" ? "Multicolor" : "Çok renkli");
+
+  return locale === "en"
+    ? `Available sizes: ${sizeText}. Available colors: ${colorText}. Category: kids clothing.`
+    : `Mevcut beden seçenekleri: ${sizeText}. Mevcut renk seçenekleri: ${colorText}. Kategori: çocuk giyim.`;
+}
+
 /** Description Google Shopping can search: Color, Inseam Size, Size, Pattern, Material first. */
 export function getSearchableProductDesc(product: Product, locale: string): string {
   const lead = merchantSpecLead(product, locale);
+  const searchDetails = merchantSearchDetails(product, locale);
   const intro = getStorefrontProductDesc(product, locale);
   if (alreadyHasMerchantLead(intro, locale)) {
-    if (intro.toLowerCase().startsWith(lead.toLowerCase())) return intro;
-    return `${lead} ${intro}`.replace(/\s+/g, " ").trim();
+    if (intro.toLowerCase().startsWith(lead.toLowerCase())) {
+      return `${intro} ${searchDetails}`.replace(/\s+/g, " ").trim();
+    }
+    return `${lead} ${searchDetails} ${intro}`.replace(/\s+/g, " ").trim();
   }
-  return `${lead} ${intro}`.replace(/\s+/g, " ").trim();
+  return `${lead} ${searchDetails} ${intro}`.replace(/\s+/g, " ").trim();
 }
