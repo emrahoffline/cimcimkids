@@ -22,6 +22,10 @@ type MerchantWidget = {
     merchant_id: number;
     position?: string;
     region?: string;
+    sideMargin?: number;
+    bottomMargin?: number;
+    mobileSideMargin?: number;
+    mobileBottomMargin?: number;
   }) => void;
 };
 
@@ -30,7 +34,13 @@ declare global {
     gapi?: Gapi;
     ___gcfg?: { lang?: string };
     merchantWidget?: MerchantWidget;
+    merchantwidget?: MerchantWidget;
   }
+}
+
+function googleStoreWidget(): MerchantWidget | undefined {
+  if (typeof window === "undefined") return undefined;
+  return window.merchantwidget ?? window.merchantWidget;
 }
 
 const PLATFORM_SRC = "https://apis.google.com/js/platform.js";
@@ -97,7 +107,7 @@ const WIDGET_SRC = "https://www.gstatic.com/shopping/merchant/merchantwidget.js"
 
 function loadMerchantWidget(onReady: () => void) {
   if (typeof window === "undefined") return;
-  if (window.merchantWidget?.start) {
+  if (googleStoreWidget()?.start) {
     onReady();
     return;
   }
@@ -120,18 +130,32 @@ export function GoogleRatingBadge() {
   useEffect(() => {
     if (!GOOGLE_MERCHANT_ID) return;
     let cancelled = false;
-    loadMerchantWidget(() => {
-      if (cancelled || !window.merchantWidget?.start) return;
-      window.merchantWidget.start({
+    let tries = 0;
+    const start = () => {
+      if (cancelled) return;
+      const widget = googleStoreWidget();
+      if (!widget?.start) {
+        if (tries < 20) {
+          tries += 1;
+          window.setTimeout(start, 250);
+        }
+        return;
+      }
+      widget.start({
         merchant_id: GOOGLE_MERCHANT_ID,
-        position: "INLINE",
+        position: "LEFT_BOTTOM",
         region: "TR",
+        sideMargin: 16,
+        bottomMargin: 24,
+        mobileSideMargin: 12,
+        mobileBottomMargin: 88,
       });
-    });
+    };
+    loadMerchantWidget(start);
     return () => {
       cancelled = true;
     };
   }, []);
 
-  return <div id="gcr-badge" className="min-h-[52px]" />;
+  return null;
 }
