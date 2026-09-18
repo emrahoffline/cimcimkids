@@ -307,7 +307,13 @@ export default function CheckoutPage() {
 
     const order = await res.json();
     if (order.orderNumber && form.email) {
+      rememberShopperEmail(form.email);
       saveGcrOptIn({ orderId: String(order.orderNumber), email: form.email });
+      setGcrOptIn({
+        orderId: String(order.orderNumber),
+        email: form.email,
+        estimatedDeliveryDate: estimatedDeliveryDate(),
+      });
     }
     if (order.orderNumber) {
       saveGaPurchase({

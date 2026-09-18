@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 import { GOOGLE_MERCHANT_ID } from "@/lib/google-customer-reviews";
 
 type Gapi = {
@@ -15,17 +15,21 @@ type Gapi = {
       opt_in_style?: string;
     }) => void;
   };
-  ratingbadge?: {
-    render: (
-      el: HTMLElement,
-      cfg: { merchant_id: number; position: string }
-    ) => void;
-  };
+};
+
+type MerchantWidget = {
+  start: (cfg: {
+    merchant_id: number;
+    position?: string;
+    region?: string;
+  }) => void;
 };
 
 declare global {
   interface Window {
     gapi?: Gapi;
+    ___gcfg?: { lang?: string };
+    merchantWidget?: MerchantWidget;
   }
 }
 
@@ -33,6 +37,7 @@ const PLATFORM_SRC = "https://apis.google.com/js/platform.js";
 
 function loadPlatform(onReady: () => void) {
   if (typeof window === "undefined") return;
+  window.___gcfg = { ...(window.___gcfg ?? {}), lang: "tr" };
   if (window.gapi?.load) {
     onReady();
     return;
@@ -88,22 +93,39 @@ export function GoogleSurveyOptIn({
   return null;
 }
 
-export function GoogleRatingBadge() {
-  const hostRef = useRef<HTMLDivElement>(null);
+const WIDGET_SRC = "https://www.gstatic.com/shopping/merchant/merchantwidget.js";
 
+function loadMerchantWidget(onReady: () => void) {
+  if (typeof window === "undefined") return;
+  if (window.merchantWidget?.start) {
+    onReady();
+    return;
+  }
+  const existing = document.getElementById(
+    "merchantWidgetScript"
+  ) as HTMLScriptElement | null;
+  if (existing) {
+    existing.addEventListener("load", onReady, { once: true });
+    return;
+  }
+  const script = document.createElement("script");
+  script.id = "merchantWidgetScript";
+  script.src = WIDGET_SRC;
+  script.defer = true;
+  script.onload = onReady;
+  document.head.appendChild(script);
+}
+
+export function GoogleRatingBadge() {
   useEffect(() => {
     if (!GOOGLE_MERCHANT_ID) return;
-    const host = hostRef.current;
-    if (!host) return;
     let cancelled = false;
-    loadPlatform(() => {
-      if (cancelled || !window.gapi?.load || !host) return;
-      window.gapi.load("ratingbadge", () => {
-        if (cancelled || !host) return;
-        window.gapi?.ratingbadge?.render(host, {
-          merchant_id: GOOGLE_MERCHANT_ID,
-          position: "INLINE",
-        });
+    loadMerchantWidget(() => {
+      if (cancelled || !window.merchantWidget?.start) return;
+      window.merchantWidget.start({
+        merchant_id: GOOGLE_MERCHANT_ID,
+        position: "INLINE",
+        region: "TR",
       });
     });
     return () => {
@@ -111,5 +133,5 @@ export function GoogleRatingBadge() {
     };
   }, []);
 
-  return <div ref={hostRef} className="min-h-[52px]" />;
+  return <div id="gcr-badge" className="min-h-[52px]" />;
 }

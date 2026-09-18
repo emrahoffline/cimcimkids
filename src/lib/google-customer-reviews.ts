@@ -10,7 +10,7 @@ export type GcrOptInPayload = {
   estimatedDeliveryDate: string;
 };
 
-export function estimatedDeliveryDate(daysAhead = 5): string {
+export function estimatedDeliveryDate(daysAhead = 4): string {
   const d = new Date();
   d.setDate(d.getDate() + daysAhead);
   const y = d.getFullYear();
