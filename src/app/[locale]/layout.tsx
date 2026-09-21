@@ -6,6 +6,7 @@ import { routing } from "@/i18n/routing";
 import { Providers } from "@/components/Providers";
 import { MobileShell } from "@/components/MobileShell";
 import { GoogleTag } from "@/components/GoogleTag";
+import { MetaPixel } from "@/components/MetaPixel";
 import type { Viewport } from "next";
 
 const nunito = Nunito({
@@ -53,6 +54,7 @@ export default async function LocaleLayout({
     <html lang={locale} className={`${nunito.variable} ${outfit.variable}`}>
       <head>
         <GoogleTag />
+        <MetaPixel />
       </head>
       <body className="antialiased">
         <div className="flex min-h-screen flex-col">

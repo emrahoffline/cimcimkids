@@ -42,6 +42,7 @@ import {
   saveGaPurchase,
   trackGaPurchase,
 } from "@/lib/google-analytics";
+import { trackMetaPurchase } from "@/lib/meta-pixel";
 import { isGiftCardProductId } from "@/lib/gift-cards";
 import {
   calculateCodFee,
@@ -197,6 +198,11 @@ export default function CheckoutPage() {
     if (!paidForGoogle) return;
     const purchase = readGaPurchase(orderNumber);
     trackGaPurchase({
+      orderId: orderNumber,
+      value: purchase?.value ?? paidTotal,
+      items: purchase?.items ?? [],
+    });
+    trackMetaPurchase({
       orderId: orderNumber,
       value: purchase?.value ?? paidTotal,
       items: purchase?.items ?? [],

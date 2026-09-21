@@ -7,6 +7,7 @@ import { MobileBottomNav } from "./MobileBottomNav";
 import { MobileMenuDrawer } from "./MobileMenuDrawer";
 import { AnalyticsTracker } from "./AnalyticsTracker";
 import { GoogleAnalytics } from "./GoogleAnalytics";
+import { MetaPixelTracker } from "./MetaPixelTracker";
 import { ShopperSync } from "./ShopperSync";
 import { SiteChatbot } from "./SiteChatbot";
 import { FreeShippingBanner } from "./FreeShippingBanner";
@@ -19,6 +20,7 @@ export function MobileShell({ children }: { children: React.ReactNode }) {
   return (
     <>
       <GoogleAnalytics />
+      <MetaPixelTracker />
       <AnalyticsTracker />
       <ShopperSync />
       <GoogleRatingBadge />
