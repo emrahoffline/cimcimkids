@@ -46,7 +46,7 @@ export default async function ProductsPage({ params, searchParams }: Props) {
   const ratings = await getReviewSummaries(products.map((p) => p.id));
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8">
+    <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8 lg:py-14">
       <div className="mb-8 text-center sm:mb-10">
         <h1 className="page-title">{t("title")}</h1>
         <p className="page-subtitle">{t("subtitle")}</p>

@@ -121,7 +121,8 @@ export default async function ProductDetailPage({ params }: Props) {
           }
         />
         <div>
-          <p className="text-sm font-medium uppercase tracking-wider text-bamboo">
+          <div className="lg:sticky lg:top-28">
+            <p className="text-sm font-medium uppercase tracking-wider text-bamboo">
             <Link href={categoryHref} className="hover:underline">
               {categoryLabel}
             </Link>
@@ -163,6 +164,7 @@ export default async function ProductDetailPage({ params }: Props) {
             title={t("details")}
           />
           <ProductDetailActions product={product} name={name} />
+          </div>
         </div>
       </div>
       <ProductReviews

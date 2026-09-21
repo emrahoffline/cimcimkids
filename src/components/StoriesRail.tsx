@@ -14,7 +14,7 @@ export function StoriesRail({ groups }: { groups: StoryGroup[] }) {
   return (
     <>
       <div className="border-b border-olive/10 bg-white/70">
-        <div className="mx-auto flex max-w-7xl gap-4 overflow-x-auto px-4 py-3 scrollbar-none sm:px-6 lg:px-8">
+        <div className="mx-auto flex max-w-7xl gap-4 overflow-x-auto px-4 py-3 scrollbar-none sm:px-6 md:justify-center md:gap-5 md:py-4 lg:px-8">
           {groups.map((group) => {
             const cover = group.items[0];
             if (!cover) return null;
@@ -23,13 +23,13 @@ export function StoriesRail({ groups }: { groups: StoryGroup[] }) {
                 key={group.id}
                 type="button"
                 onClick={() => setOpenId(group.id)}
-                className="flex w-[72px] shrink-0 flex-col items-center gap-1.5"
+                className="flex w-[72px] shrink-0 flex-col items-center gap-1.5 md:w-[84px]"
               >
                 <span className="rounded-full bg-gradient-to-br from-bamboo to-olive p-[2px]">
                   <span className="block overflow-hidden rounded-full bg-white p-[2px]">
                     <StoryMediaThumb
                       src={cover.mediaUrl}
-                      className="h-14 w-14 rounded-full object-cover"
+                      className="h-14 w-14 rounded-full object-cover md:h-16 md:w-16"
                     />
                   </span>
                 </span>

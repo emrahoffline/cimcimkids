@@ -17,14 +17,14 @@ export function Header() {
   const base = `/${locale}`;
 
   return (
-    <header className="border-b border-olive/10 bg-white">
-      <div className="mx-auto flex max-w-7xl items-center justify-between gap-2 px-4 py-3 sm:px-6 lg:px-8">
+    <header className="border-b border-olive/10 bg-white md:shadow-[0_1px_0_rgba(45,55,72,0.04)]">
+      <div className="mx-auto flex max-w-7xl items-center justify-between gap-2 px-4 py-3 sm:px-6 md:py-4 lg:px-8">
         <Link href={base} className="flex min-w-0 shrink items-center gap-2">
           <BrandName className="font-serif text-lg font-extrabold tracking-tight sm:text-xl" />
         </Link>
 
         <div className="hidden items-center gap-1 md:flex md:gap-2">
-          <nav className="mr-3 flex items-center gap-1">
+          <nav className="mr-4 flex items-center gap-0.5 lg:gap-1">
             {(
               [
                 { href: "", key: "home" },
@@ -37,7 +37,7 @@ export function Header() {
               <Link
                 key={key}
                 href={`${base}${href}`}
-                className="rounded-full px-3 py-2 text-sm font-medium text-slate-600 transition hover:bg-bamboo/10 hover:text-bamboo"
+                className="rounded-full px-3 py-2 text-sm font-medium text-slate-600 transition hover:bg-bamboo/10 hover:text-bamboo lg:px-3.5"
               >
                 {t(key)}
               </Link>

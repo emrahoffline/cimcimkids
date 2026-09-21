@@ -102,7 +102,7 @@ export function HeroCarousel({ slides }: Props) {
         {list.map((slide, index) => (
           <div
             key={slide.id}
-            className="relative w-full shrink-0 snap-center"
+            className="relative w-full shrink-0 snap-center lg:h-[min(72vh,760px)]"
             aria-hidden={index !== active}
           >
             <Image
@@ -112,7 +112,7 @@ export function HeroCarousel({ slides }: Props) {
               height={1024}
               priority={index === 0}
               unoptimized={isUploadedProductImage(slide.imageUrl)}
-              className="h-auto w-full object-cover object-center"
+              className="h-auto w-full object-cover object-center lg:h-full lg:w-full"
               sizes="100vw"
               draggable={false}
             />
@@ -145,7 +145,7 @@ export function HeroCarousel({ slides }: Props) {
             <ChevronRight className="h-5 w-5" />
           </button>
 
-          <div className="absolute bottom-3 left-0 right-0 z-10 flex justify-center gap-2 sm:bottom-4">
+          <div className="absolute bottom-3 left-0 right-0 z-10 flex justify-center gap-2 sm:bottom-4 lg:bottom-24">
             {list.map((slide, index) => (
               <button
                 key={slide.id}
