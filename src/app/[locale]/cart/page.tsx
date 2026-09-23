@@ -169,6 +169,8 @@ export default function CartPage() {
         </div>
       )}
 
+      <p className="text-xs text-olive/70">{t("bankTransferDiscountNote")}</p>
+
       {giftApplied > 0 && (
         <div className="flex justify-between text-sm text-olive">
           <span>{t("giftCardDiscount")}</span>

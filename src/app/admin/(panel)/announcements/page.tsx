@@ -199,7 +199,7 @@ export default function AdminAnnouncementsPage() {
                 value={textTr}
                 onChange={(e) => setTextTr(e.target.value)}
                 maxLength={200}
-                placeholder="Örn: 1500 TL ve üzeri alışverişlerde kargo ücretsiz"
+                placeholder="Örn: 2500 TL ve üzeri alışverişlerde kargo ücretsiz"
                 className="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm outline-none focus:border-olive"
               />
             </div>

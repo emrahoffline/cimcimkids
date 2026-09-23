@@ -11,6 +11,7 @@ import {
   cartPhysicalTotal,
   cartShippingFee,
   cartDiscountApplied,
+  cartTotal,
 } from "@/store/cart";
 import { formatPrice } from "@/lib/products";
 import {
@@ -18,6 +19,7 @@ import {
   formatIban,
   amountUntilFreeShipping,
   isFreeShipping,
+  getBankTransferDiscount,
 } from "@/lib/store-config";
 import { isValidVkn, type InvoiceBuyerKind } from "@/lib/tax-id";
 import { PaymentLogos } from "@/components/PaymentLogos";
@@ -114,12 +116,17 @@ export default function CheckoutPage() {
   const merchandise = cartMerchandiseTotal(items);
   const physical = cartPhysicalTotal(items);
   const shippingFee = cartShippingFee(items);
-  const discountApplied = cartDiscountApplied(
+  const promoDiscount = cartDiscountApplied(
     items,
     discountKind,
     discountValue,
     discountMinSubtotal
   );
+  const transferDiscount =
+    payMethod === "bank_transfer"
+      ? getBankTransferDiscount(Math.max(0, cartTotal(items) - promoDiscount))
+      : 0;
+  const discountApplied = promoDiscount + transferDiscount;
   const giftApplied = cartGiftApplied(
     items,
     giftCardBalance,
@@ -824,13 +831,19 @@ export default function CheckoutPage() {
                   : formatPrice(shippingFee, locale)}
             </span>
           </div>
-          {discountApplied > 0 && (
+          {promoDiscount > 0 && (
             <div className="flex justify-between text-sm text-olive">
               <span>
                 {tCart("discountLine")}
                 {discountCode ? ` (${discountCode})` : ""}
               </span>
-              <span>−{formatPrice(discountApplied, locale)}</span>
+              <span>−{formatPrice(promoDiscount, locale)}</span>
+            </div>
+          )}
+          {transferDiscount > 0 && (
+            <div className="flex justify-between text-sm text-olive">
+              <span>{t("bankTransferDiscount")}</span>
+              <span>−{formatPrice(transferDiscount, locale)}</span>
             </div>
           )}
           {giftApplied > 0 && (

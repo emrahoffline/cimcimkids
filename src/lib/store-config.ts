@@ -7,11 +7,16 @@ export const STORE_CONFIG = {
   whatsappPhone:
     process.env.NEXT_PUBLIC_WHATSAPP_PHONE ?? "905337007318",
   /** Physical merchandise total (TRY) at/above which shipping is free */
-  freeShippingMin: Number(process.env.NEXT_PUBLIC_FREE_SHIPPING_MIN ?? 1500),
+  freeShippingMin: Number(process.env.NEXT_PUBLIC_FREE_SHIPPING_MIN ?? 2500),
   /** Flat shipping charged below the free-shipping threshold (TRY, VAT included) */
   shippingFee: (() => {
     const n = Number(process.env.NEXT_PUBLIC_SHIPPING_FEE ?? 119);
     return Number.isFinite(n) && n >= 0 ? n : 119;
+  })(),
+  /** Percent off the remaining payable when the customer chooses bank transfer / EFT */
+  bankTransferDiscountPercent: (() => {
+    const n = Number(process.env.NEXT_PUBLIC_BANK_TRANSFER_DISCOUNT_PERCENT ?? 5);
+    return Number.isFinite(n) && n > 0 ? Math.min(100, n) : 0;
   })(),
   instagramUrl:
     process.env.NEXT_PUBLIC_INSTAGRAM_URL ??
@@ -45,6 +50,16 @@ export function getShippingFee(physicalSubtotal: number) {
   if (isFreeShipping(physicalSubtotal)) return 0;
   const fee = STORE_CONFIG.shippingFee;
   return Number.isFinite(fee) && fee > 0 ? fee : 0;
+}
+
+export const BANK_TRANSFER_DISCOUNT_CODE = "HAVALE5";
+
+/** Whole-lira discount for havale/EFT, applied after promo codes and before gift cards. */
+export function getBankTransferDiscount(amountAfterOtherDiscounts: number) {
+  const base = Math.max(0, Math.round(amountAfterOtherDiscounts));
+  const percent = STORE_CONFIG.bankTransferDiscountPercent;
+  if (base <= 0 || percent <= 0) return 0;
+  return Math.min(base, Math.round((base * percent) / 100));
 }
 
 export function getWhatsAppUrl(prefilledText?: string) {

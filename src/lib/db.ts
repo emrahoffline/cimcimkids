@@ -29,6 +29,10 @@ import { generateGiftCardCode } from "./gift-cards-db";
 import { redeemDiscountCodeInTx } from "./discount-codes-db";
 import { isShippingProductId } from "./shipping";
 import {
+  BANK_TRANSFER_DISCOUNT_CODE,
+  getBankTransferDiscount,
+} from "./store-config";
+import {
   calculateCodFee,
   codFeeLine,
   hasCodFee,
@@ -722,6 +726,16 @@ export async function createOrder(
       discountCode = redeemed.code;
     }
 
+    if ((order.paymentMethod ?? "bank_transfer") === "bank_transfer") {
+      const transferDiscount = getBankTransferDiscount(
+        Math.max(0, Math.round(subtotal - discountAmount))
+      );
+      if (transferDiscount > 0) {
+        discountAmount += transferDiscount;
+        if (!discountCode) discountCode = BANK_TRANSFER_DISCOUNT_CODE;
+      }
+    }
+
     const afterDiscount = Math.max(0, Math.round(subtotal - discountAmount));
 
     const redeemCode = order.redeemGiftCardCode
@@ -769,7 +783,9 @@ export async function createOrder(
     }
 
     const baseTotal =
-      order.total != null && !order.redeemDiscountCode && !order.redeemGiftCardCode
+      order.total != null &&
+      discountAmount <= 0 &&
+      !order.redeemGiftCardCode
         ? order.total
         : payableTotal(afterDiscount, giftCardAmount);
     const codFee = hasCodFee(order.paymentMethod)
