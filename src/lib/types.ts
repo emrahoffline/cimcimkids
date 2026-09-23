@@ -62,6 +62,8 @@ export type Product = {
   inStock: boolean;
   /** Storefront / vitrin order; 0 is first */
   sortOrder?: number;
+  soldCount?: number;
+  favoriteCount?: number;
   createdAt?: string;
   updatedAt?: string;
 };

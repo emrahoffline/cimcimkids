@@ -2,9 +2,10 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { getAllProducts } from "@/lib/products-server";
+import { getAllCategories } from "@/lib/categories-server";
 import { getActiveHeroSlides, getActiveStoryGroups } from "@/lib/db";
 import { getReviewSummaries } from "@/lib/reviews-db";
-import { ProductCard } from "@/components/ProductCard";
+import { FeaturedProducts } from "@/components/FeaturedProducts";
 import { NewsletterForm } from "@/components/NewsletterForm";
 import { HeroCarousel } from "@/components/HeroCarousel";
 import { StoriesRail } from "@/components/StoriesRail";
@@ -40,8 +41,9 @@ export default async function HomePage({ params }: Props) {
   const tNav = await getTranslations("nav");
   const tSeo = await getTranslations("seo");
   const base = localePath(locale);
-  const [products, heroSlides, storyGroups] = await Promise.all([
+  const [products, categories, heroSlides, storyGroups] = await Promise.all([
     getAllProducts(),
+    getAllCategories(),
     getActiveHeroSlides().catch(() => []),
     getActiveStoryGroups().catch(() => []),
   ]);
@@ -90,16 +92,11 @@ export default async function HomePage({ params }: Props) {
             {t("featuredDesc")}
           </p>
         </div>
-        <div className="mobile-product-grid">
-          {products.map((p, index) => (
-            <ProductCard
-              key={p.id}
-              product={p}
-              priority={index < 4}
-              rating={ratings[p.id]}
-            />
-          ))}
-        </div>
+        <FeaturedProducts
+          products={products}
+          categories={categories}
+          ratings={ratings}
+        />
         <div className="mt-10 text-center">
           <Link href={`${base}/products`} className="btn-secondary">
             {t("shopNow")}

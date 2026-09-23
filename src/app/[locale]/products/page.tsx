@@ -3,7 +3,7 @@ import { permanentRedirect } from "next/navigation";
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { getAllProducts } from "@/lib/products-server";
 import { getAllCategories } from "@/lib/categories-server";
-import { ProductsGrid } from "@/components/ProductsGrid";
+import { FeaturedProducts } from "@/components/FeaturedProducts";
 import { buildMetadata } from "@/lib/seo";
 import { getReviewSummaries } from "@/lib/reviews-db";
 
@@ -51,10 +51,9 @@ export default async function ProductsPage({ params, searchParams }: Props) {
         <h1 className="page-title">{t("title")}</h1>
         <p className="page-subtitle">{t("subtitle")}</p>
       </div>
-      <ProductsGrid
+      <FeaturedProducts
         products={products}
         categories={categories}
-        activeCategory="all"
         ratings={ratings}
       />
     </div>
