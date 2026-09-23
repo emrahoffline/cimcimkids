@@ -8,7 +8,7 @@ import {
   specValue,
 } from "./product-specs";
 import { getProductImages } from "./types";
-import { STORE_CONFIG } from "./store-config";
+import { STORE_CONFIG, getShippingFee } from "./store-config";
 
 /** Production canonical origin — never use localhost in SEO output. */
 export const SITE_ORIGIN = "https://www.cimcimkids.com";
@@ -367,6 +367,33 @@ export function productJsonLd(input: {
         ? "https://schema.org/InStock"
         : "https://schema.org/OutOfStock",
       itemCondition: "https://schema.org/NewCondition",
+      shippingDetails: {
+        "@type": "OfferShippingDetails",
+        shippingRate: {
+          "@type": "MonetaryAmount",
+          value: getShippingFee(product.price).toFixed(2),
+          currency: "TRY",
+        },
+        shippingDestination: {
+          "@type": "DefinedRegion",
+          addressCountry: "TR",
+        },
+        deliveryTime: {
+          "@type": "ShippingDeliveryTime",
+          handlingTime: {
+            "@type": "QuantitativeValue",
+            minValue: 1,
+            maxValue: 2,
+            unitCode: "DAY",
+          },
+          transitTime: {
+            "@type": "QuantitativeValue",
+            minValue: 2,
+            maxValue: 5,
+            unitCode: "DAY",
+          },
+        },
+      },
     },
     aggregateRating:
       rating && rating.count > 0

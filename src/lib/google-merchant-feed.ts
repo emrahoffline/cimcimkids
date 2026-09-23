@@ -13,6 +13,7 @@ import {
   GOOGLE_MERCHANT_REGION,
   merchantProductUrl,
 } from "./google-merchant-regions";
+import { getShippingFee } from "./store-config";
 
 function xmlEscape(value: string): string {
   return value
@@ -123,6 +124,11 @@ function itemXml(product: Product): string {
   xml += tag("g:size", size);
   xml += tag("g:material", material);
   xml += tag("g:pattern", pattern);
+  xml += "      <g:shipping>\n";
+  xml += tag("g:country", "TR");
+  xml += tag("g:service", "Standart");
+  xml += tag("g:price", money(getShippingFee(product.price)));
+  xml += "      </g:shipping>\n";
   xml += "    </item>\n";
   return xml;
 }
