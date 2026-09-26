@@ -1,5 +1,5 @@
 export const META_PIXEL_ID = (
-  process.env.NEXT_PUBLIC_META_PIXEL_ID ?? "1065841266295978"
+  process.env.NEXT_PUBLIC_META_PIXEL_ID ?? "18022194509239771"
 ).trim();
 
 export function isMetaPixelConfigured(): boolean {
