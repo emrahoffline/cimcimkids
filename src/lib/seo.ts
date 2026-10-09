@@ -200,6 +200,20 @@ const CATEGORY_COPY: Record<
     bodyEn:
       "Our boyswear edit puts all-day comfort first. Check current stock and choose the style that fits.",
   },
+  "pijama-takimi": {
+    titleTr: "Çocuk Pijama Takımı | Cimcim Kids",
+    titleEn: "Kids Pajama Sets | Cimcim Kids",
+    h1Tr: "Pijama Takımı",
+    h1En: "Pajama Sets",
+    descTr:
+      "Cimcim Kids çocuk pijama takımları: desenli, rahat kesimli pijamalar. Türkiye’ye kargo.",
+    descEn:
+      "Cimcim Kids kids pajama sets: printed, comfortable pajamas. Shipping across Turkey.",
+    bodyTr:
+      "Pijama takımlarını yaşa göre inceleyebilirsiniz. Renk ve desen bilgisi her ürünün adında yer alır.",
+    bodyEn:
+      "Browse pajama sets by age. Color and print are included in each product name.",
+  },
   "ic-giyim": {
     titleTr: "Çocuk İç Giyim | Cimcim Kids",
     titleEn: "Kids Underwear | Cimcim Kids",

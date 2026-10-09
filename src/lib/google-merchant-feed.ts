@@ -41,6 +41,12 @@ function googleProductCategory(product: Product): string {
   ) {
     return "213";
   }
+  if (
+    product.category === "pijama-takimi" ||
+    /pijama|pajama|pyjama/.test(text)
+  ) {
+    return "5322";
+  }
   if (/elbise|dress/.test(text)) return "2271";
   if (/eşofman|esofman|tracksuit/.test(text)) return "5322";
   if (
@@ -124,7 +130,11 @@ function itemXml(product: Product): string {
   xml += tag("g:google_product_category", googleProductCategory(product));
   xml += tag(
     "g:product_type",
-    product.category === "ic-giyim" ? "Çocuk iç giyim" : "Çocuk giyim"
+    product.category === "ic-giyim"
+      ? "Çocuk iç giyim"
+      : product.category === "pijama-takimi"
+        ? "Pijama takımı"
+        : "Çocuk giyim"
   );
   xml += tag("g:adult", "no");
   xml += tag("g:age_group", ageGroup(product));
