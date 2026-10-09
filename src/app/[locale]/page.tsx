@@ -6,6 +6,7 @@ import { getAllCategories } from "@/lib/categories-server";
 import { getActiveHeroSlides, getActiveStoryGroups } from "@/lib/db";
 import { getReviewSummaries } from "@/lib/reviews-db";
 import { FeaturedProducts } from "@/components/FeaturedProducts";
+import { HomeCategoryGrid } from "@/components/HomeCategoryGrid";
 import { NewsletterForm } from "@/components/NewsletterForm";
 import { HeroCarousel } from "@/components/HeroCarousel";
 import { StoriesRail } from "@/components/StoriesRail";
@@ -86,6 +87,11 @@ export default async function HomePage({ params }: Props) {
       </section>
 
       <section className="mx-auto max-w-7xl px-4 pb-12 pt-8 sm:px-6 sm:pb-16 sm:pt-10 lg:px-8 lg:pb-20 lg:pt-14">
+        <HomeCategoryGrid
+          categories={categories}
+          products={products}
+          locale={locale}
+        />
         <div className="mb-8 text-center sm:mb-10 lg:mb-12">
           <h2 className="text-2xl font-semibold sm:text-3xl lg:text-4xl">{t("featured")}</h2>
           <p className="mt-2 text-sm text-slate-500 sm:text-base">
