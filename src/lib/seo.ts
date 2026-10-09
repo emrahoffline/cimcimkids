@@ -200,6 +200,20 @@ const CATEGORY_COPY: Record<
     bodyEn:
       "Our boyswear edit puts all-day comfort first. Check current stock and choose the style that fits.",
   },
+  "ic-giyim": {
+    titleTr: "Çocuk İç Giyim | Cimcim Kids",
+    titleEn: "Kids Underwear | Cimcim Kids",
+    h1Tr: "Çocuk İç Giyim",
+    h1En: "Kids Underwear",
+    descTr:
+      "Cimcim Kids çocuk iç giyim: pamuklu boxer, atlet ve külot takımları. Kız ve erkek çocuk bedenleri, Türkiye’ye kargo.",
+    descEn:
+      "Cimcim Kids kids underwear: cotton boxer shorts, vests and brief sets for girls and boys. Shipping across Turkey.",
+    bodyTr:
+      "Pamuklu boxer, atlet ve külot takımlarını yaşa göre inceleyebilirsiniz. Renk ve desen bilgisi her ürünün adında yer alır.",
+    bodyEn:
+      "Browse cotton boxer shorts, vests and brief sets by age. Color and print are included in each product name.",
+  },
   baby: {
     titleTr: "Bebek Giyim | Cimcim Kids",
     titleEn: "Baby Clothing | Cimcim Kids",

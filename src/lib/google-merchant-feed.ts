@@ -35,6 +35,12 @@ function money(amount: number): string {
 
 function googleProductCategory(product: Product): string {
   const text = `${product.nameTr} ${product.nameEn} ${product.category}`.toLowerCase();
+  if (
+    product.category === "ic-giyim" ||
+    /boxer|atlet|külot|kulot|underwear|briefs/.test(text)
+  ) {
+    return "213";
+  }
   if (/elbise|dress/.test(text)) return "2271";
   if (/eşofman|esofman|tracksuit/.test(text)) return "5322";
   if (
@@ -116,7 +122,10 @@ function itemXml(product: Product): string {
   xml += tag("g:mpn", product.code || product.id);
   xml += tag("g:item_group_id", product.id);
   xml += tag("g:google_product_category", googleProductCategory(product));
-  xml += tag("g:product_type", "Çocuk giyim");
+  xml += tag(
+    "g:product_type",
+    product.category === "ic-giyim" ? "Çocuk iç giyim" : "Çocuk giyim"
+  );
   xml += tag("g:adult", "no");
   xml += tag("g:age_group", ageGroup(product));
   xml += tag("g:gender", gender(product));

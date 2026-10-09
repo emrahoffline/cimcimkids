@@ -5,7 +5,7 @@ import { isUploadedProductImage } from "@/lib/image-utils";
 import { localePath } from "@/lib/seo";
 import { getProductImages, type Category, type Product } from "@/lib/types";
 
-const CATEGORY_ORDER = ["girls", "boys", "baby", "unisex", "outfits"];
+const CATEGORY_ORDER = ["girls", "boys", "baby", "unisex", "ic-giyim"];
 
 type Props = {
   categories: Category[];
@@ -44,10 +44,14 @@ export async function HomeCategoryGrid({
     if (category.slug === "girls") return t("categoryGirls");
     if (category.slug === "boys") return t("categoryBoys");
     if (category.slug === "baby") return t("categoryBaby");
+    if (category.slug === "ic-giyim") {
+      return locale === "en" ? "Kids Underwear" : "Çocuk İç Giyim";
+    }
     return locale === "en" ? category.nameEn : category.nameTr;
   };
 
-  const tiles = [...categories]
+  const tiles = categories
+    .filter((category) => CATEGORY_ORDER.includes(category.slug))
     .map((category) => ({
       category,
       label: labelFor(category),
