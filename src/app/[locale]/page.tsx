@@ -49,6 +49,9 @@ export default async function HomePage({ params }: Props) {
     getActiveStoryGroups().catch(() => []),
   ]);
   const ratings = await getReviewSummaries(products.map((p) => p.id));
+  const featuredProducts = [...products].sort(
+    (a, b) => Number(a.category === "ic-giyim") - Number(b.category === "ic-giyim")
+  );
 
   const slides = heroSlides.map((s) => ({
     id: s.id,
@@ -99,7 +102,7 @@ export default async function HomePage({ params }: Props) {
           </p>
         </div>
         <FeaturedProducts
-          products={products}
+          products={featuredProducts}
           categories={categories}
           ratings={ratings}
         />
