@@ -7,22 +7,10 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: "*",
         allow: "/",
-        disallow: [
-          "/admin",
-          "/admin/",
-          "/api/",
-          "/auth/",
-          "/tr/cart",
-          "/en/cart",
-          "/tr/checkout",
-          "/en/checkout",
-          "/tr/favorites",
-          "/en/favorites",
-          "/tr/account",
-          "/en/account",
-          "/tr/tracking",
-          "/en/tracking",
-        ],
+        // Cart, checkout, favorites, account, and tracking are noindex in HTML.
+        // Disallowing them hides that tag, so Search Console keeps them as
+        // "Blocked by robots.txt" and the fix validation fails.
+        disallow: ["/admin", "/admin/", "/api/", "/auth/"],
       },
     ],
     sitemap: `${SITE_ORIGIN}/sitemap.xml`,

@@ -9,7 +9,36 @@ const nextConfig: NextConfig = {
   output: "standalone",
   trailingSlash: false,
   async redirects() {
+    // Demo products removed in the Cimcim Kids catalog. Google still requests
+    // these URLs and reports them as 404 until they redirect.
+    const retiredProductSlugs = [
+      "black-ruffle-dress",
+      "blue-floral-set",
+      "green-floral-set",
+      "pink-gingham-dress",
+      "tweed-pinafore",
+      "yellow-pinafore-set",
+    ];
+    const retiredProductRedirects = retiredProductSlugs.flatMap((slug) => [
+      {
+        source: `/:locale(tr|en)/products/${slug}`,
+        destination: "/:locale/kategori/girls",
+        permanent: true,
+      },
+      {
+        source: `/products/${slug}`,
+        destination: "/tr/kategori/girls",
+        permanent: true,
+      },
+      {
+        source: `/product/${slug}`,
+        destination: "/tr/kategori/girls",
+        permanent: true,
+      },
+    ]);
+
     return [
+      ...retiredProductRedirects,
       { source: "/account", destination: "/tr", permanent: true },
       { source: "/tr/account", destination: "/tr", permanent: true },
       { source: "/en/account", destination: "/en", permanent: true },

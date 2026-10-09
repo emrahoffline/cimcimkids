@@ -27,8 +27,19 @@ www.cimcimkids.com {
 	handle {
 		# Cloudflare önde ise gerçek istemci IP'sini uygulamaya ilet.
 		# Cloudflare yokken header boş kalır; getClientIp X-Forwarded-For'a düşer.
-		reverse_proxy app:3000 {
-			header_up CF-Connecting-IP {http.request.header.CF-Connecting-IP}
+		# Next force-dynamic sends "private, no-store". Google then leaves
+		# storefront URLs at "Discovered — currently not indexed". Drop no-store
+		# on public HTML only; max-age=0 still skips the CDN cache.
+		route {
+			@indexable not path /api/* /admin /admin/* /auth /auth/* /_next/*
+			# defer so this replaces the Cache-Control Next already set.
+			header @indexable {
+				defer
+				Cache-Control "public, max-age=0, must-revalidate"
+			}
+			reverse_proxy app:3000 {
+				header_up CF-Connecting-IP {http.request.header.CF-Connecting-IP}
+			}
 		}
 	}
 }

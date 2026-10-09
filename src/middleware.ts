@@ -4,6 +4,15 @@ import { routing } from "./i18n/routing";
 
 const intlMiddleware = createMiddleware(routing);
 
+function isPrivatePath(pathname: string) {
+  return (
+    pathname.startsWith("/admin") ||
+    pathname.startsWith("/auth") ||
+    pathname.startsWith("/api") ||
+    pathname.startsWith("/_next")
+  );
+}
+
 export default function middleware(request: NextRequest) {
   if (
     request.nextUrl.pathname.startsWith("/admin") ||
@@ -18,10 +27,25 @@ export default function middleware(request: NextRequest) {
   if (request.nextUrl.pathname === "/") {
     const url = request.nextUrl.clone();
     url.pathname = `/${routing.defaultLocale}`;
-    return NextResponse.rewrite(url);
+    const rewrite = NextResponse.rewrite(url);
+    rewrite.headers.set(
+      "Cache-Control",
+      "public, max-age=0, must-revalidate"
+    );
+    return rewrite;
   }
 
   const response = intlMiddleware(request);
+
+  // Public HTML is force-dynamic, so Next sends `private, no-store`. Google
+  // then leaves those URLs at "Discovered — currently not indexed". max-age=0
+  // still avoids a shared CDN cache of personalized shells.
+  if (!isPrivatePath(request.nextUrl.pathname)) {
+    response.headers.set(
+      "Cache-Control",
+      "public, max-age=0, must-revalidate"
+    );
+  }
 
   // next-intl uses 307; Google consolidates ranking signals on 308/301.
   if (response.status === 307 || response.status === 302) {
