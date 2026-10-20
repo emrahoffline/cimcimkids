@@ -3,6 +3,10 @@ export type ProductColor = {
   labelTr: string;
   labelEn: string;
   hex: string;
+  /** Units of this color. With sizes, this is the sum of sizeStock. */
+  stock?: number;
+  /** Units of this color for each age/size. Missing means one shared pool. */
+  sizeStock?: Record<string, number>;
 };
 
 export type Category = {

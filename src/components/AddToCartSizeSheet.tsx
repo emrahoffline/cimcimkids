@@ -6,7 +6,11 @@ import { X } from "lucide-react";
 import { useLocale, useTranslations } from "next-intl";
 import type { Product, ProductColor } from "@/lib/types";
 import { getColorLabel, getProductAges } from "@/lib/types";
-import { stockForAge } from "@/lib/product-stock";
+import {
+  colorHasSizeStock,
+  stockForVariant,
+  usesColorStock,
+} from "@/lib/product-stock";
 
 type Props = {
   product: Product;
@@ -20,6 +24,13 @@ export function AddToCartSizeSheet({ product, open, onClose, onPick }: Props) {
   const locale = useLocale();
   const ages = getProductAges(product);
   const colors = product.colors ?? [];
+  const colorHasUnits = (item: ProductColor) => {
+    if (colorHasSizeStock(item)) {
+      return ages.some((age) => stockForVariant(product, age, item.id) > 0);
+    }
+    if (usesColorStock(product)) return (item.stock ?? 0) > 0;
+    return true;
+  };
   const [color, setColor] = useState<ProductColor | null>(colors[0] ?? null);
   const [notifyAge, setNotifyAge] = useState<string | null>(null);
   const [email, setEmail] = useState("");
@@ -29,7 +40,17 @@ export function AddToCartSizeSheet({ product, open, onClose, onPick }: Props) {
 
   useEffect(() => {
     if (!open) return;
-    setColor(product.colors?.[0] ?? null);
+    const nextColors = product.colors ?? [];
+    const available = nextColors.find((item) => {
+      if (colorHasSizeStock(item)) {
+        return getProductAges(product).some(
+          (age) => stockForVariant(product, age, item.id) > 0
+        );
+      }
+      if (usesColorStock(product)) return (item.stock ?? 0) > 0;
+      return true;
+    });
+    setColor(available ?? nextColors[0] ?? null);
     setNotifyAge(null);
     setNotifyState("idle");
     const prev = document.body.style.overflow;
@@ -56,6 +77,7 @@ export function AddToCartSizeSheet({ product, open, onClose, onPick }: Props) {
       body: JSON.stringify({
         productId: product.id,
         ageLabel: notifyAge,
+        colorId: color?.id,
         email,
         locale,
       }),
@@ -110,17 +132,22 @@ export function AddToCartSizeSheet({ product, open, onClose, onPick }: Props) {
             <div className="flex flex-wrap gap-2">
               {colors.map((item) => {
                 const active = color?.id === item.id;
+                const colorSoldOut = !colorHasUnits(item);
                 return (
                   <button
                     key={item.id}
                     type="button"
                     onClick={() => setColor(item)}
-                    title={getColorLabel(item, locale)}
+                    title={
+                      colorSoldOut
+                        ? `${getColorLabel(item, locale)} — ${t("outOfStock")}`
+                        : getColorLabel(item, locale)
+                    }
                     className={`flex h-10 w-10 items-center justify-center rounded-full border-2 transition ${
                       active
                         ? "border-bamboo ring-2 ring-bamboo/30"
                         : "border-slate-200 hover:border-slate-400"
-                    }`}
+                    } ${colorSoldOut ? "opacity-40" : ""}`}
                     aria-label={getColorLabel(item, locale)}
                     aria-pressed={active}
                   >
@@ -138,7 +165,12 @@ export function AddToCartSizeSheet({ product, open, onClose, onPick }: Props) {
         <div className="mt-4">
           <div className="flex flex-wrap gap-2">
             {ages.map((age) => {
-              const stock = stockForAge(product, age);
+              const stock = stockForVariant(
+                product,
+                age,
+                color?.id,
+                color ? getColorLabel(color, locale) : undefined
+              );
               const soldOut = stock <= 0;
               return (
                 <button

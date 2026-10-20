@@ -240,6 +240,8 @@ export async function getCustomerProfile(
       orderNumber: o.orderNumber,
       status: o.status,
       total: o.total,
+      paymentMethod: o.paymentMethod,
+      lastFourDigits: o.lastFourDigits ?? undefined,
       createdAt: o.createdAt.toISOString(),
       items: o.items.map((i) => ({
         productId: i.productId,

@@ -49,6 +49,8 @@ export type CustomerProfileOrder = {
   orderNumber: string;
   status: string;
   total: number;
+  paymentMethod?: string;
+  lastFourDigits?: string;
   createdAt: string;
   items: { productId: string; name: string; quantity: number; price: number }[];
 };

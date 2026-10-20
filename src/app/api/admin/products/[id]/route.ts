@@ -7,7 +7,13 @@ import {
   parseProductColors,
 } from "@/lib/product-variants";
 import { normalizeProductAges } from "@/lib/product-ages";
-import { normalizeSizeStock, sizeStockTotal } from "@/lib/product-stock";
+import {
+  alignColorSizeStock,
+  colorStockTotal,
+  hasColorStock,
+  normalizeSizeStock,
+  sizeStockTotal,
+} from "@/lib/product-stock";
 import { sendPendingStockNotifications } from "@/lib/stock-notifications";
 
 export async function GET(
@@ -72,10 +78,12 @@ export async function PUT(
     );
   }
 
-  const colors =
+  const colors = alignColorSizeStock(
     body.colors !== undefined
       ? parseProductColors(body.colors)
-      : products[index].colors;
+      : products[index].colors,
+    ages
+  );
 
   const nameTr = String(body.nameTr ?? products[index].nameTr).trim();
   if (!nameTr) {
@@ -86,11 +94,13 @@ export async function PUT(
       ? String(body.nameEn).trim() || nameTr
       : products[index].nameEn || nameTr;
 
-  const sizeStock = normalizeSizeStock(
-    body.sizeStock ?? products[index].sizeStock,
-    ages
-  );
-  const stockQuantity = sizeStockTotal(sizeStock);
+  const colorTracked = hasColorStock(colors);
+  const sizeStock = colorTracked
+    ? {}
+    : normalizeSizeStock(body.sizeStock ?? products[index].sizeStock, ages);
+  const stockQuantity = colorTracked
+    ? colorStockTotal(colors)
+    : sizeStockTotal(sizeStock);
 
   products[index] = {
     ...products[index],
@@ -107,7 +117,11 @@ export async function PUT(
     nameTr,
     nameEn,
     descTr: body.descTr ?? products[index].descTr,
-    descEn: body.descEn ?? products[index].descEn,
+    descEn:
+      typeof body.descEn === "string"
+        ? body.descEn.trim() ||
+          String(body.descTr ?? products[index].descTr ?? "")
+        : products[index].descEn,
     stockQuantity,
     sizeStock,
     inStock: stockQuantity > 0,

@@ -9,7 +9,13 @@ import {
   parseProductColors,
 } from "@/lib/product-variants";
 import { normalizeProductAges } from "@/lib/product-ages";
-import { normalizeSizeStock, sizeStockTotal } from "@/lib/product-stock";
+import {
+  alignColorSizeStock,
+  colorStockTotal,
+  hasColorStock,
+  normalizeSizeStock,
+  sizeStockTotal,
+} from "@/lib/product-stock";
 
 function uniqueProductCode(existing: Product[]): string {
   let code = generateProductCode();
@@ -60,8 +66,12 @@ export async function POST(request: Request) {
   }
   const nameEn = String(body.nameEn || "").trim() || nameTr;
 
-  const sizeStock = normalizeSizeStock(body.sizeStock, ages);
-  const stockQuantity = sizeStockTotal(sizeStock);
+  const colors = alignColorSizeStock(parseProductColors(body.colors), ages);
+  const colorTracked = hasColorStock(colors);
+  const sizeStock = colorTracked ? {} : normalizeSizeStock(body.sizeStock, ages);
+  const stockQuantity = colorTracked
+    ? colorStockTotal(colors)
+    : sizeStockTotal(sizeStock);
 
   const product: Product = {
     id: `prod_${Date.now()}`,
@@ -69,7 +79,7 @@ export async function POST(request: Request) {
     slug,
     image: images[0],
     images,
-    colors: parseProductColors(body.colors),
+    colors,
     price: Number(body.price) || 0,
     category: body.category || "",
     ageRange: ages[0],

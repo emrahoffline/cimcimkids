@@ -209,6 +209,7 @@ model OrderItem {
   productId String
   name      String
   ageLabel  String?
+  colorId   String?
   price     Float
   quantity  Int
   image     String

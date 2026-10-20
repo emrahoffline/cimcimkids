@@ -1,4 +1,5 @@
 import type { ProductColor } from "./types";
+import { canonicalizeAge } from "./product-ages";
 
 const HEX_RE = /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/;
 const IMAGE_RE = /^\/products\/(?:uploads\/)?[a-zA-Z0-9._-]+$/;
@@ -46,9 +47,43 @@ export function parseProductColors(raw: unknown): ProductColor[] {
       typeof o.id === "string" && o.id.trim()
         ? o.id.trim().slice(0, 40)
         : slugColorId(labelTr);
-    colors.push({ id, labelTr, labelEn: labelEn || labelTr, hex });
+    const sizeStock = parseColorSizeStock(o.sizeStock);
+    const stock = sizeStock
+      ? Object.values(sizeStock).reduce((total, qty) => total + qty, 0)
+      : parseColorStock(o.stock);
+    colors.push({
+      id,
+      labelTr,
+      labelEn: labelEn || labelTr,
+      hex,
+      ...(stock === undefined ? {} : { stock }),
+      ...(sizeStock ? { sizeStock } : {}),
+    });
   }
   return colors.slice(0, 20);
+}
+
+function parseColorSizeStock(
+  raw: unknown
+): Record<string, number> | undefined {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return undefined;
+  const sizeStock: Record<string, number> = {};
+  for (const [key, value] of Object.entries(raw as Record<string, unknown>)) {
+    const age = canonicalizeAge(key);
+    if (!age) continue;
+    const qty = parseColorStock(value);
+    if (qty === undefined) continue;
+    sizeStock[age] = qty;
+  }
+  return Object.keys(sizeStock).length > 0 ? sizeStock : undefined;
+}
+
+export function parseColorStock(value: unknown): number | undefined {
+  const numeric = typeof value === "number" ? value : Number(value);
+  if (typeof value === "string" && value.trim() === "") return undefined;
+  if (typeof value !== "number" && typeof value !== "string") return undefined;
+  if (!Number.isFinite(numeric)) return undefined;
+  return Math.max(0, Math.min(99999, Math.floor(numeric)));
 }
 
 export function slugColorId(label: string): string {

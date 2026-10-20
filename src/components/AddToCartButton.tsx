@@ -8,7 +8,7 @@ import { getColorLabel, getProductAges, getProductImages } from "@/lib/types";
 import { useCartStore } from "@/store/cart";
 import { useCartToastStore } from "@/store/cart-toast";
 import { AddToCartSizeSheet } from "./AddToCartSizeSheet";
-import { stockForAge } from "@/lib/product-stock";
+import { stockForVariant, variantStockScope } from "@/lib/product-stock";
 
 type Props = {
   product: Product;
@@ -25,6 +25,9 @@ export function commitProductToCart(
   ageLabel?: string | null,
   color?: ProductColor | null
 ) {
+  const before = useCartStore
+    .getState()
+    .items.reduce((sum, item) => sum + item.quantity, 0);
   useCartStore.getState().addItem({
     productId: product.id,
     slug: product.slug,
@@ -34,9 +37,22 @@ export function commitProductToCart(
     colorId: color?.id,
     colorLabel: color ? getColorLabel(color, locale) : undefined,
     ageLabel: ageLabel || undefined,
-    stockAvailable: stockForAge(product, ageLabel),
+    stockAvailable: stockForVariant(
+      product,
+      ageLabel,
+      color?.id,
+      color ? getColorLabel(color, locale) : undefined
+    ),
+    stockScope: variantStockScope(
+      product,
+      color?.id,
+      color ? getColorLabel(color, locale) : undefined
+    ),
   });
-  useCartToastStore.getState().show(name);
+  const after = useCartStore
+    .getState()
+    .items.reduce((sum, item) => sum + item.quantity, 0);
+  if (after > before) useCartToastStore.getState().show(name);
 }
 
 export function AddToCartButton({

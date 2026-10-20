@@ -10,53 +10,206 @@ import { AgeOptionsEditor } from "./AgeOptionsEditor";
 import { CategorySelect } from "./CategorySelect";
 import { parseProductColors } from "@/lib/product-variants";
 import { normalizeProductAges } from "@/lib/product-ages";
-import { normalizeSizeStock, sizeStockTotal } from "@/lib/product-stock";
+import {
+  colorHasSizeStock,
+  colorStockTotal,
+  normalizeSizeStock,
+  sizeStockTotal,
+} from "@/lib/product-stock";
 
 type Props = {
   product?: Product;
 };
 
+function applyIncomingColors(
+  previous: ProductColor[],
+  incoming: ProductColor[],
+  ages: string[],
+  sharedSizeStock: Record<string, number>
+): ProductColor[] {
+  if (ages.length === 0) {
+    return incoming.map((color) => ({
+      ...color,
+      sizeStock: undefined,
+      stock: typeof color.stock === "number" ? color.stock : 1,
+    }));
+  }
+  const previousIds = new Set(previous.map((color) => color.id));
+  const seedingFirst = previous.length === 0 && incoming.length > 0;
+  return incoming.map((color) => {
+    const source = !previousIds.has(color.id)
+      ? seedingFirst
+        ? sharedSizeStock
+        : {}
+      : (color.sizeStock ?? {});
+    const sizeStock = normalizeSizeStock(source, ages);
+    return { ...color, sizeStock, stock: sizeStockTotal(sizeStock) };
+  });
+}
+
+function initialColorState(product?: Product) {
+  const ages = product
+    ? normalizeProductAges(getProductAges(product), product.ageRange)
+    : [];
+  const rawColors = (product?.colors ?? []) as ProductColor[];
+  const pooled = rawColors.filter(
+    (color) =>
+      ages.length > 0 &&
+      typeof color.stock === "number" &&
+      color.stock > 0 &&
+      !colorHasSizeStock(color)
+  );
+  const colors =
+    ages.length === 0
+      ? rawColors.map((color) => ({
+          ...color,
+          stock: typeof color.stock === "number" ? color.stock : 1,
+        }))
+      : rawColors.map((color) => {
+          const sizeStock = normalizeSizeStock(
+            colorHasSizeStock(color) ? color.sizeStock : {},
+            ages
+          );
+          return { ...color, sizeStock, stock: sizeStockTotal(sizeStock) };
+        });
+  const sizeStock =
+    colors.length === 1 && colors[0].sizeStock
+      ? colors[0].sizeStock
+      : normalizeSizeStock(product?.sizeStock ?? {}, ages);
+  const pooledNotice =
+    pooled.length === 0
+      ? ""
+      : `${pooled
+          .map((color) => `${color.labelTr || "Renk"} stoğu ${color.stock} adet`)
+          .join(", ")}. Bu sayı bütün bedenlere ortak yazılmış, bu yüzden aynı bedenden o kadar alınabiliyor. Her bedenin kendi adedini girip kaydedin.`;
+  return { ages, colors, sizeStock, pooledNotice };
+}
+
 export function ProductForm({ product }: Props) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const initial = initialColorState(product);
+  const [pooledNotice, setPooledNotice] = useState(initial.pooledNotice);
+  const [sizeSplitConfirmed, setSizeSplitConfirmed] = useState(false);
 
-  const [form, setForm] = useState({
+  const [form, setForm] = useState<{
+    nameTr: string;
+    nameEn: string;
+    descTr: string;
+    descEn: string;
+    price: number;
+    category: string;
+    ages: string[];
+    images: string[];
+    colors: ProductColor[];
+    stockQuantity: number;
+    sizeStock: Record<string, number>;
+    slug: string;
+  }>({
     nameTr: product?.nameTr ?? "",
     nameEn: product?.nameEn ?? "",
     descTr: product?.descTr ?? "",
     descEn: product?.descEn ?? "",
     price: product?.price ?? 0,
     category: product?.category ?? "",
-    ages: product
-      ? normalizeProductAges(getProductAges(product), product.ageRange)
-      : ([] as string[]),
+    ages: initial.ages,
     images: product ? getProductImages(product) : ([] as string[]),
-    colors: (product?.colors ?? []) as ProductColor[],
-    stockQuantity: product?.stockQuantity ?? 0,
-    sizeStock: product?.sizeStock ?? ({} as Record<string, number>),
+    colors: initial.colors,
+    stockQuantity:
+      initial.colors.length > 0
+        ? colorStockTotal(initial.colors)
+        : sizeStockTotal(initial.sizeStock),
+    sizeStock: initial.sizeStock,
     slug: product?.slug ?? "",
   });
 
+  const confirmSizeSplit = () => {
+    if (!sizeSplitConfirmed) setSizeSplitConfirmed(true);
+  };
+
   const setAges = (ages: string[]) => {
-    const sizeStock = normalizeSizeStock(form.sizeStock, ages);
+    if (form.colors.length === 0) {
+      const sizeStock = normalizeSizeStock(form.sizeStock, ages);
+      setForm({
+        ...form,
+        ages,
+        sizeStock,
+        stockQuantity: sizeStockTotal(sizeStock),
+      });
+      return;
+    }
+    const colors = form.colors.map((color) => {
+      const source =
+        form.colors.length === 1 ? form.sizeStock : color.sizeStock;
+      const sizeStock = normalizeSizeStock(source, ages);
+      return { ...color, sizeStock, stock: sizeStockTotal(sizeStock) };
+    });
     setForm({
       ...form,
       ages,
-      sizeStock,
-      stockQuantity: sizeStockTotal(sizeStock),
+      colors,
+      sizeStock:
+        colors.length === 1
+          ? (colors[0].sizeStock ?? {})
+          : normalizeSizeStock(form.sizeStock, ages),
+      stockQuantity: colorStockTotal(colors),
     });
   };
 
   const setAgeStock = (age: string, value: number) => {
-    const sizeStock = {
-      ...form.sizeStock,
-      [age]: Math.max(0, Math.floor(value || 0)),
-    };
+    confirmSizeSplit();
+    const sizeStock = normalizeSizeStock(
+      {
+        ...form.sizeStock,
+        [age]: Math.max(0, Math.floor(value || 0)),
+      },
+      form.ages
+    );
+    const colors =
+      form.colors.length === 1
+        ? [
+            {
+              ...form.colors[0],
+              sizeStock,
+              stock: sizeStockTotal(sizeStock),
+            },
+          ]
+        : form.colors;
     setForm({
       ...form,
       sizeStock,
-      stockQuantity: sizeStockTotal(sizeStock),
+      colors,
+      stockQuantity:
+        colors.length > 0
+          ? colorStockTotal(colors)
+          : sizeStockTotal(sizeStock),
+    });
+  };
+
+  const setColors = (incoming: ProductColor[]) => {
+    const colors = applyIncomingColors(
+      form.colors,
+      incoming,
+      form.ages,
+      form.sizeStock
+    );
+    const sizeStock =
+      colors.length === 1
+        ? (colors[0].sizeStock ?? {})
+        : colors.length === 0
+          ? normalizeSizeStock(
+              form.colors[0]?.sizeStock ?? form.sizeStock,
+              form.ages
+            )
+          : form.sizeStock;
+    if (colors.length === 0) setPooledNotice("");
+    setForm({
+      ...form,
+      colors,
+      sizeStock,
+      stockQuantity:
+        colors.length > 0 ? colorStockTotal(colors) : sizeStockTotal(sizeStock),
     });
   };
 
@@ -75,7 +228,26 @@ export function ProductForm({ product }: Props) {
       setError("Lütfen en az bir yaş varyantı seçin");
       return;
     }
-    const colors = parseProductColors(form.colors);
+    if (form.colors.length > 0 && pooledNotice && !sizeSplitConfirmed) {
+      setError(pooledNotice);
+      return;
+    }
+    const colors = parseProductColors(
+      form.colors.map((color) => {
+        if (form.ages.length === 0) {
+          return {
+            ...color,
+            sizeStock: undefined,
+            stock: Math.max(0, Math.floor(Number(color.stock) || 0)),
+          };
+        }
+        const sizeStock = normalizeSizeStock(
+          form.colors.length === 1 ? form.sizeStock : color.sizeStock,
+          form.ages
+        );
+        return { ...color, sizeStock, stock: sizeStockTotal(sizeStock) };
+      })
+    );
     if (form.colors.length > 0 && colors.length === 0) {
       setError("Renk adlarını (TR) doldurun veya boş renkleri silin");
       return;
@@ -99,6 +271,14 @@ export function ProductForm({ product }: Props) {
         ages: form.ages,
         ageRange: form.ages[0],
         colors,
+        sizeStock:
+          colors.length > 0
+            ? {}
+            : normalizeSizeStock(form.sizeStock, form.ages),
+        stockQuantity:
+          colors.length > 0
+            ? colorStockTotal(colors)
+            : sizeStockTotal(normalizeSizeStock(form.sizeStock, form.ages)),
       }),
     });
 
@@ -112,6 +292,13 @@ export function ProductForm({ product }: Props) {
     router.push("/admin/products");
     router.refresh();
   };
+
+  const totalStock =
+    form.colors.length > 1
+      ? colorStockTotal(form.colors)
+      : form.colors.length === 1
+        ? sizeStockTotal(normalizeSizeStock(form.sizeStock, form.ages))
+        : sizeStockTotal(normalizeSizeStock(form.sizeStock, form.ages));
 
   return (
     <form
@@ -172,13 +359,16 @@ export function ProductForm({ product }: Props) {
         />
       </div>
       <div>
-        <label className="mb-1 block text-sm font-medium">Açıklama (EN)</label>
+        <label className="mb-1 block text-sm font-medium">
+          Açıklama (EN){" "}
+          <span className="font-normal text-gray-400">(opsiyonel)</span>
+        </label>
         <textarea
-          required
           rows={3}
           className="admin-input resize-none"
           value={form.descEn}
           onChange={(e) => setForm({ ...form, descEn: e.target.value })}
+          placeholder="Boş bırakılırsa Türkçe açıklama kullanılır"
         />
       </div>
 
@@ -202,11 +392,11 @@ export function ProductForm({ product }: Props) {
             type="number"
             readOnly
             className="admin-input bg-gray-50"
-            value={form.stockQuantity}
+            value={totalStock}
           />
           <p className="mt-1 text-xs text-gray-400">
-            {form.stockQuantity > 0
-              ? `Bedenlerin toplamı ${form.stockQuantity} adet`
+            {totalStock > 0
+              ? `Bedenlerin toplamı ${totalStock} adet`
               : "Tüm bedenlerin stoku 0"}
           </p>
         </div>
@@ -222,9 +412,26 @@ export function ProductForm({ product }: Props) {
         onChange={setAges}
       />
 
-      {form.ages.length > 0 && (
+      {pooledNotice && !sizeSplitConfirmed && (
+        <p className="rounded-lg bg-amber-50 p-3 text-sm text-amber-800">
+          {pooledNotice}
+        </p>
+      )}
+
+      {form.ages.length > 0 && form.colors.length <= 1 && (
         <div>
-          <p className="mb-2 text-sm font-medium">Beden bazlı stok</p>
+          <p className="mb-2 text-sm font-medium">
+            Beden bazlı stok
+            {form.colors.length === 1 && form.colors[0].labelTr
+              ? ` (${form.colors[0].labelTr})`
+              : ""}
+          </p>
+          {form.colors.length === 1 && (
+            <p className="mb-2 text-xs text-gray-500">
+              Bu adetler sadece seçili renge aittir. Bir bedene yazdığınız
+              sayı, o bedenden alınabilecek adettir.
+            </p>
+          )}
           <div className="grid gap-3 sm:grid-cols-2">
             {form.ages.map((age) => (
               <label
@@ -252,7 +459,9 @@ export function ProductForm({ product }: Props) {
 
       <ColorOptionsEditor
         value={form.colors}
-        onChange={(colors) => setForm({ ...form, colors })}
+        ages={form.ages}
+        onSizeEdited={confirmSizeSplit}
+        onChange={setColors}
       />
 
       <MultiImageUpload

@@ -1,0 +1,1 @@
+ALTER TABLE "OrderItem" ADD COLUMN "colorId" TEXT;

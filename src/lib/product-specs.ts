@@ -51,6 +51,11 @@ function fromName(
 }
 
 const COLOR_FROM_NAME: [RegExp, LocaleText][] = [
+  [/fuşya|fusya|fuchsia/, { tr: "Fuşya", en: "Fuchsia" }],
+  [/bordo|burgundy/, { tr: "Bordo", en: "Burgundy" }],
+  [/kiremit|terracotta/, { tr: "Kiremit", en: "Terracotta" }],
+  [/antrasit|anthracite/, { tr: "Antrasit", en: "Anthracite" }],
+  [/lila|lilac/, { tr: "Lila", en: "Lilac" }],
   [/pembe|pink/, { tr: "Pembe", en: "Pink" }],
   [/lacivert|navy/, { tr: "Lacivert", en: "Navy" }],
   [/krem|cream/, { tr: "Krem", en: "Cream" }],

@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useTranslations, useLocale } from "next-intl";
 import { Minus, Plus, Trash2 } from "lucide-react";
 import {
+  sameStockPool,
   useCartStore,
   cartTotal,
   cartGiftApplied,
@@ -246,11 +247,7 @@ export default function CartPage() {
                     disabled={
                       typeof item.stockAvailable === "number" &&
                       items
-                        .filter(
-                          (line) =>
-                            line.productId === item.productId &&
-                            (line.ageLabel ?? "") === (item.ageLabel ?? "")
-                        )
+                        .filter((line) => sameStockPool(line, item))
                         .reduce((sum, line) => sum + line.quantity, 0) >=
                         item.stockAvailable
                     }

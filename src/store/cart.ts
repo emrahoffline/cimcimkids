@@ -23,6 +23,8 @@ export type CartItem = {
   colorLabel?: string;
   ageLabel?: string;
   stockAvailable?: number;
+  /** "color" shares one pool across sizes. "color-size" is one age of one color. */
+  stockScope?: "color" | "size" | "color-size";
 };
 
 type CartState = {
@@ -55,6 +57,23 @@ function lineId(productId: string, colorId?: string, ageLabel?: string) {
   return [productId, colorId || "-", ageLabel || "-"].join("::");
 }
 
+export function sameStockPool(
+  a: Pick<CartItem, "productId" | "colorId" | "ageLabel" | "stockScope">,
+  b: Pick<CartItem, "productId" | "colorId" | "ageLabel" | "stockScope">
+) {
+  if (a.productId !== b.productId) return false;
+  if (a.stockScope === "color-size" && b.stockScope === "color-size") {
+    return (
+      (a.colorId ?? "") === (b.colorId ?? "") &&
+      (a.ageLabel ?? "") === (b.ageLabel ?? "")
+    );
+  }
+  if (a.stockScope === "color" || b.stockScope === "color") {
+    return Boolean(a.colorId) && a.colorId === b.colorId;
+  }
+  return (a.ageLabel ?? "") === (b.ageLabel ?? "");
+}
+
 export const useCartStore = create<CartState>()(
   persist(
     (set, get) => ({
@@ -74,12 +93,7 @@ export const useCartStore = create<CartState>()(
             ? Math.max(0, Math.floor(item.stockAvailable))
             : undefined;
         const usedByOtherLines = get().items
-          .filter(
-            (line) =>
-              line.id !== id &&
-              line.productId === productId &&
-              (line.ageLabel ?? "") === (item.ageLabel ?? "")
-          )
+          .filter((line) => line.id !== id && sameStockPool(line, { ...item, productId }))
           .reduce((total, line) => total + line.quantity, 0);
         if (existing) {
           const quantity =
@@ -89,10 +103,19 @@ export const useCartStore = create<CartState>()(
                   Math.max(0, limit - usedByOtherLines),
                   existing.quantity + qty
                 );
+          if (quantity <= 0) {
+            set({ items: get().items.filter((i) => i.id !== id) });
+            return;
+          }
           set({
             items: get().items.map((i) =>
               i.id === id
-                ? { ...i, quantity, stockAvailable: limit ?? i.stockAvailable }
+                ? {
+                    ...i,
+                    quantity,
+                    stockAvailable: limit ?? i.stockAvailable,
+                    stockScope: item.stockScope ?? i.stockScope,
+                  }
                 : i
             ),
           });
@@ -126,12 +149,7 @@ export const useCartStore = create<CartState>()(
         const current = get().items.find((item) => item.id === id);
         if (!current) return;
         const usedByOtherLines = get().items
-          .filter(
-            (item) =>
-              item.id !== id &&
-              item.productId === current.productId &&
-              (item.ageLabel ?? "") === (current.ageLabel ?? "")
-          )
+          .filter((item) => item.id !== id && sameStockPool(item, current))
           .reduce((total, item) => total + item.quantity, 0);
         set({
           items: get().items.map((i) => {

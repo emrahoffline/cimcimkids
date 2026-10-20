@@ -8,6 +8,7 @@ import { formatPrice } from "@/lib/products";
 import { useAdminNotifications } from "@/components/admin/useAdminNotifications";
 import { adminCustomerPath } from "@/lib/shopper";
 import { ShippingModal } from "@/components/admin/ShippingModal";
+import { PaymentPreference } from "@/components/admin/PaymentPreference";
 
 const statuses = [
   { value: "pending_payment", label: "Ödeme Bekleniyor" },
@@ -18,15 +19,6 @@ const statuses = [
   { value: "delivered", label: "Teslim Edildi" },
   { value: "cancelled", label: "İptal" },
 ];
-
-function paymentMethodLabel(order: Order) {
-  if (order.paymentMethod === "card") {
-    return `Kart${order.lastFourDigits ? ` ****${order.lastFourDigits}` : ""}`;
-  }
-  if (order.paymentMethod === "cash_on_delivery") return "Kapıda nakit";
-  if (order.paymentMethod === "card_on_delivery") return "Kapıda kart";
-  return "Havale/EFT";
-}
 
 function statusLabel(order: Order, value: string, fallback: string) {
   const isCod =
@@ -205,9 +197,7 @@ export default function AdminOrdersPage() {
                       ? `Bireysel · TCKN ${order.taxId}`
                       : "Bireysel"}
                 </p>
-                <p className="text-xs text-gray-400">
-                  {paymentMethodLabel(order)}
-                </p>
+                <PaymentPreference order={order} />
                 {order.discountCode && (order.discountAmount ?? 0) > 0 && (
                   <p className="text-xs font-medium text-olive">
                     İndirim {order.discountCode} −{formatPrice(order.discountAmount ?? 0, "tr")}
@@ -381,9 +371,9 @@ export default function AdminOrdersPage() {
                       </td>
                       <td>
                         {formatPrice(order.total, "tr")}
-                        <p className="mt-1 text-xs text-gray-400">
-                          {paymentMethodLabel(order)}
-                        </p>
+                        <div className="mt-1">
+                          <PaymentPreference order={order} />
+                        </div>
                         {order.discountCode && (order.discountAmount ?? 0) > 0 && (
                           <p className="mt-1 text-xs font-medium text-olive">
                             {order.discountCode} −{formatPrice(order.discountAmount ?? 0, "tr")}

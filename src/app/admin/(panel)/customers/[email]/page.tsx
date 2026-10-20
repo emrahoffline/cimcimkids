@@ -15,6 +15,7 @@ import {
   Star,
 } from "lucide-react";
 import { AdminHeader } from "@/components/admin/AdminHeader";
+import { PaymentPreference } from "@/components/admin/PaymentPreference";
 import { StarRating } from "@/components/StarRating";
 import { formatPrice } from "@/lib/products";
 import {
@@ -213,6 +214,7 @@ export default function AdminCustomerDetailPage() {
                       <p className="text-xs leading-relaxed text-gray-600">
                         {order.items.map((i) => `${i.name} × ${i.quantity}`).join(", ")}
                       </p>
+                      <PaymentPreference order={order} />
                       <div className="flex items-center justify-between gap-2 text-xs text-gray-500">
                         <span>{statusLabel[order.status] ?? order.status}</span>
                         <span>
@@ -229,6 +231,7 @@ export default function AdminCustomerDetailPage() {
                         <th>No</th>
                         <th>Ürünler</th>
                         <th>Tutar</th>
+                        <th>Ödeme</th>
                         <th>Durum</th>
                         <th>Tarih</th>
                       </tr>
@@ -245,6 +248,9 @@ export default function AdminCustomerDetailPage() {
                             ))}
                           </td>
                           <td>{formatPrice(order.total, "tr")}</td>
+                          <td>
+                            <PaymentPreference order={order} />
+                          </td>
                           <td>{statusLabel[order.status] ?? order.status}</td>
                           <td className="whitespace-nowrap text-gray-400">
                             {new Date(order.createdAt).toLocaleString("tr-TR")}

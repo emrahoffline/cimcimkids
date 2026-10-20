@@ -50,6 +50,8 @@ import { normalizeProductAges } from "./product-ages";
 import { parseStatusHistory } from "./order-status";
 import { clampStoryDuration, groupStories } from "./stories";
 import {
+  colorStockTotal,
+  hasColorStock,
   normalizeSizeStock,
   sizeStockTotal,
 } from "./product-stock";
@@ -71,6 +73,7 @@ export type OrderItem = {
   productId: string;
   name: string;
   ageLabel?: string;
+  colorId?: string;
   price: number;
   quantity: number;
   image: string;
@@ -157,14 +160,17 @@ function mapProduct(
 ): Product {
   const images = normalizeProductImages(p.images, p.image);
   const ages = normalizeProductAges(p.ages, p.ageRange);
+  const colors = parseProductColors(p.colors);
+  const colorTracked = hasColorStock(colors);
   const sizeStock = Object.fromEntries(
     (p.sizeStocks ?? []).map((row) => [
       row.ageLabel,
       Math.max(0, row.stockQuantity),
     ])
   );
-  const stockQuantity =
-    Object.keys(sizeStock).length > 0
+  const stockQuantity = colorTracked
+    ? colorStockTotal(colors)
+    : Object.keys(sizeStock).length > 0
       ? sizeStockTotal(sizeStock)
       : Math.max(0, p.stockQuantity ?? 0);
   return {
@@ -173,7 +179,7 @@ function mapProduct(
     slug: p.slug,
     image: images[0] || p.image,
     images,
-    colors: parseProductColors(p.colors),
+    colors,
     price: roundedSalePrice({
       price: p.price,
       compareAtPrice: p.compareAtPrice ?? null,
@@ -250,6 +256,7 @@ function mapOrder(
       productId: i.productId,
       name: i.name,
       ageLabel: i.ageLabel ?? undefined,
+      colorId: i.colorId ?? undefined,
       price: i.price,
       quantity: i.quantity,
       image: i.image,
@@ -354,12 +361,17 @@ export async function saveProducts(products: Product[]): Promise<void> {
     for (const p of products) {
       const images = normalizeProductImages(p.images, p.image);
       const ages = normalizeProductAges(p.ages, p.ageRange);
-      const colors = p.colors ?? [];
-      const sizeStock = normalizeSizeStock(p.sizeStock, ages);
+      const colors = parseProductColors(p.colors);
+      const colorTracked = hasColorStock(colors);
+      const sizeStock = colorTracked
+        ? {}
+        : normalizeSizeStock(p.sizeStock, ages);
       const hasPerSizeStock = Object.keys(sizeStock).length > 0;
-      const stockQuantity = hasPerSizeStock
-        ? sizeStockTotal(sizeStock)
-        : Math.max(0, Math.floor(p.stockQuantity ?? 0));
+      const stockQuantity = colorTracked
+        ? colorStockTotal(colors)
+        : hasPerSizeStock
+          ? sizeStockTotal(sizeStock)
+          : Math.max(0, Math.floor(p.stockQuantity ?? 0));
       const price = roundedSalePrice(p);
       const sortOrder = Number.isFinite(p.sortOrder)
         ? Math.floor(Number(p.sortOrder))
@@ -843,6 +855,7 @@ export async function createOrder(
             productId: item.productId,
             name: item.name,
             ageLabel: item.ageLabel ?? null,
+            colorId: "colorId" in item ? item.colorId ?? null : null,
             price: item.price,
             quantity: item.quantity,
             image: item.image,

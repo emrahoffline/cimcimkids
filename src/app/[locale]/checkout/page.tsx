@@ -273,6 +273,7 @@ export default function CheckoutPage() {
       price: i.price,
       quantity: i.quantity,
       image: i.image,
+      colorId: i.colorId,
       colorLabel: i.colorLabel,
       ageLabel: i.ageLabel,
     }));

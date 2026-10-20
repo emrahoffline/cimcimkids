@@ -32,7 +32,13 @@ import { isShippingProductId, shippingLine } from "@/lib/shipping";
 import { isCodFeeProductId } from "@/lib/cod-fee";
 import { getProductAges } from "@/lib/types";
 import { agesMatch, canonicalizeAge } from "@/lib/product-ages";
-import { stockForAge } from "@/lib/product-stock";
+import {
+  findProductColor,
+  stockForAge,
+  stockForVariant,
+  usesColorStock,
+  variantStockScope,
+} from "@/lib/product-stock";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -171,6 +177,7 @@ export async function POST(request: Request) {
     quantity: number;
     image: string;
     ageLabel?: string;
+    colorId?: string;
   }> = [];
   const requestedQuantityByVariant = new Map<string, number>();
 
@@ -245,15 +252,50 @@ export async function POST(request: Request) {
         { status: 400 }
       );
     }
-    const availableStock = stockForAge(product, ageLabel);
-    const stockKey = `${product.id}::${ageLabel || "-"}`;
+    const colorLabel =
+      typeof row.colorLabel === "string" && row.colorLabel.trim()
+        ? row.colorLabel.trim().slice(0, 40)
+        : "";
+    const requestedColorId =
+      typeof row.colorId === "string" && row.colorId.trim()
+        ? row.colorId.trim().slice(0, 40)
+        : "";
+    const colorTracked = usesColorStock(product);
+    const color = colorTracked
+      ? findProductColor(product, requestedColorId, colorLabel)
+      : undefined;
+    if (colorTracked && !color) {
+      return NextResponse.json(
+        { error: `"${product.nameTr}" için geçerli bir renk seçin.` },
+        { status: 400 }
+      );
+    }
+    const scope = colorTracked
+      ? variantStockScope(product, color?.id, colorLabel)
+      : "size";
+    const availableStock =
+      scope === "size"
+        ? stockForAge(product, ageLabel)
+        : stockForVariant(product, ageLabel, color?.id, colorLabel);
+    const stockKey =
+      scope === "color-size"
+        ? `${product.id}::${color?.id}::${ageLabel || "-"}`
+        : scope === "color"
+          ? `${product.id}::color::${color?.id}`
+          : `${product.id}::${ageLabel || "-"}`;
     const requestedQuantity =
       (requestedQuantityByVariant.get(stockKey) ?? 0) + quantity;
     if (requestedQuantity > availableStock) {
+      const variantLabel =
+        scope === "color-size"
+          ? [ageLabel, color?.labelTr].filter(Boolean).join(", ")
+          : scope === "color"
+            ? color?.labelTr
+            : ageLabel;
       return NextResponse.json(
         {
           error: `"${product.nameTr}"${
-            ageLabel ? ` (${ageLabel})` : ""
+            variantLabel ? ` (${variantLabel})` : ""
           } için yalnızca ${availableStock} adet stok var.`,
         },
         { status: 400 }
@@ -265,12 +307,8 @@ export async function POST(request: Request) {
     }
 
     serverTotal += product.price * quantity;
-    const colorLabel =
-      typeof row.colorLabel === "string" && row.colorLabel.trim()
-        ? row.colorLabel.trim().slice(0, 40)
-        : "";
     const baseName = product.nameTr || product.nameEn;
-    const extras = [ageLabel, colorLabel].filter(Boolean).join(", ");
+    const extras = [ageLabel, color?.labelTr || colorLabel].filter(Boolean).join(", ");
     validatedItems.push({
       productId: product.id,
       name: extras ? `${baseName} (${extras})` : baseName,
@@ -278,6 +316,7 @@ export async function POST(request: Request) {
       quantity,
       image: product.image,
       ageLabel: ageLabel || undefined,
+      colorId: color?.id,
     });
   }
 

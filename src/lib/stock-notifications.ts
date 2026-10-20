@@ -2,6 +2,8 @@ import "server-only";
 
 import { prisma, requireDatabaseUrl } from "./prisma";
 import { sendBackInStockEmail } from "./email";
+import { parseProductColors } from "./product-variants";
+import { colorHasSizeStock } from "./product-stock";
 
 export async function sendPendingStockNotifications(
   productId: string
@@ -24,6 +26,12 @@ export async function sendPendingStockNotifications(
       .filter((stock) => stock.stockQuantity > 0)
       .map((stock) => stock.ageLabel)
   );
+  for (const color of parseProductColors(product.colors)) {
+    if (!colorHasSizeStock(color)) continue;
+    for (const [age, quantity] of Object.entries(color.sizeStock ?? {})) {
+      if (quantity > 0) availableAges.add(age);
+    }
+  }
   const staleClaim = new Date(Date.now() - 15 * 60 * 1000);
   let sent = 0;
 

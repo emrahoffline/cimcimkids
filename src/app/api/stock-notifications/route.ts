@@ -1,6 +1,12 @@
 import { randomUUID } from "crypto";
 import { NextResponse } from "next/server";
 import { agesMatch } from "@/lib/product-ages";
+import {
+  colorHasSizeStock,
+  findProductColor,
+  usesColorStock,
+} from "@/lib/product-stock";
+import { parseProductColors } from "@/lib/product-variants";
 import { prisma, requireDatabaseUrl } from "@/lib/prisma";
 import { getClientIp, rateLimit } from "@/lib/rate-limit";
 
@@ -53,14 +59,40 @@ export async function POST(request: Request) {
   if (!ageLabel) {
     return NextResponse.json({ error: "Beden bulunamadı." }, { status: 400 });
   }
-  const sizeStock = product.sizeStocks.find(
-    (stock) => stock.ageLabel === ageLabel
-  );
-  if (!sizeStock || sizeStock.stockQuantity > 0) {
-    return NextResponse.json(
-      { error: "Bu beden şu anda stokta." },
-      { status: 409 }
+  const colors = parseProductColors(product.colors);
+  if (usesColorStock({ colors })) {
+    const requestedColorId =
+      typeof row.colorId === "string" ? row.colorId.trim().slice(0, 40) : "";
+    const color = findProductColor({ colors }, requestedColorId);
+    if (!color) {
+      return NextResponse.json(
+        { error: "Renk bulunamadı." },
+        { status: 400 }
+      );
+    }
+    const sizeLeft = colorHasSizeStock(color)
+      ? (color.sizeStock?.[ageLabel] ?? 0)
+      : null;
+    if (sizeLeft !== null ? sizeLeft > 0 : (color.stock ?? 0) > 0) {
+      return NextResponse.json(
+        {
+          error: sizeLeft !== null
+            ? "Bu beden şu anda stokta."
+            : "Bu renk şu anda stokta.",
+        },
+        { status: 409 }
+      );
+    }
+  } else {
+    const sizeStock = product.sizeStocks.find(
+      (stock) => stock.ageLabel === ageLabel
     );
+    if (!sizeStock || sizeStock.stockQuantity > 0) {
+      return NextResponse.json(
+        { error: "Bu beden şu anda stokta." },
+        { status: 409 }
+      );
+    }
   }
 
   await prisma.stockNotification.upsert({
