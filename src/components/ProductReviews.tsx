@@ -6,6 +6,7 @@ import { useLocale, useTranslations } from "next-intl";
 import { ImagePlus, X } from "lucide-react";
 import { StarRating } from "./StarRating";
 import { ProductRatingBadge } from "./ProductRatingBadge";
+import { readRememberedShopperEmail } from "@/lib/shopper";
 import {
   REVIEW_COMMENT_MAX,
   REVIEW_IMAGE_MAX,
@@ -85,6 +86,10 @@ export function ProductReviews({
   const [done, setDone] = useState(false);
 
   photosRef.current = photos;
+
+  useEffect(() => {
+    setEmail(readRememberedShopperEmail());
+  }, []);
 
   useEffect(() => {
     return () => {
@@ -253,9 +258,8 @@ export function ProductReviews({
                 </span>
                 <input
                   type="email"
-                  name="review-order-email"
                   required
-                  autoComplete="off"
+                  autoComplete="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="input-field w-full text-sm"
